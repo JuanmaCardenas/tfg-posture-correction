@@ -1,0 +1,25 @@
+# ==============================================================
+#  docker-compose.yml — Base de datos MySQL para el TFG
+#  Levantar:            docker compose up -d
+#  Ver estado:          docker compose ps
+#  Parar (conserva datos):   docker compose down
+#  Parar y BORRAR datos:     docker compose down -v
+# ==============================================================
+services:
+  mysql:
+    image: mysql:8.4                 # versión LTS de MySQL
+    container_name: fitness-mysql
+    restart: unless-stopped          # se reinicia solo si se cae
+    environment:
+      MYSQL_ROOT_PASSWORD: fitness_root   # contraseña del usuario root (solo local)
+      MYSQL_DATABASE: fitness_tfg         # crea esta base de datos al arrancar
+    ports:
+      - "3306:3306"                  # conecta el contenedor con tu localhost:3306
+    volumes:
+      - fitness-mysql-data:/var/lib/mysql   # <-- el "volumen": guarda los datos
+                                            #     aunque apagues o borres el contenedor
+
+# Aquí se declara el volumen que usa el servicio de arriba.
+# Es lo que hace que tus datos NO se pierdan al apagar la caja.
+volumes:
+  fitness-mysql-data:
