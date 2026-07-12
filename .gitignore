@@ -1,0 +1,60 @@
+# ==============================================================
+#  .gitignore — TFG (memoria LaTeX + futuro código Angular/Spring)
+# ==============================================================
+
+# ── Temporales de LaTeX ─────────────────────────────────────
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# ── Bibliografía (biber / biblatex) ─────────────────────────
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+
+# ── Nomenclatura (paquete nomencl) ──────────────────────────
+*.nlo
+*.nls
+*.ilg
+
+# ── PDF compilado ───────────────────────────────────────────
+# El PDF se regenera al compilar, por eso se ignora.
+# Si prefieres SUBIR el PDF final (p. ej. para que tu tutor lo
+# lea directamente en GitHub), borra o comenta la línea siguiente:
+main.pdf
+
+# NOTA: las carpetas docs/template/fonts y docs/template/logos
+# SÍ deben subirse: son necesarias para que la plantilla compile.
+# Por eso no aparecen aquí.
+
+# ==============================================================
+#  A partir de aquí, para cuando añadas el código (más adelante)
+# ==============================================================
+
+# ── Angular / Node (frontend) ───────────────────────────────
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.angular/
+/frontend/*.log
+
+# ── Spring Boot / Maven (backend) ───────────────────────────
+/backend/target/
+# Si usaras Gradle en vez de Maven:
+# /backend/build/
+# /backend/.gradle/
+
+# ── Credenciales (¡NUNCA subir!) ────────────────────────────
+**/application-local.properties
+**/*.env
+
+# ── Editores ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
