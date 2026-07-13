@@ -1,3 +1,4 @@
+%!TEX TS-program = lualatex
 % ======================================================================
 \documentclass[12pt,a4paper,twoside,openright]{book}
 
@@ -36,8 +37,8 @@
 %───────── Template, covers, back cover ────────────────────────────────
 \usepackage{template/sty_files/template-TFGspanish-uma}
 
-\usepackage{template/sty_files/cotutor_cover-blueuma}
-\usepackage{template/sty_files/cotutor_cover-whiteuma}
+\usepackage{template/sty_files/plain_cover-blueuma}
+\usepackage{template/sty_files/plain_cover-whiteuma}
 
 \usepackage{template/sty_files/backcover-uma}
 
@@ -46,34 +47,32 @@
 
 %────────────────────── Blue front cover (Cotutor) ───────────────────────
 
-\MakeBlueUMACover{
-  degree     = {Grado en Ingeniería de la Salud},
-  mencion    = {Mención en Bioinformática},
-  titleES    = {Reconstrucción y Segmentación de Imágenes Biomédicas con Redes Neuronales Profundas},
-  titleEN    = {Deep Neural Networks for Biomedical Image Reconstruction and Segmentation},
-  author     = {John Doe},
-  tutor      = {Dr.~John Doe},
-  cotutor= {Dra.~Jane Doe},
+\MakePlainBlueUMACover{
+  degree     = {Grado en Ingeniería Informática},
+  mencion    = {Mención en Sistemas de la Información},
+  titleES    = {Desarrollo de una aplicación web de fitness con corrección postural},
+  titleEN    = {Development of a Web-Based Fitness Application with Posture Correction},
+  author     = {Juan Manuel Cárdenas Recio},
+  tutor      = {Eduardo Guzmán de los Riscos},
   dept       = {Departamento de Lenguajes y Ciencias de la Computación},
-  cityDate   = {Málaga, Noviembre, 2025},
+  cityDate   = {Málaga, Septiembre, 2026},
   logoLeft   = {template/logos/NEG-uma-logo.png},
   logoRight  = {template/logos/NEG-etsi-logo.png}
 }
 
 %────────────────────── White front cover (Cotutor) ───────────────────────
-\MakeWhiteUMACover{
-  degree     = {Graduado en Ingeniería de la Salud},
-  mencion    = {Mención en Bioinformática},
-  titleES    = {Reconstrucción y Segmentación de Imágenes Biomédicas con Redes Neuronales Profundas},
-  titleEN    = {Deep Neural Networks for Biomedical Image Reconstruction and Segmentation},
-  author     = {John Doe},
-  tutor      = {Dr.~John Doe},
-  cotutor= {Dra.~Jane Doe},
-  dept       = {Departamento de Lenguajes y Ciencias de la Computación},
-  cityDate   = {Málaga, Noviembre, 2025},
-  defenseDate = {Septiembre, 2025},
-  logoLeft   = {template/logos/POS-uma-logo.png},
-  logoRight  = {template/logos/POS-etsi-logo.png}
+\MakePlainWhiteUMACover{
+  degree      = {Graduado en Ingeniería Informática},
+  mencion     = {Mención en Sistemas de la Información},
+  titleES     = {Desarrollo de una aplicación web de fitness con corrección postural},
+  titleEN     = {Development of a Web-Based Fitness Application with Posture Correction},
+  author      = {Juan Manuel Cárdenas Recio},
+  tutor       = {Eduardo Guzmán de los Riscos},
+  dept        = {Departamento de Lenguajes y Ciencias de la Computación},
+  cityDate    = {Málaga, Septiembre, 2026},
+  defenseDate = {Septiembre de 2026},
+  logoLeft    = {template/logos/POS-uma-logo.png},
+  logoRight   = {template/logos/POS-etsi-logo.png}
 }
 
 \frontmatter
