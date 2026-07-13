@@ -1,4 +1,3 @@
-%!TEX TS-program = lualatex
 % ======================================================================
 \documentclass[12pt,a4paper,twoside,openright]{book}
 
@@ -144,27 +143,155 @@
 
 
     \section{Contextualización y motivación}
-% Auge del fitness autónomo, ejecución sin supervisión, riesgo de lesiones,
-% y oportunidad de la visión por computador para la corrección postural.
+
+    En la actualidad, el interés por la actividad física y el entrenamiento
+    personal ha crecido notablemente, impulsado por la concienciación sobre
+    la salud y el bienestar. Sin embargo, una gran parte de las personas que
+    realizan ejercicio lo hacen sin supervisión directa de un profesional, lo
+    que puede dar lugar a una ejecución incorrecta de los ejercicios,
+    disminuyendo su efectividad y aumentando el riesgo de lesiones. Esta
+    problemática se acentúa en los entrenamientos realizados en casa de forma
+    autónoma, donde el usuario carece de mecanismos objetivos para evaluar su
+    técnica.
+    
+    Paralelamente, el desarrollo de aplicaciones web y móviles en el ámbito
+    del fitness ha facilitado el acceso a rutinas de entrenamiento, catálogos
+    de ejercicios y herramientas de seguimiento. No obstante, muchas de estas
+    soluciones se limitan a ofrecer contenido estático o guías visuales, sin
+    proporcionar recursos que ayuden a corregir errores posturales de forma
+    objetiva.
+    
+    En este contexto, las técnicas de visión por computador, y en particular
+    la estimación de la postura corporal, ofrecen nuevas posibilidades para
+    analizar el movimiento humano a partir de imágenes o vídeos. Estas
+    técnicas permiten detectar puntos clave del cuerpo y calcular métricas
+    como ángulos articulares y alineaciones, lo que abre la puerta a sistemas
+    de apoyo capaces de evaluar la ejecución de determinados ejercicios sin
+    necesidad de equipamiento especializado.
+    
+    Este Trabajo Fin de Grado propone el desarrollo de una aplicación web de
+    fitness que combine funcionalidades tradicionales de seguimiento de
+    entrenamiento con un sistema de corrección postural. A diferencia de otras
+    soluciones existentes, centradas exclusivamente en el consumo de contenido
+    o en el registro de entrenamiento, este proyecto integra el análisis
+    postural como elemento clave del sistema, sin sustituir a un entrenador
+    profesional, sino sirviendo como herramienta de apoyo para mejorar la
+    calidad del entrenamiento autónomo.
 
 
     \section{Objetivos}
-
+    
     \subsection{Objetivo general}
-
+    
+    El objetivo principal de este Trabajo Fin de Grado es desarrollar una
+    aplicación web de fitness que permita a los usuarios consultar ejercicios
+    guiados, realizar un seguimiento de su entrenamiento y recibir apoyo en la
+    corrección de la postura durante la ejecución de determinados ejercicios
+    mediante técnicas de estimación de pose, mejorando la calidad del
+    entrenamiento autónomo sin sustituir la supervisión de un profesional.
+    
     \subsection{Objetivos específicos}
-% Gestión de usuarios, catálogo, valoraciones/comentarios, favoritos,
-% corrección postural, cálculo de métricas, feedback, desarrollo full-stack.
+    
+    \begin{itemize}
+        \item \textbf{Gestión de usuarios:} diseñar e implementar un sistema de
+        registro, autenticación e inicio de sesión que permita gestionar el
+        perfil personal de forma segura.
+        \item \textbf{Catálogo de ejercicios:} desarrollar un catálogo con
+        filtrado por criterios como grupo muscular o nivel de dificultad.
+        \item \textbf{Visualización detallada de ejercicios:} proporcionar una
+        vista de detalle con descripción, consejos de ejecución y vídeos de
+        ejemplo embebidos desde plataformas externas como YouTube.
+        \item \textbf{Valoraciones y comentarios:} implementar funcionalidades
+        sociales que permitan puntuar ejercicios mediante estrellas y compartir
+        comentarios, mostrando las valoraciones de forma agregada.
+        \item \textbf{Ejercicios favoritos:} permitir marcar ejercicios como
+        favoritos y acceder a una vista con la lista personalizada.
+        \item \textbf{Corrección postural asistida:} integrar un sistema de
+        análisis postural que evalúe la ejecución a partir de vídeos locales,
+        procesados directamente en el navegador.
+        \item \textbf{Cálculo de métricas de ejecución:} calcular métricas
+        básicas, como ángulos articulares y alineaciones, adaptadas a cada
+        ejercicio.
+        \item \textbf{Generación de feedback:} mostrar la puntuación global
+        junto con mensajes de corrección y recomendaciones claras.
+        \item \textbf{Desarrollo full-stack:} diseñar e implementar una
+        arquitectura cliente-servidor con frontend en Angular y backend con
+        API REST, autenticación y persistencia de datos.
+    \end{itemize}
 
 
-    \section{Metodología de trabajo}
-% Metodología incremental iterativa basada en principios ágiles:
-% product backlog, sprints, desarrollo incremental, validación continua,
-% control de versiones.
+    \section{Metodología y gestión del proyecto}
+    \label{subsec:metodologia}
+    \subsection{Metodología incremental iterativa (ágil)}
+
+    El desarrollo de este proyecto sigue una metodología incremental iterativa,
+    basada en los principios ágiles y adaptada a un entorno de trabajo
+    individual. El trabajo se organiza en incrementos de corta duración, cada
+    uno de los cuales da lugar a una versión funcional parcial de la
+    aplicación, lo que permite evaluar el progreso de forma continua y validar
+    las decisiones de diseño adoptadas. Se parte de un \textit{product backlog}
+    inicial con las funcionalidades principales, descompuestas en tareas
+    priorizadas según su relevancia; cada incremento comienza por los
+    componentes básicos del sistema y evoluciona hacia funcionalidades más
+    complejas, como el análisis postural, revisándose al finalizar para
+    detectar errores de forma temprana.
+
+    \subsection{Gestión con Jira: backlog, sprints y tableros}
+    \label{subsec:jira}
+    
+    La gestión del proyecto se apoya en Jira como herramienta de planificación
+    y seguimiento. El trabajo se estructura en \textit{épicas}, cada una
+    correspondiente a un bloque funcional del sistema: arranque del entorno
+    (E0), gestión de usuarios (E1), catálogo de ejercicios (E2),
+    funcionalidades sociales (E3), corrección postural (E4) y pruebas y cierre
+    (E5), además de una épica específica para la redacción de la memoria. Cada
+    épica se descompone en \textit{historias} o tareas, que a su vez se
+    detallan a nivel diario para mantener objetivos pequeños y alcanzables.
+    
+    La planificación temporal se organiza en \textit{sprints} de una semana de
+    duración. Cada sprint agrupa las tareas de una épica que pueden completarse
+    en ese periodo; las épicas más extensas, como la de corrección postural, se
+    reparten en varios sprints consecutivos. El avance de cada tarea se controla
+    mediante un tablero (\textit{board}) que refleja su estado, lo que
+    proporciona una visión continua del progreso y permite mantener un ritmo de
+    trabajo constante. La Figura~\ref{fig:jira-cronograma} muestra el cronograma
+    del proyecto en Jira, con la distribución de las épicas a lo largo del tiempo.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/jira-cronograma.png}
+        \caption{Cronograma del proyecto en Jira, con las épicas y su planificación temporal.}
+        \label{fig:jira-cronograma}
+    \end{figure}
+    
+    Para clasificar el trabajo de forma transversal a las épicas se emplea un
+    sistema de \textit{etiquetas} según el área técnica de cada tarea:
+    \texttt{setup}, \texttt{infra}, \texttt{backend}, \texttt{frontend},
+    \texttt{data}, \texttt{postural}, \texttt{design}, \texttt{testing} y
+    \texttt{memoria}. Esto facilita filtrar y consultar el trabajo por tipo de
+    actividad con independencia del sprint en que se realice.
+    
+    Por último, se definen dos épicas de apoyo. La épica \textit{Hitos} recoge
+    las fechas de vencimiento clave del proyecto (aplicación funcionalmente
+    completa, entrega de la memoria al tutor, solicitud de defensa y defensa),
+    que actúan como puntos de control fijos. La épica \textit{Diario} materializa
+    la estrategia de documentación incremental: cada entrada registra una
+    decisión, un resultado o una incidencia y se anota con el capítulo de la
+    memoria al que alimenta, de modo que la memoria crece en paralelo al
+    desarrollo en lugar de redactarse íntegramente al final.
 
 
     \section{Estructura de la memoria}
-% Breve descripción de cada capítulo.
+    
+    El resto de la memoria se organiza como sigue. El Capítulo~\ref{cap:estado-del-arte}
+    revisa el estado del arte en aplicaciones de fitness y corrección postural.
+    El Capítulo~\ref{cap:tecnologias} describe las tecnologías y herramientas
+    empleadas. El Capítulo~\ref{cap:analisis} recoge el análisis de
+    requisitos. El Capítulo~\ref{cap:diseno} detalla el diseño del sistema. El
+    Capítulo~\ref{cap:implementacion} aborda la implementación. El
+    Capítulo~\ref{cap:pruebas} presenta las pruebas y la validación. Finalmente,
+    el Capítulo~\ref{cap:conclusiones} expone las conclusiones y las líneas de
+    trabajo futuro.
 
 
 % ─────────────────────── Capítulo 2 ──────────────────────────────────
@@ -173,14 +300,35 @@
     \chapter{Estado del arte}
     \label{cap:estado-del-arte}
 
-
     \section{Aplicaciones de fitness actuales}
-
-
-    \section{Estimación de pose y corrección postural mediante visión por computador}
-
-
-    \section{Aportación diferencial de este TFG}
+    
+    El mercado de aplicaciones de fitness ha crecido de forma sostenida en los
+    últimos años, ofreciendo rutinas de entrenamiento, catálogos de ejercicios
+    y herramientas de seguimiento de la actividad. Sin embargo, la mayoría de
+    estas soluciones se limitan a presentar contenido estático o guías
+    visuales, y no proporcionan mecanismos objetivos para evaluar o corregir la
+    técnica de ejecución del usuario.
+    
+    \section{Estimación de pose y corrección postural}
+    
+    % AMPLIAR: esta sección necesita fuentes propias. Explica brevemente qué es
+    % la estimación de pose por visión por computador, menciona MediaPipe Pose
+    % y cita 2-3 trabajos o herramientas similares.
+    
+    Las técnicas de estimación de pose permiten detectar puntos clave del
+    cuerpo humano a partir de imágenes o vídeo y calcular métricas como ángulos
+    articulares y alineaciones. Herramientas como MediaPipe Pose posibilitan
+    realizar este análisis en tiempo real y directamente en el navegador, sin
+    necesidad de equipamiento especializado.
+    
+    \section{Aportación diferencial del proyecto}
+    
+    A diferencia de las soluciones existentes, centradas en el consumo de
+    contenido o en el registro del entrenamiento, este proyecto integra el
+    análisis postural como un elemento central del sistema, manteniendo un
+    alcance realista acorde a un Trabajo Fin de Grado. El objetivo no es
+    sustituir a un entrenador profesional, sino ofrecer una herramienta de
+    apoyo que ayude a reducir errores comunes en el entrenamiento autónomo.
 
 
 % ─────────────────────── Capítulo 3 ──────────────────────────────────
@@ -188,21 +336,78 @@
 
     \chapter{Tecnologías y herramientas}
     \label{cap:tecnologias}
-
-
+    
+    Este capítulo describe las tecnologías y herramientas empleadas en el
+    desarrollo del proyecto, así como las versiones concretas utilizadas, que se
+    recogen en la Tabla~\ref{tab:versiones}.
+    
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            \textbf{Herramienta} & \textbf{Versión} \\
+            \midrule
+            Node.js        & 24.18.0 \\
+            npm            & 12.0.1 \\
+            Angular CLI    & 22.0.6 \\
+            Java (JDK)     & 21 \\
+            Spring Boot    & 4.1.0 \\
+            MySQL          & 8.4 \\
+            Docker Desktop & 4.81.0 \\
+            Git            & 2.55.0.2 \\
+            IntelliJ IDEA  & 2026.1.4 (Ultimate) \\
+            \bottomrule
+        \end{tabular}
+        \caption{Versiones de las principales tecnologías y herramientas.}
+        \label{tab:versiones}
+    \end{table}
+    
     \section{Frontend: Angular, NgRx y SCSS}
-
-
+    
+    La interfaz de usuario se desarrolla con Angular, un framework de código
+    abierto para la construcción de aplicaciones web de página única (SPA)
+    basado en TypeScript. La gestión del estado de la aplicación se realiza con
+    NgRx, una librería que implementa el patrón Redux y centraliza el estado en
+    un único almacén, facilitando su trazabilidad. Para los estilos se emplea
+    SCSS, una extensión de CSS que aporta variables y anidamiento, y el formato
+    del código se mantiene consistente mediante la herramienta Prettier.
+    
     \section{Backend: Spring Boot, API REST y JWT}
-
-
+    
+    El servidor se implementa con Spring Boot, un framework de Java que agiliza
+    la creación de aplicaciones y servicios web. Expone una API REST que
+    comunica el frontend con la lógica de negocio mediante peticiones HTTP en
+    formato JSON. La seguridad se gestiona con Spring Security y autenticación
+    basada en JSON Web Tokens (JWT), que permiten un control de acceso sin
+    estado en el servidor. La gestión de dependencias y la construcción del
+    proyecto se realizan con Maven, y se emplea Lombok para reducir código
+    repetitivo en las clases del modelo.
+    
     \section{Persistencia: MySQL y Docker}
-
-
+    
+    La información se almacena en MySQL, un sistema gestor de bases de datos
+    relacional. Para facilitar su despliegue y garantizar un entorno
+    reproducible, la base de datos se ejecuta en un contenedor Docker con un
+    volumen persistente, de modo que los datos se conservan entre reinicios sin
+    necesidad de instalar MySQL directamente en el sistema anfitrión.
+    
     \section{Visión por computador: MediaPipe Pose}
-
-
-    \section{Entorno de desarrollo y control de versiones}
+    
+    El módulo de corrección postural se apoya en MediaPipe Pose, concretamente
+    en el modelo PoseLandmarker, que permite detectar los puntos clave del
+    cuerpo humano a partir de vídeo. El procesamiento se realiza directamente en
+    el navegador mediante WebAssembly (WASM), lo que evita enviar y almacenar
+    los vídeos del usuario y preserva su privacidad. A partir de los puntos
+    detectados se calculan métricas como ángulos articulares y alineaciones.
+    
+    \section{Entorno de desarrollo, control de versiones y gestión de tareas}
+    
+    El desarrollo se lleva a cabo en el IDE IntelliJ IDEA. El control de
+    versiones se gestiona con Git, utilizando GitHub como repositorio remoto,
+    organizado como un monorepo que agrupa el frontend, el backend y la
+    documentación en un único proyecto. La planificación y el seguimiento de las
+    tareas se realizan con Jira, tal como se describe en la
+    Sección~\ref{subsec:metodologia} (metodología y gestión del proyecto).
 
 
 % ─────────────────────── Capítulo 4 ──────────────────────────────────
@@ -212,12 +417,59 @@
     \label{cap:analisis}
 
 
+    
     \section{Requisitos funcionales}
-
-
+    En esta sección se recogen los requisitos funcionales del sistema, es decir,
+    las funcionalidades que debe ofrecer la aplicación. La
+    Tabla~\ref{tab:req-funcionales} los enumera.
+    
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{10cm}}
+            \toprule
+            \textbf{ID} & \textbf{Descripción} \\
+            \midrule
+            RF-01 & El usuario podrá registrarse, iniciar y cerrar sesión de forma segura. \\
+            RF-02 & El usuario podrá consultar un catálogo de ejercicios. \\
+            RF-03 & El usuario podrá filtrar los ejercicios por grupo muscular y nivel de dificultad. \\
+            RF-04 & El usuario podrá ver el detalle de un ejercicio, con descripción, consejos y vídeo embebido. \\
+            RF-05 & El usuario podrá valorar los ejercicios mediante un sistema de estrellas. \\
+            RF-06 & El usuario podrá escribir y consultar comentarios sobre los ejercicios. \\
+            RF-07 & El usuario podrá marcar ejercicios como favoritos y consultar su lista. \\
+            RF-08 & El usuario podrá subir un vídeo local para analizar su ejecución postural. \\
+            RF-09 & El sistema calculará métricas (ángulos y alineaciones) a partir del vídeo. \\
+            RF-10 & El sistema mostrará una puntuación global y recomendaciones de corrección. \\
+            \bottomrule
+        \end{tabular}
+        \caption{Requisitos funcionales del sistema.}
+        \label{tab:req-funcionales}
+    \end{table}
+    
     \section{Requisitos no funcionales}
 
-
+    Los requisitos no funcionales establecen las condiciones y restricciones de
+    calidad que debe cumplir el sistema, como la seguridad, la privacidad o la
+    usabilidad, más allá de sus funcionalidades concretas. La
+    Tabla~\ref{tab:req-no-funcionales} los recoge.
+    
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{10cm}}
+            \toprule
+            \textbf{ID} & \textbf{Descripción} \\
+            \midrule
+            RNF-01 & Las contraseñas se almacenarán cifradas y el acceso a los recursos protegidos se controlará mediante JWT. \\
+            RNF-02 & El procesamiento de los vídeos se realizará en el navegador, sin almacenar contenido del usuario, preservando su privacidad. \\
+            RNF-03 & La interfaz será usable e intuitiva, con una navegación clara entre las distintas vistas. \\
+            RNF-04 & El sistema seguirá una arquitectura cliente-servidor desacoplada mediante una API REST. \\
+            RNF-05 & La aplicación será desplegable de forma reproducible mediante contenedores. \\
+            RNF-06 & La aplicación funcionará en navegadores web modernos (Chrome, Firefox). \\
+            \bottomrule
+        \end{tabular}
+        \caption{Requisitos no funcionales del sistema.}
+        \label{tab:req-no-funcionales}
+    \end{table}
+    
     \section{Casos de uso}
 
 
@@ -229,15 +481,74 @@
 
 
     \section{Arquitectura general (cliente-servidor)}
+    El sistema sigue una arquitectura cliente-servidor de tres capas. El
+    cliente es una aplicación web desarrollada en Angular que se ejecuta en el
+    navegador, el servidor es una API REST implementada con Spring Boot, y la
+    persistencia se delega en una base de datos MySQL. La comunicación entre
+    cliente y servidor se realiza mediante peticiones HTTP con formato JSON,
+    mientras que el servidor accede a la base de datos mediante consultas SQL.
+    La Figura~\ref{fig:arquitectura-general} muestra esta organización.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/arquitectura-general.png}
+        \caption{Arquitectura general del sistema.}
+        \label{fig:arquitectura-general}
+    \end{figure}
 
 
     \section{Modelo de datos}
+
+    El modelo de datos parte de la entidad central \texttt{User}, que
+    almacena la información necesaria para la autenticación y el perfil del
+    usuario. La contraseña nunca se guarda en texto plano, sino cifrada
+    mediante el algoritmo BCrypt. La Tabla~\ref{tab:entidad-user} recoge sus
+    atributos.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Atributo} & \textbf{Tipo} & \textbf{Descripción} \\
+            \midrule
+            id        & Long          & Identificador único (clave primaria) \\
+            username  & String        & Nombre de usuario, único \\
+            email     & String        & Correo electrónico, único \\
+            password  & String        & Contraseña cifrada (BCrypt) \\
+            role      & Enum          & Rol: USER o ADMIN \\
+            createdAt & LocalDateTime & Fecha de alta \\
+        \bottomrule
+        \end{tabular}
+        \caption{Atributos de la entidad \texttt{User}.}
+        \label{tab:entidad-user}
+    \end{table}
 
 
     \section{Diseño de la API REST}
 
 
     \section{Diseño de la interfaz de usuario}
+
+    La aplicación se organiza en un conjunto de vistas o pantallas, cada una
+    asociada a una ruta y a un nivel de acceso (pública o privada). Las
+    vistas privadas requieren un token JWT válido, comprobado en el cliente
+    mediante un guard y revalidado en el servidor. La
+    Tabla~\ref{tab:vistas-e1} recoge las vistas del módulo de autenticación.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Vista} & \textbf{Ruta} & \textbf{Acceso} \\
+            \midrule
+            Registro & /register & Pública \\
+            Login    & /login    & Pública \\
+            Perfil   & /profile  & Privada \\
+            \bottomrule
+        \end{tabular}
+        \caption{Vistas del módulo de autenticación.}
+        \label{tab:vistas-e1}
+    \end{table}
 
 
     \section{Diseño del módulo de corrección postural}
@@ -305,6 +616,9 @@
 
 % ─────────────────────── Apéndices ───────────────────────────────────
     \begin{umaappendices}
+
+        \umaappendix{Seguimiento del proyecto en Jira}
+% Capturas del tablero, backlog y gráficos de sprint/burndown.
 
         \umaappendix{Manual de instalación y despliegue}
 % Requisitos previos, docker-compose, arranque de los servicios.
