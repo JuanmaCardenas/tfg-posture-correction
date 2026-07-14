@@ -1,12 +1,12 @@
 package es.uma.fitness.controller;
 
+import es.uma.fitness.dto.ChangePasswordRequest;
+import es.uma.fitness.dto.UpdateProfileRequest;
 import es.uma.fitness.dto.UserResponse;
-import es.uma.fitness.model.User;
-import es.uma.fitness.repository.UserRepository;
+import es.uma.fitness.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -14,18 +14,29 @@ import java.security.Principal;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(Principal principal) {
-        User user = userRepository.findByUsername(principal.getName()).orElseThrow();
-        UserResponse response = new UserResponse(
-                user.getId(), user.getUsername(), user.getEmail(),
-                user.getRole(), user.getCreatedAt());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserResponse> getMyProfile(Principal principal) {
+        return ResponseEntity.ok(userService.getProfile(principal.getName()));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            Principal principal,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userService.updateProfile(principal.getName(), request));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changeMyPassword(
+            Principal principal,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(principal.getName(), request);
+        return ResponseEntity.noContent().build();
     }
 }
