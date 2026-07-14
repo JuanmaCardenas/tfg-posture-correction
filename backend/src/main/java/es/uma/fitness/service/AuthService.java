@@ -1,9 +1,12 @@
 package es.uma.fitness.service;
 
+import es.uma.fitness.dto.AuthResponse;
+import es.uma.fitness.dto.LoginRequest;
 import es.uma.fitness.dto.RegisterRequest;
 import es.uma.fitness.model.Role;
 import es.uma.fitness.model.User;
 import es.uma.fitness.repository.UserRepository;
+import es.uma.fitness.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +15,14 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public User register(RegisterRequest request) {
@@ -34,5 +41,18 @@ public class AuthService {
                 .build();
 
         return userRepository.save(user);
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Usuario o contraseña incorrectos"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Usuario o contraseña incorrectos");
+        }
+
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token, user.getUsername(), user.getRole().name());
     }
 }

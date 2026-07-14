@@ -1,5 +1,7 @@
 package es.uma.fitness.controller;
 
+import es.uma.fitness.dto.AuthResponse;
+import es.uma.fitness.dto.LoginRequest;
 import es.uma.fitness.dto.RegisterRequest;
 import es.uma.fitness.dto.UserResponse;
 import es.uma.fitness.model.User;
@@ -33,5 +35,10 @@ public class AuthController {
                 user.getCreatedAt()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }
