@@ -356,6 +356,8 @@
             Docker Desktop & 4.81.0 \\
             Git            & 2.55.0.2 \\
             IntelliJ IDEA  & 2026.1.4 (Ultimate) \\
+            Postman        & 12.19.0 \\
+            jjwt (JWT)     & 0.13.0 \\
             \bottomrule
         \end{tabular}
         \caption{Versiones de las principales tecnologías y herramientas.}
@@ -381,7 +383,9 @@
     basada en JSON Web Tokens (JWT), que permiten un control de acceso sin
     estado en el servidor. La gestión de dependencias y la construcción del
     proyecto se realizan con Maven, y se emplea Lombok para reducir código
-    repetitivo en las clases del modelo.
+    repetitivo en las clases del modelo. Para probar los endpoints de la API
+    de forma aislada durante el desarrollo, sin depender del frontend,
+    se ha utilizado Postman, una herramienta para construir y examinar peticiones HTTP.
     
     \section{Persistencia: MySQL y Docker}
     
@@ -525,6 +529,82 @@
 
 
     \section{Diseño de la API REST}
+    La comunicación entre cliente y servidor se realiza mediante una API REST
+    que intercambia mensajes en formato JSON sobre HTTP. Cada operación se asocia
+    a una ruta y a un verbo HTTP, y la respuesta se acompaña del código de estado
+    HTTP correspondiente al resultado. El módulo de autenticación expone las
+    rutas recogidas en la Tabla~\ref{tab:api-auth}, ambas públicas por no
+    requerir un usuario autenticado previo.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Verbo} & \textbf{Ruta} & \textbf{Descripción} \\
+            \midrule
+            POST & /api/auth/register & Registro de un nuevo usuario \\
+            POST & /api/auth/login    & Inicio de sesión y obtención del token \\
+            \bottomrule
+        \end{tabular}
+        \caption{Rutas del módulo de autenticación.}
+        \label{tab:api-auth}
+    \end{table}
+
+    En el registro, el cuerpo de la petición contiene el nombre de usuario, el
+    correo y la contraseña. La respuesta emplea distintos códigos de estado según
+    el resultado: \texttt{201 Created} si el usuario se crea correctamente,
+    \texttt{400 Bad Request} si los datos no superan la validación (por ejemplo,
+    un correo con formato incorrecto) y \texttt{409 Conflict} si el nombre de
+    usuario o el correo ya están registrados.
+
+    En el inicio de sesión, el cuerpo de la petición contiene el nombre de
+    usuario y la contraseña. Si las credenciales son correctas, la respuesta es
+    \texttt{200 OK} e incluye el token JWT que el cliente deberá presentar en
+    las peticiones posteriores; si no lo son, la respuesta es
+    \texttt{401 Unauthorized}. Por seguridad, el mensaje de error es idéntico
+    tanto si el usuario no existe como si la contraseña es incorrecta, evitando
+    así revelar qué nombres de usuario están registrados.
+
+    \subsection{Autenticación basada en tokens (JWT)}
+
+    Para el control de acceso se ha optado por una autenticación basada en
+    tokens JWT (\textit{JSON Web Token}) en lugar del modelo clásico de sesiones
+    en el servidor. Un JWT es una credencial firmada digitalmente que el
+    servidor entrega al usuario tras un inicio de sesión correcto y que este
+    presenta en cada petición posterior. El token contiene la información
+    necesaria para identificar al usuario (su nombre y su rol) y una fecha de
+    caducidad, y va firmado con una clave secreta que solo conoce el servidor,
+    lo que le permite verificar su autenticidad sin necesidad de almacenar
+    ninguna sesión.
+
+    La principal ventaja de este enfoque es que el servidor es \textit{sin
+    estado} (\textit{stateless}): no necesita guardar información de sesión de
+    cada usuario, lo que simplifica la arquitectura y facilita la escalabilidad.
+    Este modelo encaja además de forma natural con una arquitectura desacoplada
+    de frontend y backend que se comunican mediante una API REST, en la que el
+    cliente conserva el token y lo adjunta en la cabecera \texttt{Authorization}
+    de sus peticiones. Conviene precisar que el token va firmado, pero no
+    cifrado, por lo que nunca se incluye en él información sensible como la
+    contraseña.
+
+    Conviene subrayar que la protección de rutas en el cliente (mediante un
+    \textit{guard} de Angular) cumple únicamente una función de experiencia de
+    usuario: evita mostrar vistas privadas cuando no hay sesión. La seguridad
+    efectiva reside siempre en el servidor, que revalida el token en cada
+    petición con independencia de lo que decida el cliente.
+
+    La Figura~\ref{fig:flujo-auth} resume el flujo completo del módulo de
+    autenticación, desde el registro y el inicio de sesión hasta el acceso a una
+    ruta protegida presentando el token.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/flujo-autenticacion.png}
+        \caption{Flujo del módulo de autenticación: registro con cifrado BCrypt,
+        inicio de sesión con emisión de token JWT y acceso a rutas protegidas
+        mediante validación del token en el servidor.}
+        \label{fig:flujo-auth}
+    \end{figure}
 
 
     \section{Diseño de la interfaz de usuario}
@@ -562,7 +642,181 @@
 
 
     \section{Gestión de usuarios y autenticación}
+El primer módulo implementado en el backend es el de gestión de usuarios,
+    que constituye la base sobre la que se apoya el resto de funcionalidades
+    del sistema. En esta primera fase se construyó el modelo de dominio y la
+    capa de persistencia; sobre ellos se implementó después el registro de
+    usuarios.
 
+    \subsection{Modelo de dominio y persistencia}
+
+    La entidad \texttt{User}, cuyos atributos se recogieron en la
+    Tabla~\ref{tab:entidad-user}, se ha implementado como una entidad JPA
+    (\textit{Java Persistence API}) anotada con \texttt{@Entity} y mapeada a la
+    tabla \texttt{users}. Se ha optado por el nombre en plural porque
+    \texttt{user} es una palabra reservada en MySQL, lo que evita conflictos en
+    las consultas SQL generadas.
+
+    El atributo \texttt{role} se persiste como cadena de texto mediante la
+    anotación \texttt{@Enumerated(EnumType.STRING)}, de modo que en la base de
+    datos se almacenan los valores \texttt{USER} y \texttt{ADMIN} de forma
+    legible en lugar de un índice numérico. Los campos \texttt{username} y
+    \texttt{email} se declaran con la restricción \texttt{unique}, garantizando
+    su unicidad a nivel de base de datos. La fecha de alta (\texttt{createdAt})
+    se asigna automáticamente antes de la primera inserción mediante un método
+    anotado con \texttt{@PrePersist}. Para reducir el código repetitivo
+    (\textit{getters}, \textit{setters} y constructores) se emplea la
+    biblioteca Lombok.
+
+    El acceso a los datos se delega en la interfaz \texttt{UserRepository}, que
+    extiende \texttt{JpaRepository} de Spring Data JPA. Esta herencia
+    proporciona automáticamente las operaciones CRUD básicas, a las que se
+    añaden los métodos de consulta derivados recogidos en la
+    Tabla~\ref{tab:user-repository}, cuya implementación genera Spring a partir
+    del nombre del método sin necesidad de escribir SQL.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            \textbf{Método} & \textbf{Función} \\
+            \midrule
+            findByUsername   & Recupera un usuario por su nombre de usuario \\
+            findByEmail      & Recupera un usuario por su correo electrónico \\
+            existsByUsername & Comprueba si un nombre de usuario ya existe \\
+            existsByEmail    & Comprueba si un correo ya está registrado \\
+            \bottomrule
+        \end{tabular}
+        \caption{Métodos de consulta de \texttt{UserRepository}.}
+        \label{tab:user-repository}
+    \end{table}
+
+    La generación del esquema se ha delegado en Hibernate mediante la propiedad
+    \texttt{spring.jpa.hibernate.ddl-auto=update}, que crea y actualiza las
+    tablas a partir de las entidades al arrancar la aplicación. Tras el primer
+    arranque se verificó en la base de datos MySQL, ejecutada en un contenedor
+    Docker, la creación correcta de la tabla \texttt{users} con las columnas y
+    restricciones esperadas (Figura~\ref{fig:tabla-user-creacion}).
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.85\textwidth]{img/tabla-user-creacion.png}
+        \caption{Estructura de la tabla \texttt{users} generada por Hibernate,
+        verificada con \texttt{DESCRIBE users} en MySQL.}
+        \label{fig:tabla-user-creacion}
+    \end{figure}
+
+    \subsection{Registro de usuarios y cifrado de contraseñas}
+
+    El registro se implementa siguiendo una separación en capas. El controlador
+    \texttt{AuthController} expone el endpoint \texttt{POST /api/auth/register} y
+    recibe los datos en un objeto de transferencia (\textit{DTO})
+    \texttt{RegisterRequest}, en lugar de la entidad \texttt{User} directamente.
+    Así, el cliente solo puede enviar el nombre de usuario, el correo y la
+    contraseña, y nunca campos sensibles como el identificador o el rol. Los
+    datos se validan de forma declarativa mediante anotaciones de Jakarta Bean
+    Validation (\texttt{@NotBlank}, \texttt{@Email} y \texttt{@Size}), de modo
+    que un correo con formato incorrecto o una contraseña demasiado corta se
+    rechazan antes de procesar la petición.
+
+    La lógica de negocio reside en el servicio \texttt{AuthService}, que
+    comprueba mediante el repositorio si el nombre de usuario o el correo ya
+    existen y, en caso afirmativo, interrumpe el registro. Si los datos son
+    válidos y únicos, cifra la contraseña y persiste el nuevo usuario con el rol
+    \texttt{USER} por defecto.
+
+    El cifrado de la contraseña es un aspecto central de la seguridad del
+    sistema. Almacenarla en texto plano supondría un riesgo grave: si la base de
+    datos se viera comprometida, todas las credenciales quedarían expuestas. Por
+    ello se emplea BCrypt, una función de \textit{hash} diseñada específicamente
+    para contraseñas. BCrypt es unidireccional, esto quiere decir que no permite recuperar la
+    contraseña original a partir del \textit{hash}, incorpora una \textit{sal}
+    (\textit{salt}) aleatoria que evita que dos contraseñas iguales produzcan el
+    mismo resultado, y su coste de cálculo es ajustable, lo que la hace
+    resistente a ataques de fuerza bruta. En la aplicación, el cifrado se realiza
+    mediante un \texttt{BCryptPasswordEncoder} declarado como \textit{bean} de
+    Spring. La Figura~\ref{fig:bcrypt-hash} muestra el resultado en la base de
+    datos: la contraseña se almacena como un \textit{hash} con el prefijo
+    \texttt{\$2a\$}, característico de BCrypt, y no en texto legible.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.95\textwidth]{img/bcrypt-hash.png}
+        \caption{Contraseña almacenada cifrada con BCrypt en la tabla
+        \texttt{users}, verificada mediante una consulta \texttt{SELECT}.}
+        \label{fig:bcrypt-hash}
+    \end{figure}
+
+    Por último, las respuestas del endpoint se normalizan mediante un manejador
+    global de excepciones (\texttt{@RestControllerAdvice}), que traduce los
+    errores de validación a \texttt{400 Bad Request} y los conflictos de
+    duplicado a \texttt{409 Conflict}, devolviendo en ambos casos un mensaje
+    descriptivo en formato JSON.
+
+    \subsection{Configuración de Spring Security}
+
+    Al incorporar Spring Security, el marco protege por defecto todos los
+    endpoints, lo que en un primer momento impedía el acceso al registro. Fue
+    necesario definir una configuración explícita (\texttt{SecurityConfig}) que
+    declara públicas las rutas bajo \texttt{/api/auth/**} y mantiene protegidas
+    el resto. Además, al tratarse de una API REST sin estado, se deshabilitó la
+    protección CSRF, cuyo propósito es evitar peticiones fraudulentas en
+    formularios con sesión, no aplica en este modelo y, de mantenerse activa,
+    bloquea las peticiones POST. La ausencia inicial de esta configuración se
+    manifestó como respuestas \texttt{403 Forbidden}, lo que permitió identificar
+    y corregir el problema durante la puesta en marcha.
+
+    \subsection{Inicio de sesión y control de acceso}
+
+    El inicio de sesión se implementa en el endpoint
+    \texttt{POST /api/auth/login}. El servicio localiza al usuario por su nombre
+    y compara la contraseña recibida con el \textit{hash} almacenado mediante el
+    método \texttt{matches} del codificador BCrypt, que vuelve a cifrar la
+    contraseña y contrasta el resultado sin necesidad de descifrar la original.
+    Si las credenciales son válidas, se genera un token JWT firmado que incluye
+    el nombre de usuario y el rol, y que se devuelve al cliente
+    (Figura~\ref{fig:login-ok}); en caso contrario se responde con
+    \texttt{401 Unauthorized}.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/login-ok.png}
+        \caption{Inicio de sesión correcto: respuesta \texttt{200 OK} con el
+        token JWT emitido.}
+        \label{fig:login-ok}
+    \end{figure}
+
+    La generación y verificación de los tokens se centraliza en el componente
+    \texttt{JwtService}, apoyado en la biblioteca jjwt. El control de acceso a
+    las rutas protegidas se realiza mediante un filtro
+    (\texttt{JwtAuthenticationFilter}) que se ejecuta en cada petición: extrae el
+    token de la cabecera \texttt{Authorization}, verifica su firma y su vigencia,
+    y, si es válido, establece la identidad del usuario en el contexto de
+    seguridad de Spring. La configuración se establece en modo \textit{stateless}
+    y declara públicas únicamente las rutas de autenticación, de modo que
+    cualquier otra ruta exige un token válido.
+
+    Este comportamiento se comprobó accediendo a una ruta protegida
+    (\texttt{GET /api/users/me}) en dos situaciones. Sin un token válido, el
+    servidor deniega el acceso (Figura~\ref{fig:ruta-sin-token}); presentando el
+    token obtenido en el inicio de sesión, el servidor autoriza la petición y
+    devuelve los datos del usuario (Figura~\ref{fig:ruta-con-token}).
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/ruta-sin-token.png}
+        \caption{Acceso a una ruta protegida sin token: el servidor deniega la
+        petición.}
+        \label{fig:ruta-sin-token}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/ruta-con-token.png}
+        \caption{Acceso a la misma ruta protegida presentando un token JWT
+        válido: el servidor autoriza y devuelve los datos del usuario.}
+        \label{fig:ruta-con-token}
+    \end{figure}
 
     \section{Catálogo de ejercicios y filtrado}
 
@@ -593,6 +847,35 @@
 
 
     \section{Pruebas funcionales}
+    Para validar el endpoint de registro se realizaron pruebas funcionales con
+    la herramienta Postman, comprobando tanto el caso correcto como los casos de
+    error. La Figura~\ref{fig:postman-201} muestra un registro exitoso
+    (\texttt{201 Created}); la Figura~\ref{fig:postman-409}, el rechazo de un
+    usuario duplicado (\texttt{409 Conflict}); y la Figura~\ref{fig:postman-400},
+    el rechazo de un correo con formato inválido (\texttt{400 Bad Request}).
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/postman-201.png}
+        \caption{Registro correcto de un usuario: respuesta \texttt{201 Created}.}
+        \label{fig:postman-201}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/postman-409.png}
+        \caption{Intento de registro con un usuario ya existente: respuesta
+        \texttt{409 Conflict}.}
+        \label{fig:postman-409}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/postman-400.png}
+        \caption{Registro con un correo inválido: respuesta \texttt{400 Bad
+        Request} con el mensaje de validación.}
+        \label{fig:postman-400}
+    \end{figure}
 
 
     \section{Pruebas de integración}
