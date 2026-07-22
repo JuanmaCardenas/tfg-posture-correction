@@ -3,6 +3,9 @@
   <div class="form-card">
     <h1>Crear una cuenta</h1>
     <p class="card-subtitle">Es gratis y tarda menos de un minuto.</p>
+    @if (serverError()) {
+      <app-alert type="error">{{ serverError() }}</app-alert>
+    }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <!-- Nombre de usuario -->
@@ -95,7 +98,9 @@
         }
       </div>
 
-      <button type="submit" class="btn-submit" [disabled]="form.invalid">Crear cuenta</button>
+      <button type="submit" class="btn-submit" [disabled]="form.invalid || loading()">
+        {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+      </button>
     </form>
 
     <p class="login-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>

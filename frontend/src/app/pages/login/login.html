@@ -1,1 +1,46 @@
-<p>login works!</p>
+<div class="login">
+  <div class="form-card">
+    <h1>Inicia sesión</h1>
+    <p class="card-subtitle">Accede a tu cuenta para seguir entrenando.</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label for="username">Nombre de usuario</label>
+        <input id="username" type="text" formControlName="username" />
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="password-wrap">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+          />
+          <button
+            type="button"
+            class="toggle"
+            (click)="togglePassword()"
+            aria-label="Mostrar u ocultar contraseña"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="form.invalid">Entrar</button>
+    </form>
+
+    <p class="login-link">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>
+  </div>
+</div>
