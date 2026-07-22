@@ -1,0 +1,46 @@
+.public-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 32px;
+  background-color: var(--color-navbar);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+.public-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.link-plain {
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.link-plain:hover {
+  color: var(--color-accent);
+}
+
+.btn-accent {
+  background-color: var(--color-accent);
+  color: #0d1f12; /* texto oscuro sobre el verde, como en Figma */
+  text-decoration: none;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: var(--radius-control);
+  font-size: 0.95rem;
+}
+
+.public-main {
+  padding: 24px 32px;
+}

@@ -1,1 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+/* ===== Reset mínimo ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== Tokens de diseño (extraídos de Figma) ===== */
+:root {
+  /* Superficies */
+  --color-bg: #16233a; /* fondo base de la app */
+  --color-surface: #1a2a44; /* tarjetas y formularios */
+  --color-navbar: #141a28; /* barra de navegación */
+  --color-input: #0f1826; /* fondo de campos */
+  --color-border: #2a3a54; /* bordes sutiles */
+
+  /* Texto */
+  --color-text: #e6ebf2; /* texto principal */
+  --color-text-muted: #8b98ad; /* texto secundario */
+
+  /* Acento y estados */
+  --color-accent: #3fb950; /* interactivos y positivos */
+  --color-danger: #f85149; /* error: texto y borde */
+  --color-danger-bg: #3a1c1c; /* error: fondo de banner */
+
+  /* Formas */
+  --radius-card: 12px;
+  --radius-control: 8px;
+
+  /* Tipografía */
+  --font-base:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===== Base ===== */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-base);
+  -webkit-font-smoothing: antialiased;
+}
