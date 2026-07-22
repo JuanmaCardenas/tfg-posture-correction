@@ -2,11 +2,19 @@
   <div class="form-card">
     <h1>Inicia sesión</h1>
     <p class="card-subtitle">Accede a tu cuenta para seguir entrenando.</p>
+    @if (serverError()) {
+      <app-alert type="error">{{ serverError() }}</app-alert>
+    }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="field">
         <label for="username">Nombre de usuario</label>
-        <input id="username" type="text" formControlName="username" />
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          [class.input-error]="!!serverError()"
+        />
       </div>
 
       <div class="field">
@@ -16,6 +24,7 @@
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
+            [class.input-error]="!!serverError()"
           />
           <button
             type="button"
@@ -38,7 +47,9 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-submit" [disabled]="form.invalid">Entrar</button>
+      <button type="submit" class="btn-submit" [disabled]="form.invalid || loading()">
+        {{ loading() ? 'Entrando…' : 'Entrar' }}
+      </button>
     </form>
 
     <p class="login-link">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>

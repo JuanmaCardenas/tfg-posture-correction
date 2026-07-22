@@ -30,10 +30,11 @@
   border-bottom: 2px solid transparent; /* reserva el hueco de la rallita */
 }
 
-.menu a:hover,
+.menu a:hover {
+  border-bottom-color: var(--color-accent);
+}
 .menu a.active {
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
 }
 
 .avatar-wrap {
