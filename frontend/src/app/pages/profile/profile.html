@@ -1,1 +1,171 @@
-<p>profile works!</p>
+<div class="profile">
+  @if (loading()) {
+    <p class="loading-note">Cargando tu perfil…</p>
+  } @else {
+    <div class="form-card">
+      @if (!showPasswordForm()) {
+        <!-- MODO PERFIL -->
+        <div class="profile-head">
+          <div class="avatar">{{ initials() }}</div>
+          <div>
+            <h1>Mi perfil</h1>
+            <p class="member-since">{{ memberSince() }}</p>
+          </div>
+        </div>
+
+        @if (successMessage()) {
+          <app-alert type="success">{{ successMessage() }}</app-alert>
+        }
+        @if (serverError()) {
+          <app-alert type="error">{{ serverError() }}</app-alert>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSave()">
+          <div class="field">
+            <label for="username">Nombre de usuario</label>
+            <input id="username" type="text" [value]="username()" disabled />
+            <p class="field-hint">El nombre de usuario no se puede modificar.</p>
+          </div>
+
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" formControlName="email" />
+          </div>
+
+          <div class="profile-actions">
+            <button type="submit" class="btn-submit" [disabled]="form.invalid || saving()">
+              {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="togglePasswordForm()">
+              Cambiar contraseña
+            </button>
+          </div>
+        </form>
+      } @else {
+        <!-- MODO CAMBIAR CONTRASEÑA -->
+        <h1>Cambiar contraseña</h1>
+        <p class="card-subtitle">Tendrás que volver a iniciar sesión después.</p>
+
+        @if (pwError()) {
+          <app-alert type="error">{{ pwError() }}</app-alert>
+        }
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+          <div class="field">
+            <label for="currentPassword">Contraseña actual</label>
+            <div class="password-wrap">
+              <input
+                id="currentPassword"
+                [type]="showCurrent() ? 'text' : 'password'"
+                formControlName="currentPassword"
+              />
+              <button
+                type="button"
+                class="toggle"
+                (click)="toggleCurrent()"
+                aria-label="Mostrar u ocultar contraseña"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="newPassword">Nueva contraseña</label>
+            <div class="password-wrap">
+              <input
+                id="newPassword"
+                [type]="showNew() ? 'text' : 'password'"
+                formControlName="newPassword"
+              />
+              <button
+                type="button"
+                class="toggle"
+                (click)="toggleNew()"
+                aria-label="Mostrar u ocultar contraseña"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <p class="pw-hint" [class.ok]="passwordMeetsPolicy()">
+              <span class="mark">{{ passwordMeetsPolicy() ? '✓' : '✗' }}</span>
+              Mínimo 8 caracteres, con minúscula, mayúscula y un número.
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="confirmNewPassword">Repite la nueva contraseña</label>
+            <div class="password-wrap">
+              <input
+                id="confirmNewPassword"
+                [type]="showConfirm() ? 'text' : 'password'"
+                formControlName="confirmNewPassword"
+                [class.input-error]="
+                  passwordForm.get('confirmNewPassword')?.touched &&
+                  passwordForm.hasError('passwordMismatch')
+                "
+              />
+              <button
+                type="button"
+                class="toggle"
+                (click)="toggleConfirm()"
+                aria-label="Mostrar u ocultar contraseña"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            @if (
+              passwordForm.get('confirmNewPassword')?.touched &&
+              passwordForm.hasError('passwordMismatch')
+            ) {
+              <p class="field-error">Las contraseñas no coinciden.</p>
+            }
+          </div>
+
+          <div class="password-actions">
+            <button type="button" class="btn-secondary" (click)="togglePasswordForm()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-submit"
+              [disabled]="passwordForm.invalid || pwSaving()"
+            >
+              {{ pwSaving() ? 'Confirmando…' : 'Confirmar' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+</div>

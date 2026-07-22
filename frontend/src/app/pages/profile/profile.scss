@@ -1,0 +1,107 @@
+.profile {
+  width: 100%;
+  max-width: 480px;
+  margin: 40px auto 0; /* centra la tarjeta en la zona con menú */
+}
+
+/* Cabecera con avatar */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.profile-head h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.member-since {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #0d1f12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* Campo no editable */
+.field input:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* Botones en fila */
+.profile-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.profile-actions .btn-submit {
+  width: auto; /* anula el 100% del estilo común */
+  margin-top: 0;
+  padding: 12px 20px;
+}
+
+.btn-secondary {
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-text-muted);
+}
+
+.loading-note {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-top: 40px;
+}
+
+/* Indicador de la nueva contraseña (una línea) */
+.pw-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.pw-hint.ok {
+  color: var(--color-accent);
+}
+.pw-hint .mark {
+  font-weight: 700;
+}
+
+/* Botones del cambio de contraseña */
+.password-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.password-actions .btn-submit {
+  width: auto;
+  margin-top: 0;
+  padding: 12px 24px;
+}

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   // Zona pública
@@ -20,9 +21,10 @@ export const routes: Routes = [
       },
     ],
   },
-  // Zona privada (con menú)
+  // Zona privada (con menú) — protegida por el guard
   {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () => import('./layouts/main-layout/main-layout').then((m) => m.MainLayout),
     children: [
       {

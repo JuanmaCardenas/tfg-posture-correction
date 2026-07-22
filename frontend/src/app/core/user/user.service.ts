@@ -1,0 +1,22 @@
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ChangePasswordRequest, UpdateProfileRequest, UserProfile } from './user.models';
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:8080/api';
+
+  getProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.apiUrl}/users/me`);
+  }
+
+  updateProfile(data: UpdateProfileRequest): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.apiUrl}/users/me`, data);
+  }
+
+  changePassword(data: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/me/password`, data);
+  }
+}

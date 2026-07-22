@@ -165,3 +165,25 @@ body {
 .field input.input-error:focus {
   border-color: var(--color-danger);
 }
+
+/* Indicadores de contraseña (registro y cambio de contraseña) */
+.pw-checks {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+.pw-checks li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+.pw-checks li.ok {
+  color: var(--color-accent);
+}
+.pw-checks .mark {
+  font-weight: 700;
+}
