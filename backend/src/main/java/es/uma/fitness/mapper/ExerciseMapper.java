@@ -17,20 +17,26 @@ public final class ExerciseMapper {
     private ExerciseMapper() {
     }
 
-    public static ExerciseSummaryResponse toSummary(Exercise exercise) {
+    public static ExerciseSummaryResponse toSummary(Exercise exercise,
+                                                    double averageRating,
+                                                    int ratingCount,
+                                                    boolean favorite) {
         return new ExerciseSummaryResponse(
                 exercise.getId(),
                 exercise.getName(),
                 toMuscleGroupList(exercise),
                 toLabel(exercise.getDifficulty()),
                 thumbnailUrl(exercise.getYoutubeVideoId()),
-                0.0,    // TODO E3 (RF-05)
-                0,      // TODO E3 (RF-05)
-                false   // TODO E3 (RF-07)
+                averageRating,
+                ratingCount,
+                favorite
         );
     }
 
-    public static ExerciseDetailResponse toDetail(Exercise exercise) {
+    public static ExerciseDetailResponse toDetail(Exercise exercise,
+                                                  double averageRating,
+                                                  int ratingCount,
+                                                  boolean favorite) {
         return new ExerciseDetailResponse(
                 exercise.getId(),
                 exercise.getName(),
@@ -41,9 +47,9 @@ public final class ExerciseMapper {
                 thumbnailUrl(exercise.getYoutubeVideoId()),
                 List.copyOf(exercise.getTips()),
                 exercise.getAnalysisType() == null ? null : exercise.getAnalysisType().name(),
-                0.0,    // TODO E3 (RF-05)
-                0,      // TODO E3 (RF-05)
-                false   // TODO E3 (RF-07)
+                averageRating,
+                ratingCount,
+                favorite
         );
     }
 
