@@ -1,0 +1,19 @@
+<section class="catalog">
+  @if (loading()) {
+    <p class="catalog__state">Cargando ejercicios…</p>
+  } @else if (serverError()) {
+    <div class="catalog__state">
+      <p class="catalog__error">{{ serverError() }}</p>
+      <button type="button" class="catalog__retry" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (exercises().length === 0) {
+    <p class="catalog__state">No hay ejercicios disponibles.</p>
+  } @else {
+    <div class="catalog__grid">
+      @for (exercise of exercises(); track exercise.id) {
+        <app-exercise-card [exercise]="exercise" />
+      }
+    </div>
+    <p class="catalog__count">{{ total() }} {{ total() === 1 ? 'resultado' : 'resultados' }}</p>
+  }
+</section>

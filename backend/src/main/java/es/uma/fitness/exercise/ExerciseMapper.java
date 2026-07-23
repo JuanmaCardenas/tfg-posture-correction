@@ -11,7 +11,7 @@ import java.util.List;
 
 public final class ExerciseMapper {
 
-    private static final String THUMBNAIL_PATTERN = "https://img.youtube.com/vi/%s/hqdefault.jpg";
+    private static final String THUMBNAIL_PATTERN = "https://img.youtube.com/vi/%s/mqdefault.jpg";
 
     private ExerciseMapper() {
     }
@@ -53,11 +53,11 @@ public final class ExerciseMapper {
                 .toList();
     }
 
-    private static LabelResponse toLabel(MuscleGroup group) {
+    public static LabelResponse toLabel(MuscleGroup group) {
         return new LabelResponse(group.name(), group.getLabel());
     }
 
-    private static LabelResponse toLabel(Difficulty difficulty) {
+    public static LabelResponse toLabel(Difficulty difficulty) {
         return new LabelResponse(difficulty.name(), difficulty.getLabel());
     }
 

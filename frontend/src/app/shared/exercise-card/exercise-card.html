@@ -1,0 +1,50 @@
+<a class="card" [routerLink]="['/exercises', exercise().id]">
+  <div class="card__media">
+    <img
+      [src]="exercise().thumbnailUrl"
+      [alt]="'Miniatura del ejercicio ' + exercise().name"
+      loading="lazy"
+      (error)="onImageError($event)"
+    />
+
+    @if (showFavorite()) {
+      <button
+        type="button"
+        class="card__favorite"
+        [class.card__favorite--active]="exercise().favorite"
+        [attr.aria-label]="
+          exercise().favorite
+            ? 'Quitar ' + exercise().name + ' de favoritos'
+            : 'Añadir ' + exercise().name + ' a favoritos'
+        "
+        [attr.aria-pressed]="exercise().favorite"
+        (click)="onFavoriteClick($event)"
+      >
+        <span aria-hidden="true">&#10084;</span>
+      </button>
+    }
+  </div>
+
+  <div class="card__body">
+    <h3 class="card__title">{{ exercise().name }}</h3>
+
+    <div class="card__tags">
+      @for (group of exercise().muscleGroups; track group.code) {
+        <span class="tag tag--muscle">{{ group.label }}</span>
+      }
+      <span class="tag tag--difficulty" [class]="'tag--' + difficultyClass()">
+        {{ exercise().difficulty.label }}
+      </span>
+    </div>
+
+    @if (hasRatings()) {
+      <p class="card__rating">
+        <span class="card__star" aria-hidden="true">&#9733;</span>
+        {{ exercise().averageRating | number: '1.1-1' }}
+        <span class="card__rating-count">· {{ exercise().ratingCount }}</span>
+      </p>
+    } @else {
+      <p class="card__rating card__rating--empty">Sin valoraciones</p>
+    }
+  </div>
+</a>

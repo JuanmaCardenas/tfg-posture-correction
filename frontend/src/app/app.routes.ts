@@ -35,6 +35,10 @@ export const routes: Routes = [
         path: 'profile',
         loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
       },
+      {
+        path: 'exercises',
+        loadComponent: () => import('./pages/exercises/exercises').then((m) => m.Exercises),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
