@@ -1,6 +1,6 @@
 package es.uma.fitness.controller;
 
-import es.uma.fitness.exercise.ExerciseNotFoundException;
+import es.uma.fitness.service.ExerciseNotFoundException;
 import es.uma.fitness.service.InvalidCredentialsException;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;

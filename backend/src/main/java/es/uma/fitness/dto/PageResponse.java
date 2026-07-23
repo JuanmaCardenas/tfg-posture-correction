@@ -1,4 +1,4 @@
-package es.uma.fitness.exercise.dto;
+package es.uma.fitness.dto;
 
 import org.springframework.data.domain.Page;
 

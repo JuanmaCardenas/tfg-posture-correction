@@ -1,8 +1,11 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.controller;
 
-import es.uma.fitness.exercise.dto.ExerciseDetailResponse;
-import es.uma.fitness.exercise.dto.ExerciseSummaryResponse;
-import es.uma.fitness.exercise.dto.PageResponse;
+import es.uma.fitness.dto.ExerciseDetailResponse;
+import es.uma.fitness.dto.ExerciseSummaryResponse;
+import es.uma.fitness.dto.PageResponse;
+import es.uma.fitness.model.Difficulty;
+import es.uma.fitness.model.MuscleGroup;
+import es.uma.fitness.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

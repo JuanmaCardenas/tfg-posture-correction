@@ -1,4 +1,4 @@
-package es.uma.fitness.exercise.dto;
+package es.uma.fitness.dto;
 
 public record LabelResponse(String code, String label) {
 }

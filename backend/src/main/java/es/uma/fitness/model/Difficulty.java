@@ -1,4 +1,4 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.model;
 
 public enum Difficulty {
     EASY("Fácil"),

@@ -1,5 +1,9 @@
 package es.uma.fitness.exercise;
 
+import es.uma.fitness.model.AnalysisType;
+import es.uma.fitness.model.Difficulty;
+import es.uma.fitness.model.MuscleGroup;
+import es.uma.fitness.repository.ExerciseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -10,9 +14,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static es.uma.fitness.exercise.AnalysisType.*;
-import static es.uma.fitness.exercise.Difficulty.*;
-import static es.uma.fitness.exercise.MuscleGroup.*;
+import static es.uma.fitness.model.AnalysisType.*;
+import static es.uma.fitness.model.Difficulty.*;
+import static es.uma.fitness.model.MuscleGroup.*;
 
 /**
  * Carga el catálogo inicial de ejercicios la primera vez que se arranca

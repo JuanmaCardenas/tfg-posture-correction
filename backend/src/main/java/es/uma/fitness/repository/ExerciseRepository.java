@@ -1,5 +1,8 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.repository;
 
+import es.uma.fitness.exercise.Exercise;
+import es.uma.fitness.model.Difficulty;
+import es.uma.fitness.model.MuscleGroup;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
