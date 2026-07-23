@@ -44,3 +44,20 @@ export interface ExerciseQuery {
   page?: number;
   size?: number;
 }
+
+export interface ExerciseFiltersResponse {
+  muscleGroups: Label<MuscleGroupCode>[];
+  difficulties: Label<DifficultyCode>[];
+}
+
+export interface ExerciseFilters {
+  search: string;
+  groups: MuscleGroupCode[];
+  difficulty: DifficultyCode | null;
+}
+
+export const EMPTY_FILTERS: ExerciseFilters = {
+  search: '',
+  groups: [],
+  difficulty: null,
+};

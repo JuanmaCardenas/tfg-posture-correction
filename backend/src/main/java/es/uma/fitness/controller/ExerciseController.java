@@ -1,6 +1,7 @@
 package es.uma.fitness.controller;
 
 import es.uma.fitness.dto.ExerciseDetailResponse;
+import es.uma.fitness.dto.ExerciseFiltersResponse;
 import es.uma.fitness.dto.ExerciseSummaryResponse;
 import es.uma.fitness.dto.PageResponse;
 import es.uma.fitness.model.Difficulty;
@@ -33,5 +34,10 @@ public class ExerciseController {
     @GetMapping("/{id}")
     public ExerciseDetailResponse detail(@PathVariable Long id) {
         return exerciseService.findById(id);
+    }
+
+    @GetMapping("/filters")
+    public ExerciseFiltersResponse filters() {
+        return exerciseService.getFilters();
     }
 }

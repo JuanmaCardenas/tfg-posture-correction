@@ -1,0 +1,102 @@
+<div class="filters">
+  <div class="filters__row">
+    <div class="filters__search">
+      <svg
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.5-3.5" />
+      </svg>
+      <input
+        type="text"
+        [formControl]="searchControl"
+        placeholder="Buscar ejercicios..."
+        aria-label="Buscar ejercicios"
+      />
+    </div>
+
+    <div class="filters__groups">
+      <button
+        type="button"
+        class="filters__dropdown-toggle"
+        [class.is-open]="dropdownOpen()"
+        [attr.aria-expanded]="dropdownOpen()"
+        (click)="toggleDropdown()"
+      >
+        {{ groupsLabel() }}
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      @if (dropdownOpen()) {
+        <div class="filters__dropdown">
+          @for (group of options().muscleGroups; track group.code) {
+            <label class="filters__option">
+              <input
+                type="checkbox"
+                [checked]="isGroupSelected(group.code)"
+                (change)="toggleGroup(group.code)"
+              />
+              {{ group.label }}
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="filters__difficulties">
+      @for (level of options().difficulties; track level.code) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="selectedDifficulty() === level.code"
+          [attr.aria-pressed]="selectedDifficulty() === level.code"
+          (click)="toggleDifficulty(level.code)"
+        >
+          {{ level.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (hasActiveFilters()) {
+    <div class="filters__summary">
+      @if (resultCount() !== null) {
+        <span class="filters__count">
+          {{ resultCount() }} {{ resultCount() === 1 ? 'resultado' : 'resultados' }}
+        </span>
+        <span class="filters__separator" aria-hidden="true">|</span>
+      }
+
+      @for (group of selectedGroupOptions(); track group.code) {
+        <button
+          type="button"
+          class="filters__active-tag"
+          [attr.aria-label]="'Quitar filtro ' + group.label"
+          (click)="toggleGroup(group.code)"
+        >
+          {{ group.label }} <span aria-hidden="true">&#10005;</span>
+        </button>
+      }
+
+      <button type="button" class="filters__clear" (click)="clearAll()">Limpiar</button>
+    </div>
+  }
+</div>

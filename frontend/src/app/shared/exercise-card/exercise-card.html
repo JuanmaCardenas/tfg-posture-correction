@@ -11,16 +11,28 @@
       <button
         type="button"
         class="card__favorite"
-        [class.card__favorite--active]="exercise().favorite"
+        [class.is-active]="exercise().favorite"
+        [attr.aria-pressed]="exercise().favorite"
         [attr.aria-label]="
           exercise().favorite
             ? 'Quitar ' + exercise().name + ' de favoritos'
             : 'Añadir ' + exercise().name + ' a favoritos'
         "
-        [attr.aria-pressed]="exercise().favorite"
         (click)="onFavoriteClick($event)"
       >
-        <span aria-hidden="true">&#10084;</span>
+        <svg
+          viewBox="0 0 24 24"
+          width="19"
+          height="19"
+          [attr.fill]="exercise().favorite ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20.4l-7.1-7.1a4.5 4.5 0 0 1 6.4-6.4l.7.7.7-.7a4.5 4.5 0 0 1 6.4 6.4z" />
+        </svg>
       </button>
     }
   </div>

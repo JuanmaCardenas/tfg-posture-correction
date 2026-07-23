@@ -1,13 +1,27 @@
+@if (filterOptions(); as options) {
+  <app-exercise-filter-bar
+    [options]="options"
+    [resultCount]="loading() ? null : total()"
+    (filtersChange)="onFiltersChange($event)"
+  />
+}
+
 <section class="catalog">
   @if (loading()) {
     <p class="catalog__state">Cargando ejercicios…</p>
   } @else if (serverError()) {
     <div class="catalog__state">
       <p class="catalog__error">{{ serverError() }}</p>
-      <button type="button" class="catalog__retry" (click)="load()">Reintentar</button>
+      <button type="button" class="catalog__retry" (click)="retry()">Reintentar</button>
     </div>
   } @else if (exercises().length === 0) {
-    <p class="catalog__state">No hay ejercicios disponibles.</p>
+    <p class="catalog__state">
+      @if (hasActiveFilters()) {
+        Ningún ejercicio coincide con los filtros seleccionados.
+      } @else {
+        No hay ejercicios disponibles.
+      }
+    </p>
   } @else {
     <div class="catalog__grid">
       @for (exercise of exercises(); track exercise.id) {

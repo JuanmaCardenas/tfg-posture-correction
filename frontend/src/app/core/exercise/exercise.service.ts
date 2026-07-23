@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   ExerciseDetailResponse,
+  ExerciseFiltersResponse,
   ExerciseQuery,
   ExerciseSummaryResponse,
   PageResponse,
@@ -28,5 +29,9 @@ export class ExerciseService {
 
   getById(id: number): Observable<ExerciseDetailResponse> {
     return this.http.get<ExerciseDetailResponse>(`${this.apiUrl}/exercises/${id}`);
+  }
+
+  getFilters(): Observable<ExerciseFiltersResponse> {
+    return this.http.get<ExerciseFiltersResponse>(`${this.apiUrl}/exercises/filters`);
   }
 }

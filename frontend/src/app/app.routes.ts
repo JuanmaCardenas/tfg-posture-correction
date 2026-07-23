@@ -39,6 +39,11 @@ export const routes: Routes = [
         path: 'exercises',
         loadComponent: () => import('./pages/exercises/exercises').then((m) => m.Exercises),
       },
+      {
+        path: 'exercises/:id',
+        loadComponent: () =>
+          import('./pages/exercise-detail/exercise-detail').then((m) => m.ExerciseDetail),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

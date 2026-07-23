@@ -1,6 +1,7 @@
 package es.uma.fitness.service;
 
 import es.uma.fitness.dto.ExerciseDetailResponse;
+import es.uma.fitness.dto.ExerciseFiltersResponse;
 import es.uma.fitness.dto.ExerciseSummaryResponse;
 import es.uma.fitness.dto.PageResponse;
 import es.uma.fitness.exercise.Exercise;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -58,5 +60,12 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findById(id)
                 .orElseThrow(() -> new ExerciseNotFoundException(id));
         return ExerciseMapper.toDetail(exercise);
+    }
+
+    public ExerciseFiltersResponse getFilters() {
+        return new ExerciseFiltersResponse(
+                Arrays.stream(MuscleGroup.values()).map(ExerciseMapper::toLabel).toList(),
+                Arrays.stream(Difficulty.values()).map(ExerciseMapper::toLabel).toList()
+        );
     }
 }
