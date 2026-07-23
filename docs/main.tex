@@ -3,6 +3,8 @@
 
 %───────── Auxiliary packages ──────────────────────────────────────────
 \usepackage{blindtext}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
 \usepackage{mwe}
 \usepackage{csquotes}
 \usepackage{graphicx}
@@ -358,6 +360,7 @@
             IntelliJ IDEA  & 2026.1.4 (Ultimate) \\
             Postman        & 12.19.0 \\
             jjwt (JWT)     & 0.13.0 \\
+            Figma          & Web \\
             \bottomrule
         \end{tabular}
         \caption{Versiones de las principales tecnologías y herramientas.}
@@ -413,6 +416,13 @@
     tareas se realizan con Jira, tal como se describe en la
     Sección~\ref{subsec:metodologia} (metodología y gestión del proyecto).
 
+    El diseño de la interfaz se ha elaborado previamente con Figma, una
+    herramienta de diseño y prototipado que permite definir un sistema de
+    diseño (paleta, tipografía y componentes) y construir maquetas de alta
+    fidelidad de cada pantalla antes de su implementación. Su uso ha permitido
+    validar la disposición de los elementos y los flujos de navegación antes de
+    escribir código, reduciendo el retrabajo durante el desarrollo.
+
 
 % ─────────────────────── Capítulo 4 ──────────────────────────────────
 
@@ -425,7 +435,7 @@
     \section{Requisitos funcionales}
     En esta sección se recogen los requisitos funcionales del sistema, es decir,
     las funcionalidades que debe ofrecer la aplicación. La
-    Tabla~\ref{tab:req-funcionales} los enumera.
+    Tabla~\ref{—} los enumera.
     
     \begin{table}[htbp]
         \centering
@@ -443,11 +453,18 @@
             RF-08 & El usuario podrá subir un vídeo local para analizar su ejecución postural. \\
             RF-09 & El sistema calculará métricas (ángulos y alineaciones) a partir del vídeo. \\
             RF-10 & El sistema mostrará una puntuación global y recomendaciones de corrección. \\
+            RF-11 & El usuario podrá consultar el historial de sus análisis posturales anteriores. \\
             \bottomrule
         \end{tabular}
         \caption{Requisitos funcionales del sistema.}
-        \label{tab:req-funcionales}
+        \label{—}
     \end{table}
+
+    Conviene precisar el alcance del requisito RF-11 en relación con el
+    RNF-02. El historial almacena únicamente el resultado del análisis la
+    puntuación obtenida, el ejercicio evaluado y la fecha, nunca el vídeo
+    empleado, que se procesa en el navegador y no se transmite en ningún
+    momento al servidor. Ambos requisitos son, por tanto, compatibles.
     
     \section{Requisitos no funcionales}
 
@@ -544,6 +561,9 @@
             \midrule
             POST & /api/auth/register & Registro de un nuevo usuario \\
             POST & /api/auth/login    & Inicio de sesión y obtención del token \\
+            GET & /api/users/me & Consultar el perfil del usuario autenticado \\
+            PUT & /api/users/me & Actualizar el email del usuario autenticado \\
+            PUT & /api/users/me/password & Actualizar la contraseña del usuario autenticado \\
             \bottomrule
         \end{tabular}
         \caption{Rutas del módulo de autenticación.}
@@ -564,6 +584,26 @@
     \texttt{401 Unauthorized}. Por seguridad, el mensaje de error es idéntico
     tanto si el usuario no existe como si la contraseña es incorrecta, evitando
     así revelar qué nombres de usuario están registrados.
+
+    Una vez autenticado, el usuario dispone además de las rutas recogidas en la
+    Tabla~\ref{tab:api-users}, todas ellas privadas: exigen presentar un token
+    JWT válido y operan siempre sobre el usuario identificado por dicho token,
+    de modo que ningún usuario puede consultar ni modificar los datos de otro.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Verbo} & \textbf{Ruta} & \textbf{Descripción} \\
+            \midrule
+            GET & /api/users/me          & Consulta del perfil propio \\
+            PUT & /api/users/me          & Modificación del correo electrónico \\
+            PUT & /api/users/me/password & Cambio de contraseña \\
+            \bottomrule
+        \end{tabular}
+        \caption{Rutas del módulo de usuarios.}
+        \label{tab:api-users}
+    \end{table}
 
     \subsection{Autenticación basada en tokens (JWT)}
 
@@ -597,12 +637,62 @@
     autenticación, desde el registro y el inicio de sesión hasta el acceso a una
     ruta protegida presentando el token.
 
-    \begin{figure}[htbp]
+\begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/flujo-autenticacion.png}
+        \begin{tikzpicture}[
+            font=\small,
+            caja/.style={draw, rounded corners, align=center, inner sep=5pt,
+                         minimum height=13mm, text width=40mm},
+            cliente/.style={caja, fill=black!5},
+            servidor/.style={caja, fill=black!12},
+            flecha/.style={-{Stealth[length=2mm]}, thick},
+            etiq/.style={font=\scriptsize, midway}
+        ]
+
+        % Encabezados de columna
+        \node[font=\small\bfseries] at (0, 1.3)  {Cliente (Angular)};
+        \node[font=\small\bfseries] at (9, 1.3)  {Servidor (Spring Boot)};
+
+        % --- Registro ---
+        \node[cliente]  (c1) at (0, 0)    {Formulario de registro};
+        \node[servidor] (s1) at (9, 0)    {Valida los datos, cifra la
+                                           contraseña con BCrypt y crea
+                                           el usuario};
+        \draw[flecha] ([yshift=3mm]c1.east) -- ([yshift=3mm]s1.west)
+            node[etiq, above] {POST /api/auth/register};
+        \draw[flecha] ([yshift=-3mm]s1.west) -- ([yshift=-3mm]c1.east)
+            node[etiq, below] {201 Created};
+
+        % --- Inicio de sesión ---
+        \node[cliente]  (c2) at (0, -3)   {Formulario de inicio de sesión};
+        \node[servidor] (s2) at (9, -3)   {Verifica las credenciales y emite
+                                           un token JWT firmado};
+        \draw[flecha] ([yshift=3mm]c2.east) -- ([yshift=3mm]s2.west)
+            node[etiq, above] {POST /api/auth/login};
+        \draw[flecha] ([yshift=-3mm]s2.west) -- ([yshift=-3mm]c2.east)
+            node[etiq, below] {200 OK + token};
+
+        % --- Almacenamiento del token ---
+        \node[cliente] (c3) at (0, -5.6)  {Almacena el token en el navegador
+                                           (\texttt{localStorage})};
+        \draw[flecha] (c2) -- (c3);
+
+        % --- Acceso a ruta protegida ---
+        \node[cliente]  (c4) at (0, -8.4) {Petición a una ruta protegida;
+                                           el interceptor adjunta el token};
+        \node[servidor] (s3) at (9, -8.4) {El filtro JWT valida la firma y la
+                                           vigencia del token};
+        \draw[flecha] (c3) -- (c4);
+        \draw[flecha] ([yshift=3mm]c4.east) -- ([yshift=3mm]s3.west)
+            node[etiq, above] {GET /api/users/me};
+        \draw[flecha] ([yshift=-3mm]s3.west) -- ([yshift=-3mm]c4.east)
+            node[etiq, below] {200 OK / 401 Unauthorized};
+
+        \end{tikzpicture}
         \caption{Flujo del módulo de autenticación: registro con cifrado BCrypt,
-        inicio de sesión con emisión de token JWT y acceso a rutas protegidas
-        mediante validación del token en el servidor.}
+        inicio de sesión con emisión de token JWT, almacenamiento del token en
+        el cliente y acceso a rutas protegidas mediante su validación en el
+        servidor.}
         \label{fig:flujo-auth}
     \end{figure}
 
@@ -621,14 +711,121 @@
             \toprule
             \textbf{Vista} & \textbf{Ruta} & \textbf{Acceso} \\
             \midrule
-            Registro & /register & Pública \\
-            Login    & /login    & Pública \\
-            Perfil   & /profile  & Privada \\
+            Inicio (presentación) & /         & Pública \\
+            Registro              & /register & Pública \\
+            Inicio de sesión      & /login    & Pública \\
+            Inicio (con sesión)   & /home     & Privada \\
+            Perfil                & /profile  & Privada \\
             \bottomrule
         \end{tabular}
-        \caption{Vistas del módulo de autenticación.}
+        \caption{Vistas iniciales de la aplicación.}
         \label{tab:vistas-e1}
     \end{table}
+
+    La navegación se organiza en torno a tres plantillas de página o
+    \textit{layouts}, cada una con una cabecera distinta según el contexto: una
+    plantilla pública para la página de presentación, con accesos a registro e
+    inicio de sesión; una plantilla de autenticación para el registro y el
+    inicio de sesión, que muestra únicamente el logotipo para minimizar
+    distracciones durante el proceso; y una plantilla privada que incorpora el
+    menú de navegación principal y el acceso al perfil del usuario. Cada vista
+    se asocia a una de estas plantillas, lo que evita duplicar la estructura
+    común y garantiza la coherencia visual entre pantallas del mismo tipo.
+
+    \section{Prototipado y sistema de diseño}
+
+    Antes de implementar la interfaz se elaboró un prototipo de alta fidelidad
+    de todas las pantallas con la herramienta Figma. El prototipado permite
+    validar la disposición de los elementos, la coherencia visual y los flujos
+    de navegación antes de escribir código, reduciendo el retrabajo durante el
+    desarrollo.
+
+    \subsection{Sistema de diseño}
+
+    Se ha definido un sistema de diseño común que fija la paleta de colores, la
+    tipografía y el estilo de los componentes reutilizables (botones, campos de
+    formulario, tarjetas y mensajes de aviso), garantizando una apariencia
+    homogénea en toda la aplicación. La interfaz adopta un tema oscuro; la
+    Tabla~\ref{tab:paleta} recoge sus colores principales.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l l p{6.2cm}}
+            \toprule
+            \textbf{Uso} & \textbf{Color} & \textbf{Descripción} \\
+            \midrule
+            Fondo            & \#16233A & Fondo base de la aplicación \\
+            Superficie       & \#1A2A44 & Tarjetas y formularios \\
+            Cabecera         & \#141A28 & Barra de navegación \\
+            Campos           & \#0F1826 & Fondo de los campos de formulario \\
+            Texto            & \#E6EBF2 & Texto principal \\
+            Texto secundario & \#8B98AD & Textos de apoyo y ayudas \\
+            Acento           & \#3FB950 & Elementos interactivos y estados positivos \\
+            Aviso            & \#E3B341 & Advertencias \\
+            Error            & \#F85149 & Mensajes y estados de error \\
+            \bottomrule
+        \end{tabular}
+        \caption{Paleta de colores del sistema de diseño.}
+        \label{tab:paleta}
+    \end{table}
+
+    La jerarquía visual se apoya en la luminosidad de las superficies: la barra
+    de navegación y los campos de formulario emplean tonos más oscuros que el
+    fondo, mientras que las tarjetas utilizan un tono más claro, lo que
+    transmite la sensación de que estas se sitúan por encima del plano de la
+    página.
+
+    Como decisión de accesibilidad, el verde de acento se reserva
+    exclusivamente para elementos interactivos y estados positivos, mientras
+    que el texto principal emplea un tono claro (\#E6EBF2) que garantiza una
+    relación de contraste suficiente sobre el fondo oscuro. Utilizar el color
+    de acento para el texto corrido habría comprometido la legibilidad.
+
+    \subsection{Maquetas de las pantallas}
+
+    A continuación se muestran las maquetas de las pantallas diseñadas en
+    Figma, que han servido de referencia directa durante la implementación de
+    la interfaz.
+
+    Conviene precisar que el prototipo abarca el alcance funcional completo
+    previsto para la aplicación, y no únicamente el del incremento descrito en
+    este capítulo. Algunas de las pantallas incluyen, por tanto, elementos,
+    como el resumen de análisis recientes o el listado de ejercicios
+    favoritos, cuya implementación corresponde a incrementos posteriores. Esta
+    anticipación es deliberada: diseñar la interfaz de forma global desde el
+    inicio permite establecer un sistema de diseño coherente y dimensionar
+    correctamente cada pantalla, evitando rediseños parciales a medida que el
+    proyecto avanza.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-home.png}
+        \caption{Maqueta de la página de presentación (usuario no autenticado).}
+        \label{fig:mockup-home}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\textwidth]{img/mockup-login.png}
+        \caption{Maqueta de la pantalla de inicio de sesión.}
+        \label{fig:mockup-login}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-registro.png}
+        \caption{Maqueta de la pantalla de registro, con los indicadores de
+        cumplimiento de la política de contraseña.}
+        \label{fig:mockup-registro}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-perfil.png}
+        \caption{Maqueta del perfil de usuario, con el menú de cuenta
+        desplegado.}
+        \label{fig:mockup-perfil}
+    \end{figure}
 
 
     \section{Diseño del módulo de corrección postural}
@@ -714,11 +911,15 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \texttt{RegisterRequest}, en lugar de la entidad \texttt{User} directamente.
     Así, el cliente solo puede enviar el nombre de usuario, el correo y la
     contraseña, y nunca campos sensibles como el identificador o el rol. Los
-    datos se validan de forma declarativa mediante anotaciones de Jakarta Bean
-    Validation (\texttt{@NotBlank}, \texttt{@Email} y \texttt{@Size}), de modo
-    que un correo con formato incorrecto o una contraseña demasiado corta se
-    rechazan antes de procesar la petición.
-
+    datos se validan de forma declarativa mediante anotaciones de Jakarta Bean Validation (\texttt{@NotBlank}, \texttt{@Email},
+    \texttt{@Size} y \texttt{@Pattern}), de modo que un correo con formato
+    incorrecto, una contraseña demasiado corta o una contraseña que no cumple
+    la política de complejidad se rechazan antes de procesar la petición. Dicha
+    política exige un mínimo de ocho caracteres e incluir al menos una letra
+    minúscula, una mayúscula y un dígito, y se aplica por igual en el registro
+    y en el cambio de contraseña, de forma que ambas operaciones garantizan el
+    mismo nivel mínimo de seguridad.
+    
     La lógica de negocio reside en el servicio \texttt{AuthService}, que
     comprueba mediante el repositorio si el nombre de usuario o el correo ya
     existen y, en caso afirmativo, interrumpe el registro. Si los datos son
@@ -818,6 +1019,191 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \label{fig:ruta-con-token}
     \end{figure}
 
+    La integración con el cliente web hizo necesarios dos ajustes adicionales en
+    la configuración de seguridad, ambos detectados durante la puesta en marcha
+    del frontend.
+
+    El primero es la configuración de CORS (\textit{Cross-Origin Resource
+    Sharing}). Durante el desarrollo, el frontend se sirve en el puerto 4200 y
+    el backend en el 8080; al tratarse de orígenes distintos, el navegador
+    bloquea por seguridad las peticiones entre ambos salvo que el servidor las
+    autorice explícitamente. Se definió por tanto un \textit{bean} de
+    configuración que declara como origen permitido el del cliente y habilita
+    los métodos \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE} y
+    \texttt{OPTIONS}. Este último resulta imprescindible porque el navegador
+    envía una petición previa de comprobación (\textit{preflight}) con dicho
+    método antes de ejecutar determinadas peticiones.
+
+    El segundo ajuste afecta al código de estado devuelto ante un token
+    inválido o caducado. Por omisión, Spring Security respondía con
+    \texttt{403 Forbidden}, código que semánticamente indica que el usuario está
+    identificado pero carece de permisos, cuando en realidad el problema es que
+    no ha podido identificarse. Esta imprecisión impedía al cliente distinguir
+    una sesión expirada de una falta de permisos. Se implementó por ello un
+    punto de entrada de autenticación personalizado
+    (\texttt{JwtAuthenticationEntryPoint}) que responde con
+    \texttt{401 Unauthorized} y un mensaje en formato JSON coherente con el
+    resto de errores de la API.
+
+    \subsection{Consulta y edición del perfil}
+
+    Una vez autenticado, el usuario puede consultar y modificar su propio
+    perfil a través de las rutas \texttt{GET /api/users/me} y
+    \texttt{PUT /api/users/me}. En ambos casos el usuario se identifica a partir
+    del token presentado en la petición, de modo que cada usuario solo puede
+    acceder a sus propios datos y modificarlos, nunca los de otro. Por ello estas
+    rutas son privadas y requieren un token válido; una petición sin token es
+    rechazada por el servidor.
+
+    La edición se limita al correo electrónico y a la contraseña; el nombre de
+    usuario se mantiene fijo, ya que actúa como identificador dentro del token y
+    modificarlo obligaría a renovar la sesión. Al actualizar el correo se
+    comprueba que no esté ya en uso por otro usuario. El cambio de contraseña se
+    realiza mediante una ruta específica (\texttt{PUT /api/users/me/password})
+    que exige la contraseña actual antes de establecer la nueva, evitando así que
+    una sesión abierta pueda usarse para cambiarla sin conocer la anterior.
+
+    \section{Implementación de la interfaz web}
+
+    Con el módulo de usuarios operativo en el servidor, se abordó la
+    construcción de la interfaz web en Angular. Además de las pantallas propias
+    del módulo de autenticación, en esta fase se establecieron las bases
+    estructurales sobre las que se apoyarán los módulos posteriores: la
+    organización del proyecto, el sistema de navegación, la comunicación con la
+    API y la gestión de la sesión del usuario.
+
+    \subsection{Estructura del proyecto y navegación}
+
+    El código fuente se organiza en cuatro directorios que separan las
+    responsabilidades: \texttt{core}, con los servicios y mecanismos
+    transversales de la aplicación; \texttt{layouts}, con las plantillas de
+    página; \texttt{pages}, con las vistas asociadas a cada ruta; y
+    \texttt{shared}, con los componentes reutilizables.
+
+    La aplicación se ha desarrollado con componentes \textit{standalone}, el
+    modelo actual de Angular, en el que cada componente declara directamente sus
+    propias dependencias en lugar de agruparse en módulos. Las rutas se definen
+    de forma anidada: cada plantilla de página actúa como ruta padre y las
+    vistas que comparten esa cabecera se declaran como rutas hijas, de modo que
+    la estructura común se define una sola vez.
+
+    Todas las vistas se cargan mediante carga diferida (\textit{lazy loading}):
+    el código de cada pantalla se descarga únicamente cuando el usuario navega
+    hasta ella, en lugar de incluirse en el paquete inicial. Esto reduce el
+    tiempo de carga de la aplicación, una consideración especialmente relevante
+    en un proyecto que incorporará el modelo de estimación de pose de MediaPipe.
+
+    El acceso a las vistas privadas se controla mediante un \textit{guard} de
+    ruta, una función que Angular ejecuta antes de activar una ruta y que
+    decide si permite el acceso. El \textit{guard} implementado comprueba la
+    existencia de una sesión activa y, en caso contrario, redirige al inicio de
+    sesión. Como ya se ha señalado, esta comprobación cumple una función
+    exclusivamente de experiencia de usuario: la seguridad efectiva reside en el
+    servidor, que revalida el token en cada petición.
+
+    En esta fase, la vista de inicio con sesión se ha implementado únicamente
+    como marcador de posición, ya que su contenido (resumen de actividad,
+    últimos análisis y ejercicios favoritos) depende de funcionalidades que se
+    desarrollarán en incrementos posteriores.
+
+    \subsection{Formularios y validación en el cliente}
+
+    Los formularios de la aplicación se han implementado con el enfoque de
+    formularios reactivos de Angular, en el que la estructura y las reglas de
+    validación se declaran en la clase del componente y no en la plantilla.
+    Este enfoque mantiene la lógica de validación en el código, facilita su
+    comprobación y permite reaccionar a los cambios de cada campo.
+
+    Las reglas aplicadas replican exactamente las del servidor: campos
+    obligatorios, formato de correo válido y la política de contraseña descrita
+    anteriormente. Esta duplicidad es intencionada y responde a una separación
+    de propósitos: la validación en el cliente proporciona respuesta inmediata y
+    evita peticiones innecesarias, mientras que la del servidor constituye la
+    garantía real, puesto que un cliente puede ser manipulado. Mantener ambas
+    alineadas evita la situación indeseable de que el formulario acepte datos
+    que el servidor terminará rechazando.
+
+    En el formulario de registro, el cumplimiento de la política de contraseña
+    se muestra en tiempo real mediante cuatro indicadores que se marcan a medida
+    que la contraseña satisface cada requisito, y el botón de envío permanece
+    deshabilitado mientras el formulario no sea válido. Se ha incorporado
+    además un validador a nivel de grupo, necesario porque la coincidencia entre
+    la contraseña y su repetición no puede evaluarse examinando un único campo
+    de forma aislada.
+
+    \subsection{Comunicación con la API}
+
+    La comunicación con el servidor no se realiza desde los componentes, sino
+    desde servicios especializados: \texttt{AuthService}, responsable del
+    registro, el inicio de sesión y la sesión del usuario, y
+    \texttt{UserService}, responsable de las operaciones sobre el perfil. Esta
+    separación evita duplicar la lógica de acceso a la API en cada vista y
+    mantiene los componentes centrados en la presentación.
+
+    La estructura de los mensajes intercambiados se declara mediante interfaces
+    de TypeScript que reproducen los objetos de transferencia de datos del
+    servidor. De este modo, cualquier discrepancia entre lo que el cliente envía
+    y lo que el servidor espera se detecta en tiempo de compilación.
+
+    Para adjuntar el token a las peticiones se emplea un \textit{interceptor},
+    un mecanismo por el que pasan todas las peticiones HTTP antes de enviarse.
+    El interceptor implementado añade la cabecera \texttt{Authorization} con el
+    token cuando existe una sesión activa, lo que evita tener que incluirla
+    manualmente en cada llamada y elimina el riesgo de omitirla por descuido.
+
+    Un segundo interceptor supervisa las respuestas de error. Cuando el servidor
+    responde con \texttt{401 Unauthorized} a una ruta protegida, interpreta que
+    la sesión ha caducado, la cierra y redirige al inicio de sesión. Este
+    mecanismo requirió una precisión importante: el mismo código de estado se
+    emplea también para señalar credenciales incorrectas en el inicio de sesión
+    y una contraseña actual errónea en el cambio de contraseña, situaciones en
+    las que el usuario debe permanecer en el formulario viendo el mensaje de
+    error. El interceptor excluye por tanto esas rutas, actuando únicamente
+    cuando el \texttt{401} indica realmente una sesión inválida.
+
+    \subsection{Gestión de la sesión}
+
+    Tras un inicio de sesión correcto, el token JWT y los datos básicos del
+    usuario se almacenan en el \texttt{localStorage} del navegador. Esta
+    decisión permite que la sesión sobreviva a la recarga de la página y al
+    cierre del navegador, evitando que el usuario deba volver a identificarse
+    continuamente. Como contrapartida, el \texttt{localStorage} es accesible
+    desde JavaScript, por lo que resulta sensible a ataques de tipo XSS; el
+    riesgo se mitiga mediante la caducidad del token, que limita la ventana de
+    uso de una credencial comprometida.
+
+    El estado de la sesión se mantiene además en memoria mediante un
+    \textit{signal}, el mecanismo de reactividad de Angular: se trata de un
+    valor que notifica automáticamente a quienes lo consultan cuando cambia.
+    Gracias a ello, la barra de navegación muestra las iniciales del usuario
+    conectado y reacciona de forma inmediata al inicio y al cierre de sesión sin
+    necesidad de gestionar manualmente ninguna actualización. Al arrancar la
+    aplicación, este estado se reconstruye a partir de los datos almacenados en
+    el navegador.
+
+    En el cambio de contraseña se ha optado por cerrar la sesión y solicitar un
+    nuevo inicio de sesión. Conviene precisar que el token emitido no depende de
+    la contraseña, por lo que técnicamente seguiría siendo válido; forzar una
+    nueva identificación constituye, sin embargo, una práctica recomendable, ya
+    que confirma que el usuario conoce la credencial recién establecida.
+
+    \subsection{Componentes reutilizables}
+
+    Los mensajes de estado de la aplicación se han centralizado en un componente
+    único con tres variantes: error, advertencia y confirmación. Definir el
+    componente una sola vez garantiza que todos los avisos de la aplicación
+    compartan apariencia y comportamiento, y que cualquier modificación futura
+    se propague automáticamente a todas las pantallas que lo emplean. Su diseño
+    se ha planteado teniendo en cuenta que el módulo de corrección postural
+    necesitará mostrar las correcciones detectadas empleando precisamente esos
+    tres niveles de gravedad.
+
+    De forma análoga, los estilos comunes a los formularios (campos, etiquetas,
+    ayudas, mensajes de error y botones) se han definido a nivel global a partir
+    de las variables del sistema de diseño, de modo que las pantallas de
+    registro, inicio de sesión y perfil comparten una presentación idéntica sin
+    duplicar declaraciones.
+
     \section{Catálogo de ejercicios y filtrado}
 
 
@@ -875,6 +1261,71 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \caption{Registro con un correo inválido: respuesta \texttt{400 Bad
         Request} con el mensaje de validación.}
         \label{fig:postman-400}
+    \end{figure}
+
+    \section{Pruebas de integración de la interfaz}
+
+    Una vez implementada la interfaz del módulo de usuarios, se realizó una
+    prueba manual del flujo completo con el objetivo de verificar la correcta
+    integración entre cliente y servidor. A diferencia de las pruebas
+    anteriores, centradas en los endpoints de forma aislada, estas comprueban el
+    recorrido real de un usuario a través de la aplicación. La
+    Tabla~\ref{tab:pruebas-flujo} recoge los casos verificados y el resultado
+    esperado en cada uno.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{5.5cm} p{7.5cm}}
+            \toprule
+            \textbf{Caso de prueba} & \textbf{Resultado esperado} \\
+            \midrule
+            Acceso a una vista privada sin sesión & Redirección al inicio de sesión \\
+            Registro con contraseña débil & Botón deshabilitado e indicadores sin cumplir \\
+            Registro con usuario existente & Mensaje de error (\texttt{409 Conflict}) \\
+            Registro correcto & Usuario creado y redirección al inicio de sesión \\
+            Inicio de sesión con credenciales incorrectas & Mensaje de error sin abandonar la vista \\
+            Inicio de sesión correcto & Redirección al inicio y sesión establecida \\
+            Consulta del perfil & Datos del usuario cargados desde el servidor \\
+            Modificación del correo & Cambio persistido y confirmación visible \\
+            Modificación con correo ya registrado & Mensaje de error (\texttt{409 Conflict}) \\
+            Recarga de la página con sesión activa & La sesión se mantiene \\
+            Cambio de contraseña con contraseña actual errónea & Mensaje de error sin cerrar la sesión \\
+            Cambio de contraseña correcto & Cierre de sesión y acceso con la nueva contraseña \\
+            Token manipulado o caducado & Cierre automático de sesión y redirección \\
+            Cierre de sesión & Credenciales eliminadas y vistas privadas inaccesibles \\
+            \bottomrule
+        \end{tabular}
+        \caption{Casos de prueba del flujo completo del módulo de usuarios.}
+        \label{tab:pruebas-flujo}
+    \end{table}
+
+    Todos los casos se completaron con el resultado esperado. Las figuras
+    siguientes ilustran algunos de los más representativos.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/app-registro-validacion.png}
+        \caption{Validación de la contraseña en tiempo real durante el registro:
+        el botón permanece deshabilitado mientras no se cumplen todos los
+        requisitos.}
+        \label{fig:app-registro-validacion}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\textwidth]{img/app-login-error.png}
+        \caption{Inicio de sesión con credenciales incorrectas: mensaje de error
+        y resaltado de los campos afectados.}
+        \label{fig:app-login-error}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/app-perfil-token.png}
+        \caption{Petición al perfil del usuario: el interceptor adjunta
+        automáticamente el token JWT en la cabecera \texttt{Authorization}.}
+        \label{fig:app-perfil-token}
     \end{figure}
 
 
