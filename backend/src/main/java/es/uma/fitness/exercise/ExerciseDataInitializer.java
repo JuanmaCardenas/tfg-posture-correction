@@ -56,7 +56,7 @@ public class ExerciseDataInitializer implements CommandLineRunner {
                         "Conserva la espalda en posición neutra y la mirada al frente durante todo el recorrido."),
 
                 build("Peso muerto rumano",
-                        Set.of(GLUTES, BACK), MEDIUM, "0XL4cZR2Ink", HIP_HINGE,
+                        Set.of(GLUTES, BACK), MEDIUM, "0XL4cZR2Ink", null,
                         "Variante del peso muerto centrada en la bisagra de cadera. La rodilla permanece "
                                 + "casi extendida mientras la cadera retrocede, lo que produce un estiramiento "
                                 + "intenso del isquiotibial y el glúteo.",
@@ -86,7 +86,7 @@ public class ExerciseDataInitializer implements CommandLineRunner {
                         "Evita que la cadera se hunda o se eleve durante el movimiento."),
 
                 build("Hip thrust",
-                        Set.of(GLUTES), MEDIUM, "3SHkXmrQtxQ", HIP_HINGE,
+                        Set.of(GLUTES), MEDIUM, "3SHkXmrQtxQ", null,
                         "Ejercicio de extensión de cadera con la espalda apoyada en un banco. Es uno de "
                                 + "los movimientos que mayor activación produce en el glúteo mayor.",
                         "Apoya la parte baja de las escápulas en el borde del banco.",
@@ -124,7 +124,7 @@ public class ExerciseDataInitializer implements CommandLineRunner {
                         "Desciende de forma controlada hasta la extensión completa de los codos."),
 
                 build("Plancha abdominal",
-                        Set.of(ABS, OBLIQUES), EASY, "hAqEhJb9oDs", null,
+                        Set.of(ABS, OBLIQUES), EASY, "hAqEhJb9oDs", PLANK,
                         "Ejercicio isométrico de estabilización del tronco. No hay movimiento articular: "
                                 + "el objetivo es sostener la alineación del cuerpo resistiendo la tendencia de "
                                 + "la cadera a caer.",

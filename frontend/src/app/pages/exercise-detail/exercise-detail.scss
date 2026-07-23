@@ -186,3 +186,10 @@
     background: var(--color-danger-bg);
   }
 }
+
+.detail__back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}

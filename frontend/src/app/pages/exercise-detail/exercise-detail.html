@@ -8,7 +8,7 @@
     </div>
   } @else if (exercise(); as ex) {
     <header class="detail__header">
-      <a routerLink="/exercises" class="detail__back">
+      <button type="button" class="detail__back" (click)="goBack()">
         <svg
           viewBox="0 0 24 24"
           width="18"
@@ -22,7 +22,7 @@
           <path d="M15 6l-6 6 6 6" />
         </svg>
         Ejercicios
-      </a>
+      </button>
 
       <h1 class="detail__title">{{ ex.name }}</h1>
 

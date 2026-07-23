@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DecimalPipe, Location } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -18,6 +18,8 @@ type DetailTab = 'info' | 'analysis' | 'ratings';
 })
 export class ExerciseDetail {
   private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
+  private readonly router = inject(Router);
   private readonly exerciseService = inject(ExerciseService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -71,6 +73,14 @@ export class ExerciseDetail {
         this.exercise.set(exercise);
         this.loading.set(false);
       });
+  }
+
+  goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/exercises']); // entrada directa por URL
+    }
   }
 
   selectTab(tab: DetailTab): void {

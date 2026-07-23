@@ -1,6 +1,7 @@
 @if (filterOptions(); as options) {
   <app-exercise-filter-bar
     [options]="options"
+    [initialFilters]="initialFilters()"
     [resultCount]="loading() ? null : total()"
     (filtersChange)="onFiltersChange($event)"
   />

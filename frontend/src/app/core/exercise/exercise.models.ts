@@ -3,7 +3,7 @@ export type MuscleGroupCode =
 
 export type DifficultyCode = 'EASY' | 'MEDIUM' | 'HARD';
 
-export type AnalysisTypeCode = 'SQUAT' | 'LUNGE' | 'PUSH_UP' | 'HIP_HINGE';
+export type AnalysisTypeCode = 'SQUAT' | 'LUNGE' | 'PLANK' | 'PUSH_UP';
 
 export interface Label<T extends string = string> {
   code: T;

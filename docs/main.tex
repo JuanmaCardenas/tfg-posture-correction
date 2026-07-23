@@ -435,7 +435,7 @@
     \section{Requisitos funcionales}
     En esta sección se recogen los requisitos funcionales del sistema, es decir,
     las funcionalidades que debe ofrecer la aplicación. La
-    Tabla~\ref{—} los enumera.
+    Tabla~\ref{tab:req-funcionales} los enumera.
     
     \begin{table}[htbp]
         \centering
@@ -444,8 +444,8 @@
             \textbf{ID} & \textbf{Descripción} \\
             \midrule
             RF-01 & El usuario podrá registrarse, iniciar y cerrar sesión de forma segura. \\
-            RF-02 & El usuario podrá consultar un catálogo de ejercicios. \\
-            RF-03 & El usuario podrá filtrar los ejercicios por grupo muscular y nivel de dificultad. \\
+            RF-02 & El usuario autenticado podrá consultar un catálogo de ejercicios. \\
+            RF-03 & El usuario podrá filtrar los ejercicios por nombre, grupo muscular y nivel de dificultad. \\
             RF-04 & El usuario podrá ver el detalle de un ejercicio, con descripción, consejos y vídeo embebido. \\
             RF-05 & El usuario podrá valorar los ejercicios mediante un sistema de estrellas. \\
             RF-06 & El usuario podrá escribir y consultar comentarios sobre los ejercicios. \\
@@ -457,7 +457,7 @@
             \bottomrule
         \end{tabular}
         \caption{Requisitos funcionales del sistema.}
-        \label{—}
+        \label{tab:req-funcionales},
     \end{table}
 
     Conviene precisar el alcance del requisito RF-11 en relación con el
@@ -543,6 +543,111 @@
         \caption{Atributos de la entidad \texttt{User}.}
         \label{tab:entidad-user}
     \end{table}
+
+    La segunda entidad del modelo es \texttt{Exercise}, que representa cada
+    uno de los ejercicios del catálogo. Sus atributos se recogen en la
+    Tabla~\ref{tab:entidad-exercise}.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Atributo} & \textbf{Tipo} & \textbf{Descripción} \\
+            \midrule
+            id             & Long             & Identificador único (clave primaria) \\
+            name           & String           & Nombre del ejercicio, único \\
+            description    & String           & Descripción del movimiento \\
+            muscleGroups   & Conjunto de Enum & Grupos musculares implicados \\
+            difficulty     & Enum             & Nivel de dificultad \\
+            youtubeVideoId & String           & Identificador del vídeo en YouTube \\
+            tips           & Lista de String  & Consejos de ejecución, ordenados \\
+            analysisType   & Enum             & Analizador postural asociado (opcional) \\
+            createdAt      & LocalDateTime    & Fecha de alta \\
+            \bottomrule
+        \end{tabular}
+        \caption{Atributos de la entidad \texttt{Exercise}.}
+        \label{tab:entidad-exercise}
+    \end{table}
+
+    Tres de estos atributos requieren una justificación explícita, ya que
+    condicionan tanto el esquema relacional como el diseño de la API.
+
+    En primer lugar, un mismo ejercicio implica habitualmente más de un grupo
+    muscular: las dominadas trabajan espalda y brazos, y la sentadilla, pierna
+    y glúteo. Por ello \texttt{muscleGroups} no es un valor simple sino un
+    conjunto. Se descartó modelar el grupo muscular como una entidad propia
+    porque se trata de un conjunto cerrado de valores sin atributos asociados,
+    para el que un tipo enumerado resulta suficiente y evita una tabla y una
+    relación adicionales. Lo mismo ocurre con los consejos de ejecución
+    (\texttt{tips}), que son textos sin identidad propia y carecen de sentido
+    fuera del ejercicio al que pertenecen. Ambos se mapean como colecciones de
+    elementos, lo que da lugar a las tres tablas físicas recogidas en la
+    Tabla~\ref{tab:tablas-catalogo}.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            \textbf{Tabla} & \textbf{Contenido} \\
+            \midrule
+            exercises              & Atributos simples del ejercicio \\
+            exercise\_muscle\_groups & Grupos musculares de cada ejercicio \\
+            exercise\_tips           & Consejos de cada ejercicio, con su orden \\
+            \bottomrule
+        \end{tabular}
+        \caption{Tablas que componen el catálogo de ejercicios.}
+        \label{tab:tablas-catalogo}
+    \end{table}
+
+    En segundo lugar, del vídeo demostrativo se almacena únicamente el
+    identificador que YouTube asigna a cada contenido, y no su dirección
+    completa. A partir de ese identificador el cliente compone tanto la
+    dirección de reproducción embebida como la de la miniatura, sin necesidad
+    de analizar cadenas de texto. Esta decisión tiene además una consecuencia
+    relevante en materia de derechos de autor: la imagen que ilustra cada
+    ejercicio es la miniatura servida por la propia plataforma junto al enlace
+    al vídeo original, lo que evita incorporar a la memoria y al repositorio
+    ilustraciones anatómicas de terceros, algo especialmente pertinente dado
+    que este trabajo se publica en el repositorio institucional RIUMA.
+
+    En tercer lugar, el atributo \texttt{analysisType} indica qué analizador
+    postural corresponde a cada ejercicio y admite valor nulo. Los ejercicios
+    sin analizador asociado se distinguen así de los analizables, lo que
+    permite a la interfaz mostrar u ocultar el acceso al módulo de corrección
+    postural. Aunque dicho módulo pertenece a un incremento posterior, el
+    atributo se introduce desde el diseño inicial del catálogo para evitar una
+    modificación posterior del esquema de la base de datos.
+
+    \subsection{Tipos enumerados del catálogo}
+
+    El catálogo emplea tres tipos enumerados cuyos valores se recogen en la
+    Tabla~\ref{tab:enums-catalogo}. Cada valor consta de un identificador
+    técnico, que es el que se almacena en la base de datos y viaja en la API,
+    y de una etiqueta en castellano, que es la que se muestra al usuario.
+    Separar ambos permite modificar el texto visible sin migrar los datos ya
+    almacenados y, como se detalla en la Sección~\ref{sec:api-catalogo}, evita
+    duplicar las traducciones en el cliente.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{9cm}}
+            \toprule
+            \textbf{Tipo} & \textbf{Valores} \\
+            \midrule
+            MuscleGroup  & Pecho, Espalda, Hombros, Brazos, Pierna, Glúteo,
+                           Abdominales y Oblicuos \\
+            Difficulty   & Fácil, Medio y Difícil \\
+            AnalysisType & Sentadilla, Zancada, Plancha y Flexión \\
+            \bottomrule
+        \end{tabular}
+        \caption{Tipos enumerados empleados en el catálogo de ejercicios.}
+        \label{tab:enums-catalogo}
+    \end{table}
+
+    La lista de grupos musculares es deliberadamente cerrada y de granularidad
+    media. Una clasificación anatómica exhaustiva habría resultado excesiva
+    para el propósito de la aplicación, que es permitir al usuario localizar
+    ejercicios por zona de trabajo, no ofrecer una referencia anatómica.
 
 
     \section{Diseño de la API REST}
@@ -696,6 +801,104 @@
         \label{fig:flujo-auth}
     \end{figure}
 
+    \subsection{Catálogo de ejercicios}
+    \label{sec:api-catalogo}
+
+    El catálogo expone las tres rutas recogidas en la
+    Tabla~\ref{tab:api-catalogo}. A diferencia de las de autenticación, todas
+    ellas requieren un usuario autenticado: el acceso al catálogo se ha
+    definido como privado porque las tarjetas de ejercicio muestran
+    información dependiente del usuario, como su condición de favorito, y
+    porque la navegación hacia el catálogo solo está disponible una vez
+    iniciada la sesión.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Método} & \textbf{Ruta} & \textbf{Función} \\
+            \midrule
+            GET & /api/exercises          & Listado filtrado y paginado \\
+            GET & /api/exercises/filters  & Valores admitidos por los filtros \\
+            GET & /api/exercises/\{id\}   & Detalle de un ejercicio \\
+            \bottomrule
+        \end{tabular}
+        \caption{Rutas de la API para el catálogo de ejercicios.}
+        \label{tab:api-catalogo}
+    \end{table}
+
+    La operación de listado acepta los parámetros de consulta recogidos en la
+    Tabla~\ref{tab:api-catalogo-params}, todos ellos opcionales. Al omitirse,
+    la petición devuelve el catálogo completo.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{8cm}}
+            \toprule
+            \textbf{Parámetro} & \textbf{Descripción} \\
+            \midrule
+            search     & Texto contenido en el nombre del ejercicio \\
+            groups     & Grupos musculares, separados por comas \\
+            difficulty & Nivel de dificultad \\
+            page, size & Número y tamaño de la página solicitada \\
+            \bottomrule
+        \end{tabular}
+        \caption{Parámetros de consulta del listado de ejercicios.}
+        \label{tab:api-catalogo-params}
+    \end{table}
+
+    El filtro por grupo muscular sigue una semántica disyuntiva: un ejercicio
+    se incluye en el resultado si trabaja \textit{alguno} de los grupos
+    seleccionados. Se descartó la alternativa conjuntiva, que exigiría que el
+    ejercicio implicase simultáneamente todos los grupos marcados, porque
+    produciría listados casi vacíos ante cualquier combinación de dos o más
+    grupos. El filtro por dificultad, en cambio, admite un único valor, dado
+    que los tres niveles son mutuamente excluyentes.
+
+    La respuesta del listado no devuelve una colección simple, sino una
+    estructura paginada. Aunque el volumen previsto de ejercicios es reducido,
+    la paginación evita que el tamaño de la respuesta crezca sin cota a medida
+    que el catálogo se amplíe. Se ha definido para ello un objeto de
+    transferencia propio, en lugar de serializar directamente la estructura de
+    paginación que proporciona el marco de trabajo: esta última expone en su
+    representación JSON numerosos campos internos que no constituyen un
+    contrato estable entre versiones, mientras que el objeto propio publica
+    exclusivamente los datos que el cliente necesita, entre ellos el número
+    total de resultados que la interfaz muestra al usuario.
+
+    La ruta \texttt{/filters} merece una justificación aparte. Los valores
+    admitidos por los filtros podrían haberse codificado directamente en el
+    cliente, pero ello supondría duplicar en el frontend las etiquetas en
+    castellano que ya define el backend, de modo que añadir un grupo muscular
+    obligaría a modificar ambos proyectos de forma coordinada. Al servirlos
+    desde el servidor, el cliente se limita a representar los valores que
+    recibe y la definición reside en un único lugar.
+
+    Por último, la Tabla~\ref{tab:api-catalogo-codigos} recoge los códigos de
+    estado que devuelven estas operaciones.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{8cm}}
+            \toprule
+            \textbf{Código} & \textbf{Situación} \\
+            \midrule
+            200 & Petición correcta \\
+            400 & Valor no admitido en un parámetro de filtrado \\
+            401 & Petición sin token o con token no válido \\
+            404 & No existe ningún ejercicio con el identificador indicado \\
+            \bottomrule
+        \end{tabular}
+        \caption{Códigos de estado de las operaciones del catálogo.}
+        \label{tab:api-catalogo-codigos}
+    \end{table}
+
+    En el caso del código 400, el mensaje de error enumera los valores
+    admitidos por el parámetro rechazado, de modo que el cliente disponga de
+    información suficiente para corregir la petición. Se ha evitado
+    deliberadamente propagar el mensaje original de la excepción, que revela
+    los nombres de las clases internas del servidor.
+
 
     \section{Diseño de la interfaz de usuario}
 
@@ -721,6 +924,69 @@
         \caption{Vistas iniciales de la aplicación.}
         \label{tab:vistas-e1}
     \end{table}
+
+    El catálogo de ejercicios añade las dos vistas recogidas en la
+    Tabla~\ref{tab:vistas-e2}, ambas privadas conforme a lo expuesto en la
+    Sección~\ref{sec:api-catalogo}.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Vista} & \textbf{Ruta} & \textbf{Acceso} \\
+            \midrule
+            Catálogo           & /exercises      & Privada \\
+            Detalle de ejercicio & /exercises/:id & Privada \\
+            \bottomrule
+        \end{tabular}
+        \caption{Vistas del catálogo de ejercicios.}
+        \label{tab:vistas-e2}
+    \end{table}
+
+    La vista de catálogo, cuya maqueta se recoge en la
+    Figura~\ref{fig:mockup-catalogo}, se organiza en una barra de filtros y
+    una rejilla de tarjetas. Cada tarjeta muestra la miniatura del vídeo, el
+    nombre del ejercicio, sus grupos musculares, su nivel de dificultad, su
+    valoración media y un control para marcarlo como favorito. Esta misma
+    tarjeta se reutiliza en la vista de ejercicios favoritos, por lo que se ha
+    diseñado como un componente independiente y no como parte del catálogo.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-catalogo.png}
+        \caption{Maqueta de la vista de catálogo, con la barra de filtros y la
+        rejilla de tarjetas.}
+        \label{fig:mockup-catalogo}
+    \end{figure}
+
+    El indicador de favorito presenta dos estados visuales: contorno sin
+    relleno cuando el ejercicio no está marcado y silueta rellena en color de
+    acento cuando sí lo está. Al igual que la valoración media, corresponde a
+    un incremento posterior, pero se contempla desde el diseño de la tarjeta
+    para no rediseñarla más adelante.
+
+    La vista de catálogo contempla además tres situaciones distintas al margen
+    del listado con resultados: la espera mientras se recuperan los datos, el
+    fallo de comunicación con el servidor, que ofrece la posibilidad de
+    reintentar la operación, y la ausencia de resultados. Este último caso
+    distingue a su vez entre un catálogo vacío y una combinación de filtros
+    sin coincidencias, ya que la acción que se espera del usuario es diferente
+    en cada caso.
+
+    La vista de detalle, recogida en la Figura~\ref{fig:mockup-detalle}, se
+    estructura en una cabecera con el nombre y los distintivos del ejercicio y
+    un conjunto de tres pestañas cuyo contenido corresponde a requisitos e
+    incrementos distintos: \textit{Información} (RF-04), \textit{Analizar mi
+    técnica} (RF-08) y \textit{Valoraciones} (RF-05 y RF-06). La pestaña de
+    análisis solo se muestra en aquellos ejercicios que tienen un analizador
+    postural asociado.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-detalle.png}
+        \caption{Maqueta de la vista de detalle de un ejercicio.}
+        \label{fig:mockup-detalle}
+    \end{figure}
 
     La navegación se organiza en torno a tres plantillas de página o
     \textit{layouts}, cada una con una cabecera distinta según el contexto: una
@@ -1063,6 +1329,223 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     que exige la contraseña actual antes de establecer la nueva, evitando así que
     una sesión abierta pueda usarse para cambiarla sin conocer la anterior.
 
+    \section{Catálogo de ejercicios}
+
+    El segundo módulo implementado es el catálogo de ejercicios, que da soporte
+    a los requisitos RF-02, RF-03 y RF-04. Su desarrollo abarca desde el modelo
+    de dominio y la consulta de filtrado en el servidor hasta las vistas de
+    listado y detalle en el cliente.
+
+    \subsection{Modelo de dominio y carga inicial del catálogo}
+
+    La entidad \texttt{Exercise}, cuyos atributos se recogieron en la
+    Tabla~\ref{tab:entidad-exercise}, se mapea a la tabla \texttt{exercises}.
+    Los grupos musculares y los consejos de ejecución se declaran como
+    colecciones de elementos mediante la anotación
+    \texttt{@ElementCollection}, que genera automáticamente las tablas
+    \texttt{exercise\_muscle\_groups} y \texttt{exercise\_tips} sin necesidad
+    de definir entidades intermedias.
+
+    La estrategia de carga de ambas colecciones es distinta y responde al uso
+    que hace de ellas la interfaz. Los grupos musculares se recuperan de forma
+    anticipada, ya que sus distintivos aparecen en todas las tarjetas del
+    listado y una carga diferida provocaría un error al construir el objeto de
+    transferencia fuera de la transacción. Para evitar que esa carga anticipada
+    genere una consulta por cada ejercicio, problema conocido como
+    \textit{N+1}, se emplea la anotación \texttt{@BatchSize}, que agrupa la
+    recuperación de los grupos de varios ejercicios en una única consulta. Los
+    consejos, en cambio, se cargan de forma diferida porque solo se necesitan
+    en la vista de detalle, y se anotan con \texttt{@OrderColumn} para
+    garantizar que se muestren siempre en el mismo orden, ya que una lista sin
+    esta anotación no preserva el orden al recuperarse de la base de datos.
+
+    Tras el primer arranque se verificó en MySQL la creación de las tres
+    tablas con las columnas y claves ajenas esperadas
+    (Figura~\ref{fig:tabla-exercise-creacion}), siguiendo el mismo
+    procedimiento aplicado a la tabla de usuarios.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.85\textwidth]{img/tabla-exercise-creacion.png}
+        \caption{Estructura de las tablas del catálogo generadas por Hibernate,
+        verificada en MySQL.}
+        \label{fig:tabla-exercise-creacion}
+    \end{figure}
+
+    El catálogo se puebla con un conjunto inicial de diez ejercicios. Para ello
+    se descartó el uso de un guion SQL de inicialización por dos motivos. El
+    primero es que los datos se reparten en tres tablas relacionadas, de modo
+    que insertarlos mediante sentencias SQL obligaría a gestionar manualmente
+    las claves ajenas. El segundo, más determinante, es que la estrategia de
+    generación del esquema empleada ejecutaría dicho guion en cada arranque de
+    la aplicación, duplicando los registros. En su lugar se ha implementado un
+    componente que se ejecuta al iniciar la aplicación y que comprueba
+    previamente si el catálogo contiene ya algún ejercicio; solo si está vacío
+    procede a la inserción. El resultado es una carga idempotente: la
+    aplicación puede arrancarse cuantas veces sea necesario sin alterar los
+    datos existentes, como refleja la Figura~\ref{fig:carga-catalogo}.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.85\textwidth]{img/carga-catalogo.png}
+        \caption{Trazas de la carga inicial del catálogo en el primer arranque
+        y de su omisión en arranques posteriores.}
+        \label{fig:carga-catalogo}
+    \end{figure}
+
+    \subsection{Consulta de filtrado y paginación}
+
+    El listado de ejercicios admite tres criterios de filtrado independientes y
+    opcionales, lo que plantea el problema de cómo construir una consulta que
+    contemple todas sus combinaciones. Las soluciones habituales consisten en
+    incorporar condiciones que comprueben si cada parámetro es nulo, o en
+    construir la consulta dinámicamente concatenando fragmentos de texto. La
+    primera produce consultas difíciles de leer y mantener; la segunda,
+    consultas que no pueden validarse en tiempo de compilación.
+
+    Se ha optado por un enfoque distinto: ausencia de filtro se traduce en
+    filtrado por todos los valores posibles. Si el usuario no selecciona
+    ninguna dificultad, la capa de servicio transmite las tres a la consulta;
+    si no selecciona ningún grupo muscular, transmite los ocho; y si no
+    introduce texto de búsqueda, transmite una cadena vacía, que al emplearse
+    en una comparación por contenido coincide con todos los nombres. La
+    consulta resultante es única, fija y sin ramificaciones, y devuelve
+    exactamente el mismo resultado que las alternativas descritas.
+
+    La consulta requiere además dos precauciones derivadas de la relación con
+    los grupos musculares. La primera es la eliminación de duplicados: al
+    combinar la tabla de ejercicios con la de grupos, un ejercicio que trabaje
+    dos de los grupos seleccionados aparecería repetido en el resultado. La
+    segunda afecta al recuento total de elementos, que debe declararse de forma
+    explícita; la consulta de recuento que el marco de trabajo genera por
+    defecto contabilizaría esas filas duplicadas y el número de resultados
+    mostrado al usuario sería incorrecto.
+
+    Por último, la capa de servicio impone un orden por nombre cuando la
+    petición no especifica otro. En una consulta paginada el orden no es una
+    cuestión estética: sin una ordenación estable, la base de datos no
+    garantiza que dos peticiones consecutivas devuelvan las filas en la misma
+    secuencia, de modo que un mismo ejercicio podría aparecer en dos páginas
+    distintas o no aparecer en ninguna.
+
+    \subsection{Objetos de transferencia y etiquetas de presentación}
+
+    La API no expone las entidades directamente, sino objetos de transferencia
+    específicos para cada vista: uno reducido para las tarjetas del listado y
+    otro completo, con la descripción y los consejos, para el detalle. Ambos se
+    construyen mediante una clase de conversión que centraliza también la
+    composición de la dirección de la miniatura a partir del identificador del
+    vídeo.
+
+    Los valores enumerados no se transmiten como una cadena simple, sino como
+    un par formado por el identificador técnico y la etiqueta en castellano.
+    Así, el grupo muscular de los glúteos viaja al cliente acompañado del texto
+    que debe mostrarse. El cliente utiliza el identificador para construir las
+    peticiones de filtrado y la etiqueta para representarlo en pantalla, sin
+    necesidad de mantener su propia tabla de traducciones. Esta decisión evita
+    que un cambio en los textos visibles, o la incorporación de un nuevo grupo
+    muscular, obligue a modificar de forma coordinada el servidor y el cliente.
+
+    Los objetos de transferencia incluyen ya los campos correspondientes a la
+    valoración media, el número de valoraciones y la condición de favorito, que
+    en esta fase se devuelven con valores neutros. Anticiparlos permite que los
+    componentes de la interfaz queden construidos en su forma definitiva y que
+    la incorporación de dichas funcionalidades, prevista en un incremento
+    posterior, no requiera modificar el contrato de la API ni los componentes
+    ya desarrollados.
+
+    \subsection{Vista de catálogo}
+
+    En el cliente, el catálogo se apoya en dos componentes reutilizables: la
+    tarjeta de ejercicio y la barra de filtros, ambos concebidos para emplearse
+    también en la vista de ejercicios favoritos. La página se limita a
+    coordinarlos y a gestionar la comunicación con la API. La
+    Figura~\ref{fig:catalogo-implementado} muestra el resultado.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/catalogo-implementado.png}
+        \caption{Vista de catálogo con el conjunto completo de ejercicios.}
+        \label{fig:catalogo-implementado}
+    \end{figure}
+
+    El comportamiento de la búsqueda por texto requirió dos ajustes en el
+    tratamiento de las peticiones. El primero es la introducción de un retardo
+    entre la última pulsación de tecla y el envío de la consulta: sin él, cada
+    carácter escrito generaría una petición al servidor, de modo que buscar una
+    palabra de diez letras produciría diez consultas de las que solo la última
+    resulta útil. El segundo es la cancelación de las peticiones que quedan
+    obsoletas. Cuando el usuario modifica los criterios antes de que se haya
+    recibido la respuesta anterior, ambas peticiones quedan en curso
+    simultáneamente y nada garantiza que respondan en el mismo orden en que se
+    enviaron; si la más antigua llegase en último lugar, sobrescribiría unos
+    resultados más recientes y la interfaz mostraría un listado que no
+    corresponde a los filtros seleccionados. El operador empleado descarta
+    automáticamente la petición en curso al recibir un criterio nuevo.
+
+    Los criterios de filtrado se reflejan además en los parámetros de consulta
+    de la dirección del navegador. Esto proporciona tres ventajas: la búsqueda
+    puede compartirse mediante un enlace, se conserva al recargar la página y,
+    sobre todo, sobrevive a la navegación hacia el detalle de un ejercicio y de
+    vuelta al listado. Los valores recibidos por esta vía se contrastan con los
+    admitidos antes de emplearse, de modo que una dirección manipulada
+    manualmente no llega a generar una petición no válida al servidor. La
+    Figura~\ref{fig:catalogo-filtrado} muestra el catálogo con varios filtros
+    activos y su reflejo en la dirección.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/catalogo-filtrado.png}
+        \caption{Catálogo filtrado por grupo muscular y dificultad, con los
+        criterios reflejados en la dirección del navegador.}
+        \label{fig:catalogo-filtrado}
+    \end{figure}
+
+    \subsection{Vista de detalle y vídeo embebido}
+
+    La vista de detalle se estructura en las tres pestañas descritas en el
+    capítulo de diseño, de las cuales solo la de información corresponde a este
+    incremento. La pestaña de análisis postural se muestra únicamente en
+    aquellos ejercicios cuyo atributo \texttt{analysisType} tiene valor, lo que
+    permite verificar desde ya el comportamiento condicional de la interfaz.
+
+    La Figura~\ref{fig:detalle-sin-analisis} muestra el detalle de un ejercicio
+    sin analizador asociado, en el que la pestaña correspondiente no aparece,
+    en contraste con la Figura~\ref{fig:detalle-implementado}.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/detalle-sin-analisis.png}
+        \caption{Detalle de un ejercicio sin analizador postural asociado,
+        donde la pestaña de análisis no se muestra.}
+        \label{fig:detalle-sin-analisis}
+    \end{figure}
+
+    La reproducción del vídeo se realiza mediante un marco embebido. Angular
+    bloquea por defecto la asignación dinámica de direcciones a este tipo de
+    elementos, al tratarse de un vector habitual de inyección de código, por lo
+    que la dirección debe autorizarse de forma explícita. Dicha autorización es
+    segura en este caso porque el identificador del vídeo no procede de una
+    entrada del usuario, sino de la base de datos, y se inserta en una
+    dirección de dominio fijo; la valoración sería distinta si el identificador
+    pudiera introducirse desde un formulario.
+
+    La dirección empleada corresponde al dominio de reproducción con protección
+    de privacidad reforzada que ofrece la plataforma, que no instala cookies de
+    seguimiento hasta que el usuario inicia la reproducción. Esta elección es
+    coherente con el requisito no funcional RNF-02, que establece la
+    preservación de la privacidad del usuario como criterio de diseño del
+    sistema. La Figura~\ref{fig:detalle-implementado} muestra la vista
+    resultante.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/detalle-implementado.png}
+        \caption{Vista de detalle de un ejercicio, con el vídeo demostrativo,
+        la descripción y los consejos de ejecución.}
+        \label{fig:detalle-implementado}
+    \end{figure}
+
     \section{Implementación de la interfaz web}
 
     Con el módulo de usuarios operativo en el servidor, se abordó la
@@ -1326,6 +1809,64 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \caption{Petición al perfil del usuario: el interceptor adjunta
         automáticamente el token JWT en la cabecera \texttt{Authorization}.}
         \label{fig:app-perfil-token}
+    \end{figure}
+
+    \section{Pruebas del catálogo de ejercicios}
+
+    Las operaciones del catálogo se han verificado con Postman, comprobando
+    tanto los casos correctos como los de error. La
+    Tabla~\ref{tab:pruebas-catalogo} recoge los casos ejecutados y el resultado
+    esperado en cada uno.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{p{7cm} l p{4cm}}
+            \toprule
+            \textbf{Caso} & \textbf{Código} & \textbf{Resultado esperado} \\
+            \midrule
+            Listado sin filtros                        & 200 & Diez ejercicios \\
+            Búsqueda por nombre parcial                & 200 & Ejercicios coincidentes \\
+            Búsqueda insensible a mayúsculas           & 200 & Mismo resultado \\
+            Filtrado por dificultad                    & 200 & Ejercicios del nivel \\
+            Filtrado por dos grupos musculares         & 200 & Ejercicios de alguno de ellos \\
+            Filtrado combinado de grupo y dificultad   & 200 & Intersección de criterios \\
+            Solicitud de una página concreta           & 200 & Página indicada \\
+            Detalle de un ejercicio existente          & 200 & Descripción y consejos \\
+            Valores admitidos por los filtros          & 200 & Grupos y dificultades \\
+            Detalle de un identificador inexistente    & 404 & Mensaje de error \\
+            Listado sin token de autenticación         & 401 & Acceso denegado \\
+            Filtro con un valor no admitido            & 400 & Valores válidos \\
+            \bottomrule
+        \end{tabular}
+        \caption{Casos de prueba de la API del catálogo de ejercicios.}
+        \label{tab:pruebas-catalogo}
+    \end{table}
+
+    Dos de estos casos merecen comentario. El filtrado por dos grupos
+    musculares confirma la semántica disyuntiva descrita en el capítulo de
+    diseño: el resultado incluye ejercicios que trabajan uno solo de los grupos
+    seleccionados, lo que no ocurriría con una interpretación conjuntiva. Y el
+    listado sin token verifica que el catálogo es efectivamente privado, dado
+    que la comprobación se realiza en la cadena de filtros del servidor y no
+    depende de la interfaz.
+
+    Las Figuras~\ref{fig:pruebas-catalogo-postman}
+    y~\ref{fig:pruebas-catalogo-error} recogen la ejecución de ambos casos.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/pruebas-catalogo-postman.png}
+        \caption{Filtrado por dos grupos musculares, con ejercicios que
+        implican solo uno de ellos entre los resultados.}
+        \label{fig:pruebas-catalogo-postman}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/pruebas-catalogo-error.png}
+        \caption{Respuesta ante un valor no admitido en el parámetro de
+        dificultad, con la relación de valores válidos.}
+        \label{fig:pruebas-catalogo-error}
     \end{figure}
 
 

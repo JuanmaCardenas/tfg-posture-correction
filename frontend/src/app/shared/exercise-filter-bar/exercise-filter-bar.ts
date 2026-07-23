@@ -5,6 +5,7 @@ import {
   HostListener,
   inject,
   input,
+  OnInit,
   output,
   signal,
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import {
   DifficultyCode,
+  EMPTY_FILTERS,
   ExerciseFilters,
   ExerciseFiltersResponse,
   MuscleGroupCode,
@@ -24,7 +26,7 @@ import {
   templateUrl: './exercise-filter-bar.html',
   styleUrl: './exercise-filter-bar.scss',
 })
-export class ExerciseFilterBar {
+export class ExerciseFilterBar implements OnInit {
   private readonly host = inject(ElementRef);
 
   /** Valores admitidos, servidos por el backend. */
@@ -39,6 +41,15 @@ export class ExerciseFilterBar {
   protected readonly selectedGroups = signal<MuscleGroupCode[]>([]);
   protected readonly selectedDifficulty = signal<DifficultyCode | null>(null);
   protected readonly dropdownOpen = signal(false);
+  readonly initialFilters = input<ExerciseFilters>(EMPTY_FILTERS);
+
+  ngOnInit(): void {
+    const initial = this.initialFilters();
+    // emitEvent: false evita disparar una búsqueda al restaurar el estado.
+    this.searchControl.setValue(initial.search, { emitEvent: false });
+    this.selectedGroups.set(initial.groups);
+    this.selectedDifficulty.set(initial.difficulty);
+  }
 
   /** Texto del botón del desplegable: "Grupo", el nombre, o "N grupos". */
   protected readonly groupsLabel = computed(() => {
