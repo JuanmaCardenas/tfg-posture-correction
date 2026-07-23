@@ -3,6 +3,7 @@ package es.uma.fitness.service;
 import es.uma.fitness.dto.AuthResponse;
 import es.uma.fitness.dto.LoginRequest;
 import es.uma.fitness.dto.RegisterRequest;
+import es.uma.fitness.exception.InvalidCredentialsException;
 import es.uma.fitness.model.Role;
 import es.uma.fitness.model.User;
 import es.uma.fitness.repository.UserRepository;

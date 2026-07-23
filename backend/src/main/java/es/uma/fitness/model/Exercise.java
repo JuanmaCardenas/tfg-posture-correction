@@ -1,8 +1,5 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.model;
 
-import es.uma.fitness.model.AnalysisType;
-import es.uma.fitness.model.Difficulty;
-import es.uma.fitness.model.MuscleGroup;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;

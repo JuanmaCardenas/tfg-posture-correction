@@ -1,7 +1,8 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.config;
 
 import es.uma.fitness.model.AnalysisType;
 import es.uma.fitness.model.Difficulty;
+import es.uma.fitness.model.Exercise;
 import es.uma.fitness.model.MuscleGroup;
 import es.uma.fitness.repository.ExerciseRepository;
 import lombok.RequiredArgsConstructor;

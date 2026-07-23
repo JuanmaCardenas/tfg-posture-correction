@@ -1,7 +1,5 @@
-package es.uma.fitness.controller;
+package es.uma.fitness.exception;
 
-import es.uma.fitness.service.ExerciseNotFoundException;
-import es.uma.fitness.service.InvalidCredentialsException;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +38,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(
-            es.uma.fitness.service.InvalidCredentialsException ex) {
+            InvalidCredentialsException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", ex.getMessage()));

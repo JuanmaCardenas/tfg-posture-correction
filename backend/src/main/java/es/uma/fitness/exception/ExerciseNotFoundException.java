@@ -1,4 +1,4 @@
-package es.uma.fitness.service;
+package es.uma.fitness.exception;
 
 public class ExerciseNotFoundException extends RuntimeException {
 

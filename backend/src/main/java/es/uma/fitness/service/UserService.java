@@ -3,6 +3,7 @@ package es.uma.fitness.service;
 import es.uma.fitness.dto.ChangePasswordRequest;
 import es.uma.fitness.dto.UpdateProfileRequest;
 import es.uma.fitness.dto.UserResponse;
+import es.uma.fitness.exception.InvalidCredentialsException;
 import es.uma.fitness.model.User;
 import es.uma.fitness.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;

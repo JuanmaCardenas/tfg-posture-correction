@@ -1,9 +1,10 @@
-package es.uma.fitness.exercise;
+package es.uma.fitness.mapper;
 
 import es.uma.fitness.dto.ExerciseDetailResponse;
 import es.uma.fitness.dto.ExerciseSummaryResponse;
 import es.uma.fitness.dto.LabelResponse;
 import es.uma.fitness.model.Difficulty;
+import es.uma.fitness.model.Exercise;
 import es.uma.fitness.model.MuscleGroup;
 
 import java.util.Comparator;
