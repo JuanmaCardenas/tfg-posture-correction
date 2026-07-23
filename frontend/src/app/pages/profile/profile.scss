@@ -97,11 +97,17 @@
 /* Botones del cambio de contraseña */
 .password-actions {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   margin-top: 8px;
 }
+
 .password-actions .btn-submit {
   width: auto;
   margin-top: 0;
   padding: 12px 24px;
+}
+
+.profile-actions button,
+.password-actions button {
+  min-width: 170px;
 }

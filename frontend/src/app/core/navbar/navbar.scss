@@ -46,18 +46,21 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-accent);
-  background: transparent;
-  color: var(--color-accent);
+  border: none;
+  background: var(--color-accent);
+  color: #0d1f12;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   cursor: pointer;
 }
 
 .avatar.open {
-  background: var(--color-accent);
-  color: #0d1f12;
+  box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.25);
 }
 
 .dropdown {
