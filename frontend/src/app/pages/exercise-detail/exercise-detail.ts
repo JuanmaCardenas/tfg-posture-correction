@@ -1,16 +1,17 @@
-import {Component, computed, DestroyRef, inject, signal} from '@angular/core';
-import {DecimalPipe, Location} from '@angular/common';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {HttpErrorResponse} from '@angular/common/http';
-import {catchError, EMPTY, forkJoin, switchMap, tap} from 'rxjs';
-import {ExerciseService} from '../../core/exercise/exercise.service';
-import {ExerciseDetailResponse} from '../../core/exercise/exercise.models';
-import {ReviewService} from '../../core/review/review.service';
-import {ReviewResponse, ReviewSummaryResponse} from '../../core/review/review.models';
-import {StarRating} from '../../shared/star-rating/star-rating';
-import {RelativeDatePipe} from '../../shared/relative-date/relative-date-pipe';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { DecimalPipe, Location } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, EMPTY, forkJoin, switchMap, tap } from 'rxjs';
+import { ExerciseService } from '../../core/exercise/exercise.service';
+import { ExerciseDetailResponse } from '../../core/exercise/exercise.models';
+import { ReviewService } from '../../core/review/review.service';
+import { ReviewResponse, ReviewSummaryResponse } from '../../core/review/review.models';
+import { StarRating } from '../../shared/star-rating/star-rating';
+import { RelativeDatePipe } from '../../shared/relative-date/relative-date-pipe';
+import { FavoriteService } from '../../core/favorite/favorite.service';
 
 type DetailTab = 'info' | 'analysis' | 'ratings';
 
@@ -30,6 +31,11 @@ export class ExerciseDetail {
   private readonly reviewService = inject(ReviewService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly favoriteService = inject(FavoriteService);
+
+  protected readonly togglingFavorite = signal(false);
+  protected readonly backLabel = signal('Ejercicios');
+  protected readonly videoId = computed(() => this.exercise()?.youtubeVideoId ?? null);
 
   protected readonly CONTENT_MAX = 500;
 
@@ -85,7 +91,7 @@ export class ExerciseDetail {
 
   /** URL de embebido autorizada explícitamente para poder usarse en el iframe. */
   protected readonly videoUrl = computed<SafeResourceUrl | null>(() => {
-    const id = this.exercise()?.youtubeVideoId;
+    const id = this.videoId();
     if (!id) return null;
     return this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
@@ -93,6 +99,8 @@ export class ExerciseDetail {
   });
 
   constructor() {
+    const state = this.location.getState() as { backLabel?: string } | null;
+    this.backLabel.set(state?.backLabel ?? 'Ejercicios');
     this.route.paramMap
       .pipe(
         tap(() => {
@@ -303,5 +311,24 @@ export class ExerciseDetail {
     this.confirmingDelete.set(false);
     this.formError.set(null);
     this.syncDraft(null);
+  }
+
+  toggleFavorite(): void {
+    const ex = this.exercise();
+    if (!ex || this.togglingFavorite()) return;
+
+    const next = !ex.favorite;
+    this.togglingFavorite.set(true);
+    this.exercise.update((current) => (current ? { ...current, favorite: next } : null));
+
+    const request = next ? this.favoriteService.add(ex.id) : this.favoriteService.remove(ex.id);
+
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.togglingFavorite.set(false),
+      error: () => {
+        this.exercise.update((current) => (current ? { ...current, favorite: !next } : null));
+        this.togglingFavorite.set(false);
+      },
+    });
   }
 }

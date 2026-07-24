@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, Subject, switchMap, tap } from 'rxjs';
 import { ExerciseService } from '../../core/exercise/exercise.service';
@@ -13,6 +13,7 @@ import {
 import { ExerciseCard } from '../../shared/exercise-card/exercise-card';
 import { ExerciseFilterBar } from '../../shared/exercise-filter-bar/exercise-filter-bar';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { FavoriteService } from '../../core/favorite/favorite.service';
 
 @Component({
   selector: 'app-exercises',
@@ -25,6 +26,8 @@ export class Exercises implements OnInit {
   private readonly router = inject(Router);
   private readonly exerciseService = inject(ExerciseService);
   private readonly criteria = new Subject<ExerciseFilters>();
+  private readonly favoriteService = inject(FavoriteService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly filterOptions = signal<ExerciseFiltersResponse | null>(null);
   protected readonly exercises = signal<ExerciseSummaryResponse[]>([]);
@@ -130,5 +133,25 @@ export class Exercises implements OnInit {
       : null;
 
     return { search: params.get('search')?.trim() ?? '', groups, difficulty };
+  }
+
+  toggleFavorite(exercise: ExerciseSummaryResponse): void {
+    const next = !exercise.favorite;
+
+    // Actualización optimista: el corazón cambia al instante y se revierte si falla.
+    this.setFavorite(exercise.id, next);
+
+    const request = next
+      ? this.favoriteService.add(exercise.id)
+      : this.favoriteService.remove(exercise.id);
+
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      error: () => this.setFavorite(exercise.id, !next),
+    });
+  }
+
+  /** Sustituye el ejercicio por una copia: las señales detectan el cambio por identidad. */
+  private setFavorite(id: number, favorite: boolean): void {
+    this.exercises.update((list) => list.map((e) => (e.id === id ? { ...e, favorite } : e)));
   }
 }

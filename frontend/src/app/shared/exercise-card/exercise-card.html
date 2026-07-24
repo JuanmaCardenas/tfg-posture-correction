@@ -1,4 +1,4 @@
-<a class="card" [routerLink]="['/exercises', exercise().id]">
+<a class="card" [routerLink]="['/exercises', exercise().id]" [state]="{ backLabel: backLabel() }">
   <div class="card__media">
     <img
       [src]="exercise().thumbnailUrl"
@@ -51,7 +51,7 @@
 
     @if (hasRatings()) {
       <p class="card__rating">
-        <span class="card__star" aria-hidden="true">&#9733;</span>
+        <app-star-rating [value]="exercise().averageRating" size="sm" />
         {{ exercise().averageRating | number: '1.1-1' }}
         <span class="card__rating-count">· {{ exercise().ratingCount }}</span>
       </p>

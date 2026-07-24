@@ -26,7 +26,11 @@
   } @else {
     <div class="catalog__grid">
       @for (exercise of exercises(); track exercise.id) {
-        <app-exercise-card [exercise]="exercise" />
+        <app-exercise-card
+          [exercise]="exercise"
+          [showFavorite]="true"
+          (favoriteToggled)="toggleFavorite($event)"
+        />
       }
     </div>
     <p class="catalog__count">{{ total() }} {{ total() === 1 ? 'resultado' : 'resultados' }}</p>

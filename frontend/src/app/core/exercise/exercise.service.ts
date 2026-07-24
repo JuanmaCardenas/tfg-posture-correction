@@ -8,11 +8,12 @@ import {
   ExerciseSummaryResponse,
   PageResponse,
 } from './exercise.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ExerciseService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api'; // ← absoluta, como en AuthService
+  private readonly apiUrl = environment.apiUrl;
 
   search(query: ExerciseQuery = {}): Observable<PageResponse<ExerciseSummaryResponse>> {
     let params = new HttpParams().set('page', query.page ?? 0).set('size', query.size ?? 48);

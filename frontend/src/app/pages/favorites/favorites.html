@@ -1,0 +1,60 @@
+@if (showFilterBar() && filterOptions(); as options) {
+  <app-exercise-filter-bar
+    [options]="options"
+    [initialFilters]="EMPTY_FILTERS"
+    [resultCount]="loading() ? null : visible().length"
+    (filtersChange)="onFiltersChange($event)"
+  />
+}
+
+<section class="favorites">
+  <h1 class="favorites__heading">Mis favoritos</h1>
+
+  @if (loading()) {
+    <p class="favorites__state">Cargando tus favoritos…</p>
+  } @else if (serverError()) {
+    <div class="favorites__state">
+      <p class="favorites__error">{{ serverError() }}</p>
+      <button type="button" class="favorites__retry" (click)="retry()">Reintentar</button>
+    </div>
+  } @else if (favorites().length === 0) {
+    <div class="empty">
+      <svg
+        class="empty__icon"
+        viewBox="0 0 24 24"
+        width="56"
+        height="56"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 20.4l-7.1-7.1a4.5 4.5 0 0 1 6.4-6.4l.7.7.7-.7a4.5 4.5 0 0 1 6.4 6.4z" />
+      </svg>
+
+      <p class="empty__title">Aún no tienes favoritos</p>
+      <p class="empty__text">
+        Guarda los ejercicios que quieras tener a mano tocando el corazón de cualquier tarjeta.
+      </p>
+      <a routerLink="/exercises" class="empty__cta">Explorar ejercicios</a>
+    </div>
+  } @else if (visible().length === 0) {
+    <p class="favorites__state">Ninguno de tus favoritos coincide con los filtros.</p>
+  } @else {
+    <div class="favorites__grid">
+      @for (exercise of visible(); track exercise.id) {
+        <app-exercise-card
+          [exercise]="exercise"
+          [showFavorite]="true"
+          backLabel="Favoritos"
+          (favoriteToggled)="removeFavorite($event)"
+        />
+      }
+    </div>
+    <p class="favorites__count">
+      {{ visible().length }} {{ visible().length === 1 ? 'resultado' : 'resultados' }}
+    </p>
+  }
+</section>

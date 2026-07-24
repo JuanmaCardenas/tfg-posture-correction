@@ -70,15 +70,14 @@
   }
 
   &__rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 0.85rem;
 
-    &.is-empty {
+    &--empty {
       color: var(--color-text-muted);
     }
-  }
-
-  &__star {
-    color: var(--color-warning);
   }
 
   &__rating-count {

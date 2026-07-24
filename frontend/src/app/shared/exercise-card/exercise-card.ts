@@ -2,15 +2,17 @@ import { Component, computed, input, output } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ExerciseSummaryResponse } from '../../core/exercise/exercise.models';
+import { StarRating } from '../star-rating/star-rating';
 
 @Component({
   selector: 'app-exercise-card',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, StarRating],
   templateUrl: './exercise-card.html',
   styleUrl: './exercise-card.scss',
 })
 export class ExerciseCard {
   readonly exercise = input.required<ExerciseSummaryResponse>();
+  readonly backLabel = input('Ejercicios');
 
   /** El botón de favorito se activa en E3 (RF-07). */
   readonly showFavorite = input(false);

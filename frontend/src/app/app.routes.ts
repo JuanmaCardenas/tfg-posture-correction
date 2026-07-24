@@ -44,6 +44,10 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/exercise-detail/exercise-detail').then((m) => m.ExerciseDetail),
       },
+      {
+        path: 'favorites',
+        loadComponent: () => import('./pages/favorites/favorites').then((m) => m.Favorites),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

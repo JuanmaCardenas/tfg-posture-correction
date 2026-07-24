@@ -3,11 +3,12 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PageResponse } from '../exercise/exercise.models';
 import { ReviewRequest, ReviewResponse, ReviewSummaryResponse } from './review.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = environment.apiUrl;
 
   /** Media, distribución y valoración propia del usuario autenticado. */
   getSummary(exerciseId: number): Observable<ReviewSummaryResponse> {

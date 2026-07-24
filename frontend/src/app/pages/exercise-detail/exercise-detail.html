@@ -8,40 +8,49 @@
     </div>
   } @else if (exercise(); as ex) {
     <header class="detail__header">
-      <button type="button" class="detail__back" (click)="goBack()">
-        <svg
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          aria-hidden="true"
+      <div class="detail__top">
+        <button type="button" class="detail__back" (click)="goBack()">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+          {{ backLabel() }}
+        </button>
+
+        <button
+          type="button"
+          class="detail__favorite"
+          [class.is-active]="ex.favorite"
+          [attr.aria-pressed]="ex.favorite"
+          [disabled]="togglingFavorite()"
+          (click)="toggleFavorite()"
         >
-          <path d="M15 6l-6 6 6 6" />
-        </svg>
-        Ejercicios
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            width="17"
+            height="17"
+            [attr.fill]="ex.favorite ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 20.4l-7.1-7.1a4.5 4.5 0 0 1 6.4-6.4l.7.7.7-.7a4.5 4.5 0 0 1 6.4 6.4z" />
+          </svg>
+          {{ ex.favorite ? 'Quitar de favoritos' : 'Añadir a favoritos' }}
+        </button>
+      </div>
 
       <h1 class="detail__title">{{ ex.name }}</h1>
-
-      <div class="detail__meta">
-        @for (group of ex.muscleGroups; track group.code) {
-          <span class="tag tag--muscle">{{ group.label }}</span>
-        }
-        <span class="tag" [class]="'tag--' + difficultyClass()">{{ ex.difficulty.label }}</span>
-
-        @if (hasRatings()) {
-          <span class="detail__rating">
-            <app-star-rating [value]="ex.averageRating" size="sm" />
-            {{ ex.averageRating | number: '1.1-1' }}
-            · {{ ex.ratingCount }} valoraciones
-          </span>
-        } @else {
-          <span class="detail__rating is-empty">Sin valoraciones</span>
-        }
-      </div>
     </header>
 
     <nav class="tabs" role="tablist">

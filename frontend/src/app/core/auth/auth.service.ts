@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest } from './auth.models';
+import { environment } from '../../../environments/environment';
 
 export interface SessionUser {
   username: string;
@@ -11,7 +12,7 @@ export interface SessionUser {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = environment.apiUrl;
   private readonly TOKEN_KEY = 'posecoach_token';
   private readonly USER_KEY = 'posecoach_user';
 
