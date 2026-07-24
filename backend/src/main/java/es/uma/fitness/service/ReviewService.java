@@ -1,9 +1,6 @@
 package es.uma.fitness.service;
 
-import es.uma.fitness.dto.ReviewRequest;
-import es.uma.fitness.dto.ReviewResponse;
-import es.uma.fitness.dto.ReviewSummaryResponse;
-import es.uma.fitness.dto.ScoreCountResponse;
+import es.uma.fitness.dto.*;
 import es.uma.fitness.exception.ExerciseNotFoundException;
 import es.uma.fitness.exception.ReviewNotFoundException;
 import es.uma.fitness.mapper.ReviewMapper;
@@ -14,6 +11,10 @@ import es.uma.fitness.repository.ExerciseRepository;
 import es.uma.fitness.repository.ReviewRepository;
 import es.uma.fitness.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
+    private static final Sort COMMENTS_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
 
     @Transactional
     public ReviewResponse save(String username, Long exerciseId, ReviewRequest request) {
@@ -96,6 +98,22 @@ public class ReviewService {
                 .orElse(null);
 
         return new ReviewSummaryResponse(average, (int) total, distribution, myReview);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ReviewResponse> findComments(String username, Long exerciseId, Pageable pageable) {
+        if (!exerciseRepository.existsById(exerciseId)) {
+            throw new ExerciseNotFoundException(exerciseId);
+        }
+
+        User user = userRepository.findByUsername(username).orElseThrow();
+
+        Pageable effective = PageRequest.of(
+                pageable.getPageNumber(), pageable.getPageSize(), COMMENTS_SORT);
+
+        Page<Review> page = reviewRepository.findComments(exerciseId, user.getId(), effective);
+
+        return PageResponse.from(page.map(ReviewMapper::toResponse));
     }
 
     /**

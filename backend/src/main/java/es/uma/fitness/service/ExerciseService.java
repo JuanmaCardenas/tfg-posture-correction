@@ -6,8 +6,11 @@ import es.uma.fitness.mapper.ExerciseMapper;
 import es.uma.fitness.model.Difficulty;
 import es.uma.fitness.model.Exercise;
 import es.uma.fitness.model.MuscleGroup;
+import es.uma.fitness.model.User;
 import es.uma.fitness.repository.ExerciseRepository;
+import es.uma.fitness.repository.FavoriteRepository;
 import es.uma.fitness.repository.ReviewRepository;
+import es.uma.fitness.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,9 +31,12 @@ public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
     private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public PageResponse<ExerciseSummaryResponse> search(String search,
+    public PageResponse<ExerciseSummaryResponse> search(String username,
+                                                        String search,
                                                         Set<MuscleGroup> groups,
                                                         Difficulty difficulty,
                                                         Pageable pageable) {
@@ -52,45 +58,85 @@ public class ExerciseService {
         Page<Exercise> page = exerciseRepository.search(
                 normalizedSearch, effectiveGroups, effectiveDifficulties, effectivePageable);
 
-        Map<Long, ExerciseRatingAggregate> ratings = loadRatings(page.getContent());
-
-        return PageResponse.from(page.map(exercise -> toSummaryWith(exercise, ratings)));
+        return toSummaryPage(page, currentUserId(username));
     }
 
     @Transactional(readOnly = true)
-    public ExerciseDetailResponse findById(Long id) {
+    public PageResponse<ExerciseSummaryResponse> findFavorites(String username, Pageable pageable) {
+        Long userId = currentUserId(username);
+
+        // Sin Sort: el orden por fecha de marcado ya va dentro de la consulta.
+        Page<Exercise> page = exerciseRepository.findFavorites(
+                userId, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+
+        return toSummaryPage(page, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public ExerciseDetailResponse findById(String username, Long id) {
         Exercise exercise = exerciseRepository.findById(id)
                 .orElseThrow(() -> new ExerciseNotFoundException(id));
 
-        ExerciseRatingAggregate stats = loadRatings(List.of(exercise)).get(id);
+        List<Exercise> single = List.of(exercise);
+        Map<Long, ExerciseRatingAggregate> ratings = loadRatings(single);
+        Set<Long> favorites = loadFavorites(currentUserId(username), single);
+
+        ExerciseRatingAggregate stats = ratings.get(id);
 
         return ExerciseMapper.toDetail(
-                exercise,
-                average(stats),
-                count(stats),
-                false);   // TODO E3 (RF-07): favoritos en DDUAWFCCP-42
+                exercise, average(stats), count(stats), favorites.contains(id));
     }
 
-    private ExerciseSummaryResponse toSummaryWith(Exercise exercise,
-                                                  Map<Long, ExerciseRatingAggregate> ratings) {
-        ExerciseRatingAggregate stats = ratings.get(exercise.getId());
-        return ExerciseMapper.toSummary(
-                exercise,
-                average(stats),
-                count(stats),
-                false);   // TODO E3 (RF-07): favoritos en DDUAWFCCP-42
+    public ExerciseFiltersResponse getFilters() {
+        return new ExerciseFiltersResponse(
+                Arrays.stream(MuscleGroup.values()).map(ExerciseMapper::toLabel).toList(),
+                Arrays.stream(Difficulty.values()).map(ExerciseMapper::toLabel).toList()
+        );
     }
+
+    // ─────────────── Enriquecido de las tarjetas ───────────────
 
     /**
-     * Una sola consulta agregada para toda la página de resultados.
+     * Convierte una página de ejercicios en una página de tarjetas, resolviendo
+     * valoraciones y favoritos con una consulta cada uno para toda la página.
      */
+    private PageResponse<ExerciseSummaryResponse> toSummaryPage(Page<Exercise> page, Long userId) {
+        Map<Long, ExerciseRatingAggregate> ratings = loadRatings(page.getContent());
+        Set<Long> favorites = loadFavorites(userId, page.getContent());
+
+        return PageResponse.from(page.map(exercise -> {
+            ExerciseRatingAggregate stats = ratings.get(exercise.getId());
+            return ExerciseMapper.toSummary(
+                    exercise,
+                    average(stats),
+                    count(stats),
+                    favorites.contains(exercise.getId()));
+        }));
+    }
+
     private Map<Long, ExerciseRatingAggregate> loadRatings(List<Exercise> exercises) {
-        List<Long> ids = exercises.stream().map(Exercise::getId).toList();
+        List<Long> ids = idsOf(exercises);
         if (ids.isEmpty()) {
             return Map.of();   // un IN vacío no es SQL válido
         }
         return reviewRepository.findAggregatesByExerciseIds(ids).stream()
                 .collect(Collectors.toMap(ExerciseRatingAggregate::exerciseId, Function.identity()));
+    }
+
+    private Set<Long> loadFavorites(Long userId, List<Exercise> exercises) {
+        List<Long> ids = idsOf(exercises);
+        if (ids.isEmpty()) {
+            return Set.of();
+        }
+        return favoriteRepository.findFavoritedExerciseIds(userId, ids);
+    }
+
+    private List<Long> idsOf(List<Exercise> exercises) {
+        return exercises.stream().map(Exercise::getId).toList();
+    }
+
+    private Long currentUserId(String username) {
+        return userRepository.findByUsername(username).map(User::getId).orElseThrow();
     }
 
     /**
@@ -102,12 +148,5 @@ public class ExerciseService {
 
     private int count(ExerciseRatingAggregate stats) {
         return stats == null ? 0 : stats.count().intValue();
-    }
-
-    public ExerciseFiltersResponse getFilters() {
-        return new ExerciseFiltersResponse(
-                Arrays.stream(MuscleGroup.values()).map(ExerciseMapper::toLabel).toList(),
-                Arrays.stream(Difficulty.values()).map(ExerciseMapper::toLabel).toList()
-        );
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Set;
 
 @RestController
@@ -23,17 +24,18 @@ public class ExerciseController {
 
     @GetMapping
     public PageResponse<ExerciseSummaryResponse> list(
+            Principal principal,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Set<MuscleGroup> groups,
             @RequestParam(required = false) Difficulty difficulty,
             @PageableDefault(size = 12) Pageable pageable) {
 
-        return exerciseService.search(search, groups, difficulty, pageable);
+        return exerciseService.search(principal.getName(), search, groups, difficulty, pageable);
     }
 
     @GetMapping("/{id}")
-    public ExerciseDetailResponse detail(@PathVariable Long id) {
-        return exerciseService.findById(id);
+    public ExerciseDetailResponse detail(Principal principal, @PathVariable Long id) {
+        return exerciseService.findById(principal.getName(), id);
     }
 
     @GetMapping("/filters")

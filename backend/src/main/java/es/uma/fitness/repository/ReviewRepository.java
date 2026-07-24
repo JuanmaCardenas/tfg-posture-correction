@@ -3,6 +3,8 @@ package es.uma.fitness.repository;
 import es.uma.fitness.dto.ExerciseRatingAggregate;
 import es.uma.fitness.dto.ScoreCountResponse;
 import es.uma.fitness.model.Review;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,4 +41,26 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             GROUP BY r.score
             """)
     List<ScoreCountResponse> countByScore(@Param("exerciseId") Long exerciseId);
+
+    /**
+     * Comentarios de un ejercicio, excluyendo el del propio usuario porque la
+     * interfaz lo muestra aparte y destacado. El JOIN FETCH trae el autor en la
+     * misma consulta: sin él, el mapeo pediría un SELECT por cada comentario.
+     */
+    @Query(value = """
+            SELECT r FROM Review r
+            JOIN FETCH r.user
+            WHERE r.exercise.id = :exerciseId
+              AND r.content IS NOT NULL
+              AND r.user.id <> :excludedUserId
+            """,
+            countQuery = """
+                    SELECT COUNT(r) FROM Review r
+                    WHERE r.exercise.id = :exerciseId
+                      AND r.content IS NOT NULL
+                      AND r.user.id <> :excludedUserId
+                    """)
+    Page<Review> findComments(@Param("exerciseId") Long exerciseId,
+                              @Param("excludedUserId") Long excludedUserId,
+                              Pageable pageable);
 }

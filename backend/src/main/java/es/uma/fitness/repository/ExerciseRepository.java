@@ -31,4 +31,18 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
                           @Param("groups") Set<MuscleGroup> groups,
                           @Param("difficulties") Set<Difficulty> difficulties,
                           Pageable pageable);
+
+    /**
+     * Ejercicios favoritos del usuario, del más recientemente marcado al más antiguo.
+     */
+    @Query(value = """
+            SELECT e FROM Exercise e
+            JOIN Favorite f ON f.exercise = e
+            WHERE f.user.id = :userId
+            ORDER BY f.createdAt DESC
+            """,
+            countQuery = """
+                    SELECT COUNT(f) FROM Favorite f WHERE f.user.id = :userId
+                    """)
+    Page<Exercise> findFavorites(@Param("userId") Long userId, Pageable pageable);
 }
