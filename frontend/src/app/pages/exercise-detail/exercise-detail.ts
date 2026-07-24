@@ -12,6 +12,7 @@ import { ReviewResponse, ReviewSummaryResponse } from '../../core/review/review.
 import { StarRating } from '../../shared/star-rating/star-rating';
 import { RelativeDatePipe } from '../../shared/relative-date/relative-date-pipe';
 import { FavoriteService } from '../../core/favorite/favorite.service';
+import { TechniqueAnalysis } from '../technique-analysis/technique-analysis';
 
 type DetailTab = 'info' | 'analysis' | 'ratings';
 
@@ -19,7 +20,7 @@ const COMMENTS_PAGE_SIZE = 5;
 
 @Component({
   selector: 'app-exercise-detail',
-  imports: [RouterLink, DecimalPipe, StarRating, RelativeDatePipe],
+  imports: [RouterLink, DecimalPipe, StarRating, RelativeDatePipe, TechniqueAnalysis],
   templateUrl: './exercise-detail.html',
   styleUrl: './exercise-detail.scss',
 })

@@ -87,8 +87,9 @@
           type="button"
           role="tab"
           class="tabs__item"
-          disabled
-          title="Disponible próximamente"
+          [class.is-active]="activeTab() === 'analysis'"
+          [attr.aria-selected]="activeTab() === 'analysis'"
+          (click)="selectTab('analysis')"
         >
           Analizar mi técnica
         </button>
@@ -136,6 +137,10 @@
           }
         </div>
       </div>
+    }
+
+    @if (activeTab() === 'analysis') {
+      <app-technique-analysis />
     }
 
     @if (activeTab() === 'ratings') {
