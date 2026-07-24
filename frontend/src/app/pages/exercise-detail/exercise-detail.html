@@ -51,6 +51,23 @@
       </div>
 
       <h1 class="detail__title">{{ ex.name }}</h1>
+
+      <div class="detail__meta">
+        @for (group of ex.muscleGroups; track group.code) {
+          <span class="tag tag--muscle">{{ group.label }}</span>
+        }
+        <span class="tag" [class]="'tag--' + difficultyClass()">{{ ex.difficulty.label }}</span>
+
+        @if (hasRatings()) {
+          <span class="detail__rating">
+            <app-star-rating [value]="ex.averageRating" size="sm" />
+            {{ ex.averageRating | number: '1.1-1' }}
+            · {{ ex.ratingCount }} valoraciones
+          </span>
+        } @else {
+          <span class="detail__rating is-empty">Sin valoraciones</span>
+        }
+      </div>
     </header>
 
     <nav class="tabs" role="tablist">
