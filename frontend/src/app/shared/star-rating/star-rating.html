@@ -1,0 +1,25 @@
+@if (interactive()) {
+  <span class="stars stars--{{ size() }} stars--pick" (mouseleave)="leave()">
+    @for (star of stars; track star) {
+      <button
+        type="button"
+        class="stars__button"
+        [class.is-on]="star <= highlighted()"
+        [disabled]="disabled()"
+        [attr.aria-label]="'Puntuar con ' + star + (star === 1 ? ' estrella' : ' estrellas')"
+        [attr.aria-pressed]="star <= roundedValue()"
+        (click)="pick(star)"
+        (mouseenter)="enter(star)"
+      >
+        &#9733;
+      </button>
+    }
+  </span>
+} @else {
+  <span class="stars stars--{{ size() }}" role="img" [attr.aria-label]="readLabel()">
+    <span class="stars__track" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+    <span class="stars__fill" aria-hidden="true" [style.width.%]="fillPercent()">
+      &#9733;&#9733;&#9733;&#9733;&#9733;
+    </span>
+  </span>
+}

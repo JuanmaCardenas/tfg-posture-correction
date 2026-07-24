@@ -1,0 +1,72 @@
+:host {
+  display: inline-block;
+}
+
+.stars {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+
+  &__track,
+  &__fill {
+    display: block;
+    letter-spacing: 0.12em;
+  }
+
+  &__track {
+    color: var(--color-border);
+  }
+
+  &__fill {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    color: var(--color-warning);
+  }
+
+  // ── Modo interactivo ──
+  &--pick {
+    display: inline-flex;
+    gap: 0.12em;
+  }
+
+  &__button {
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--color-border);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.12s ease;
+
+    &.is-on {
+      color: var(--color-warning);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+
+  // ── Tamaños ──
+  &--sm {
+    font-size: 0.85rem;
+  }
+
+  &--md {
+    font-size: 1.05rem;
+  }
+
+  &--lg {
+    font-size: 2rem;
+  }
+}

@@ -34,7 +34,7 @@
 
         @if (hasRatings()) {
           <span class="detail__rating">
-            <span class="detail__star" aria-hidden="true">&#9733;</span>
+            <app-star-rating [value]="ex.averageRating" size="sm" />
             {{ ex.averageRating | number: '1.1-1' }}
             · {{ ex.ratingCount }} valoraciones
           </span>
@@ -68,7 +68,14 @@
         </button>
       }
 
-      <button type="button" role="tab" class="tabs__item" disabled title="Disponible próximamente">
+      <button
+        type="button"
+        role="tab"
+        class="tabs__item"
+        [class.is-active]="activeTab() === 'ratings'"
+        [attr.aria-selected]="activeTab() === 'ratings'"
+        (click)="selectTab('ratings')"
+      >
         Valoraciones
       </button>
     </nav>
@@ -103,6 +110,170 @@
           }
         </div>
       </div>
+    }
+
+    @if (activeTab() === 'ratings') {
+      @if (ratingsLoading()) {
+        <p class="detail__state">Cargando valoraciones…</p>
+      } @else if (ratingsError()) {
+        <p class="detail__state detail__error">{{ ratingsError() }}</p>
+      } @else if (summary(); as sum) {
+        <div class="ratings">
+          <div class="ratings__score">
+            <p class="ratings__average">{{ sum.averageRating | number: '1.1-1' }}</p>
+            <app-star-rating [value]="sum.averageRating" size="sm" />
+            <p class="ratings__count">{{ sum.ratingCount }} valoraciones</p>
+          </div>
+
+          <ul class="histogram">
+            @for (row of sum.distribution; track row.score) {
+              <li class="histogram__row">
+                <span class="histogram__label">{{ row.score }}</span>
+                <span class="histogram__track">
+                  <span class="histogram__bar" [style.width.%]="barPercent(row.count)"></span>
+                </span>
+                <span class="histogram__count">{{ row.count }}</span>
+              </li>
+            }
+          </ul>
+
+          <div class="my-review">
+            <h2 class="my-review__heading">Tu valoración</h2>
+
+            <app-star-rating
+              [value]="draftScore()"
+              [interactive]="true"
+              [disabled]="formDisabled()"
+              size="lg"
+              (valueChange)="draftScore.set($event)"
+            />
+
+            <textarea
+              class="my-review__input"
+              rows="2"
+              [value]="draftContent()"
+              [disabled]="formDisabled()"
+              [attr.maxlength]="CONTENT_MAX"
+              [placeholder]="
+                formDisabled()
+                  ? 'No escribiste ningún comentario.'
+                  : 'Cuenta cómo te ha ido en este ejercicio…'
+              "
+              (input)="onContentInput($event)"
+            ></textarea>
+
+            @if (!formDisabled()) {
+              <div class="my-review__footer">
+                <span class="my-review__counter">
+                  {{ draftContent().length }}/{{ CONTENT_MAX }}
+                </span>
+
+                @if (editing()) {
+                  <button type="button" class="btn btn--ghost" (click)="cancelEditing()">
+                    Cancelar
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="btn"
+                  [disabled]="draftScore() === 0 || saving()"
+                  (click)="publish()"
+                >
+                  {{ saving() ? 'Guardando…' : editing() ? 'Guardar' : 'Publicar' }}
+                </button>
+              </div>
+            }
+
+            @if (formDisabled()) {
+              <div class="my-review__footer">
+                @if (confirmingDelete()) {
+                  <span class="my-review__confirm">¿Eliminar tu valoración?</span>
+                  <button
+                    type="button"
+                    class="my-review__action my-review__action--danger"
+                    [disabled]="saving()"
+                    (click)="deleteReview()"
+                  >
+                    Sí, eliminar
+                  </button>
+                  <button
+                    type="button"
+                    class="my-review__action"
+                    (click)="confirmingDelete.set(false)"
+                  >
+                    Cancelar
+                  </button>
+                } @else {
+                  <button type="button" class="my-review__action" (click)="startEditing()">
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="my-review__action my-review__action--danger"
+                    (click)="confirmingDelete.set(true)"
+                  >
+                    Eliminar
+                  </button>
+                }
+              </div>
+            }
+
+            @if (formError()) {
+              <p class="my-review__error">{{ formError() }}</p>
+            }
+          </div>
+        </div>
+
+        <section class="comments">
+          <h2 class="comments__heading">Comentarios</h2>
+
+          @for (item of displayedComments(); track item.review.id) {
+            <article class="comment" [class.comment--own]="item.own">
+              <span class="comment__avatar" aria-hidden="true">
+                {{ initialsOf(item.review.username) }}
+              </span>
+
+              <div class="comment__body">
+                <p class="comment__meta">
+                  <span class="comment__author">{{ item.review.username }}</span>
+                  @if (item.own) {
+                    <span class="comment__badge">Tu comentario</span>
+                  }
+                  <app-star-rating [value]="item.review.score" size="sm" />
+                  <span class="comment__date">
+                    · {{ item.review.createdAt | relativeDate }}
+                    @if (wasEdited(item.review)) {
+                      <span class="comment__edited">(editado)</span>
+                    }
+                  </span>
+                </p>
+
+                <p class="comment__text">{{ item.review.content }}</p>
+              </div>
+            </article>
+          }
+
+          @if (displayedComments().length === 0) {
+            <p class="comments__empty">
+              Todavía no hay comentarios en este ejercicio. Puedes ser el primero.
+            </p>
+          }
+
+          @if (remainingComments() > 0) {
+            <button
+              type="button"
+              class="comments__more"
+              [disabled]="commentsLoading()"
+              (click)="loadMoreComments()"
+            >
+              {{
+                commentsLoading() ? 'Cargando…' : 'Ver ' + remainingComments() + ' comentarios más'
+              }}
+            </button>
+          }
+        </section>
+      }
     }
   }
 </section>
