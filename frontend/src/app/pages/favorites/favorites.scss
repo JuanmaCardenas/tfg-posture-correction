@@ -12,14 +12,6 @@
 
   /* Visible para lectores de pantalla, invisible en pantalla. */
   &__heading {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 
   &__grid {
@@ -36,18 +28,6 @@
 
   &__error {
     color: var(--color-danger);
-  }
-
-  &__retry {
-    margin-top: 12px;
-    padding: 8px 20px;
-    font-family: inherit;
-    font-weight: 700;
-    color: #0d1f12;
-    background: var(--color-accent);
-    border: none;
-    border-radius: var(--radius-control);
-    cursor: pointer;
   }
 
   &__count {
@@ -84,15 +64,5 @@
     color: var(--color-text-muted);
     font-weight: 600;
     line-height: 1.6;
-  }
-
-  &__cta {
-    margin-top: 26px;
-    padding: 11px 26px;
-    color: #0d1f12;
-    background: var(--color-accent);
-    border-radius: var(--radius-control);
-    text-decoration: none;
-    font-weight: 700;
   }
 }

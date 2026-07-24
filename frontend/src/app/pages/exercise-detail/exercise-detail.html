@@ -178,14 +178,14 @@
                 </span>
 
                 @if (editing()) {
-                  <button type="button" class="btn btn--ghost" (click)="cancelEditing()">
+                  <button type="button" class="btn--ghost" (click)="cancelEditing()">
                     Cancelar
                   </button>
                 }
 
                 <button
+                  class="btn-accent"
                   type="button"
-                  class="btn"
                   [disabled]="draftScore() === 0 || saving()"
                   (click)="publish()"
                 >

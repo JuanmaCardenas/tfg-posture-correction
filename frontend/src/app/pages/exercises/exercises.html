@@ -13,7 +13,7 @@
   } @else if (serverError()) {
     <div class="catalog__state">
       <p class="catalog__error">{{ serverError() }}</p>
-      <button type="button" class="catalog__retry" (click)="retry()">Reintentar</button>
+      <button type="button" class="btn-accent" (click)="retry()">Reintentar</button>
     </div>
   } @else if (exercises().length === 0) {
     <p class="catalog__state">

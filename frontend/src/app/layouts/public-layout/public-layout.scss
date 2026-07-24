@@ -33,7 +33,7 @@
 
 .btn-accent {
   background-color: var(--color-accent);
-  color: #0d1f12; /* texto oscuro sobre el verde, como en Figma */
+  color: var(--color-on-accent);
   text-decoration: none;
   font-weight: 700;
   padding: 8px 16px;

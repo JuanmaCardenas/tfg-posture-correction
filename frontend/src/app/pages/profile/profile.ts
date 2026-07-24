@@ -179,7 +179,7 @@ export class Profile implements OnInit {
   }
 
   private mapProfileError(err: HttpErrorResponse): string {
-    if (err.status === 409) return err.error?.error ?? 'El email ya está registrado.';
+    if (err.status === 409) return err.error?.message ?? 'El email ya está registrado.';
     if (err.status === 400 && err.error && typeof err.error === 'object') {
       const first = Object.values(err.error)[0];
       return typeof first === 'string' ? first : 'Revisa los datos introducidos.';
@@ -189,7 +189,7 @@ export class Profile implements OnInit {
   }
 
   private mapPasswordError(err: HttpErrorResponse): string {
-    if (err.status === 401) return err.error?.error ?? 'La contraseña actual no es correcta.';
+    if (err.status === 401) return err.error?.message ?? 'La contraseña actual no es correcta.';
     if (err.status === 400 && err.error && typeof err.error === 'object') {
       const first = Object.values(err.error)[0];
       return typeof first === 'string' ? first : 'Revisa los datos introducidos.';

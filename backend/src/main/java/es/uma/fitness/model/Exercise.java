@@ -1,5 +1,6 @@
 package es.uma.fitness.model;
 
+import es.uma.fitness.util.AppTime;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -66,6 +67,6 @@ public class Exercise {
 
     @PrePersist
     void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = AppTime.now();
     }
 }

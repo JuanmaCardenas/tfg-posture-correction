@@ -57,7 +57,7 @@ export class Login {
 
   private mapError(err: HttpErrorResponse): string {
     if (err.status === 401) {
-      return err.error?.error ?? 'Usuario o contraseña incorrectos.';
+      return err.error?.message ?? 'Usuario o contraseña incorrectos.';
     }
     if (err.status === 0) {
       return 'No se pudo conectar con el servidor. Inténtalo más tarde.';

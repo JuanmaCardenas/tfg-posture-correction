@@ -4,6 +4,7 @@ import es.uma.fitness.dto.ChangePasswordRequest;
 import es.uma.fitness.dto.UpdateProfileRequest;
 import es.uma.fitness.dto.UserResponse;
 import es.uma.fitness.exception.InvalidCredentialsException;
+import es.uma.fitness.exception.UserNotFoundException;
 import es.uma.fitness.model.User;
 import es.uma.fitness.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,12 +22,12 @@ public class UserService {
     }
 
     public UserResponse getProfile(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         return toResponse(user);
     }
 
     public UserResponse updateProfile(String username, UpdateProfileRequest request) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
         if (!user.getEmail().equals(request.getEmail())
                 && userRepository.existsByEmail(request.getEmail())) {
@@ -39,7 +40,7 @@ public class UserService {
     }
 
     public void changePassword(String username, ChangePasswordRequest request) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("La contraseña actual no es correcta");

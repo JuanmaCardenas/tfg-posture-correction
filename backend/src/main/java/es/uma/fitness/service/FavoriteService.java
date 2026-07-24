@@ -1,6 +1,7 @@
 package es.uma.fitness.service;
 
 import es.uma.fitness.exception.ExerciseNotFoundException;
+import es.uma.fitness.exception.UserNotFoundException;
 import es.uma.fitness.model.Exercise;
 import es.uma.fitness.model.Favorite;
 import es.uma.fitness.model.User;
@@ -21,7 +22,7 @@ public class FavoriteService {
 
     @Transactional
     public void add(String username, Long exerciseId) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
 
@@ -38,7 +39,7 @@ public class FavoriteService {
 
     @Transactional
     public void remove(String username, Long exerciseId) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         favoriteRepository.findByUserIdAndExerciseId(user.getId(), exerciseId)
                 .ifPresent(favoriteRepository::delete);
     }

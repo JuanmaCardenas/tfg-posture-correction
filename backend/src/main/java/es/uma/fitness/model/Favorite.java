@@ -1,10 +1,10 @@
 package es.uma.fitness.model;
 
+import es.uma.fitness.util.AppTime;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Entity
 @Table(
@@ -38,6 +38,6 @@ public class Favorite {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now(ZoneId.of("Europe/Madrid"));
+        this.createdAt = AppTime.now();
     }
 }

@@ -166,6 +166,6 @@
   &.is-active {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: #0d1f12;
+    color: var(--color-on-accent);
   }
 }

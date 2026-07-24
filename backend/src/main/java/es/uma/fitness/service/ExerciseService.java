@@ -2,6 +2,7 @@ package es.uma.fitness.service;
 
 import es.uma.fitness.dto.*;
 import es.uma.fitness.exception.ExerciseNotFoundException;
+import es.uma.fitness.exception.UserNotFoundException;
 import es.uma.fitness.mapper.ExerciseMapper;
 import es.uma.fitness.model.Difficulty;
 import es.uma.fitness.model.Exercise;
@@ -136,7 +137,7 @@ public class ExerciseService {
     }
 
     private Long currentUserId(String username) {
-        return userRepository.findByUsername(username).map(User::getId).orElseThrow();
+        return userRepository.findByUsername(username).map(User::getId).orElseThrow(UserNotFoundException::new);
     }
 
     /**

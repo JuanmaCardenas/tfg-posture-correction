@@ -26,18 +26,6 @@
     color: var(--color-danger);
   }
 
-  &__retry {
-    margin-top: 12px;
-    padding: 8px 20px;
-    font-family: inherit;
-    font-weight: 700;
-    color: #0d1f12;
-    background: var(--color-accent);
-    border: none;
-    border-radius: var(--radius-control);
-    cursor: pointer;
-  }
-
   &__count {
     margin-top: auto; // empuja el contador al fondo
     padding-top: 32px;

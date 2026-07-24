@@ -3,6 +3,7 @@ package es.uma.fitness.service;
 import es.uma.fitness.dto.*;
 import es.uma.fitness.exception.ExerciseNotFoundException;
 import es.uma.fitness.exception.ReviewNotFoundException;
+import es.uma.fitness.exception.UserNotFoundException;
 import es.uma.fitness.mapper.ReviewMapper;
 import es.uma.fitness.model.Exercise;
 import es.uma.fitness.model.Review;
@@ -34,7 +35,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse save(String username, Long exerciseId, ReviewRequest request) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
 
@@ -55,7 +56,8 @@ public class ReviewService {
 
     @Transactional
     public void delete(String username, Long exerciseId) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        ;
 
         Review review = reviewRepository
                 .findByUserIdAndExerciseId(user.getId(), exerciseId)
@@ -91,7 +93,7 @@ public class ReviewService {
                 .sum();
         double average = (total == 0) ? 0.0 : round(weighted / total);
 
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         ReviewResponse myReview = reviewRepository
                 .findByUserIdAndExerciseId(user.getId(), exerciseId)
                 .map(ReviewMapper::toResponse)
@@ -106,7 +108,7 @@ public class ReviewService {
             throw new ExerciseNotFoundException(exerciseId);
         }
 
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
         Pageable effective = PageRequest.of(
                 pageable.getPageNumber(), pageable.getPageSize(), COMMENTS_SORT);

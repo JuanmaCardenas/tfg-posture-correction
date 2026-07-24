@@ -5,7 +5,7 @@ import {
   FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
-  Validators,
+  Validators
 } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -90,7 +90,7 @@ export class Register {
 
   private mapError(err: HttpErrorResponse): string {
     if (err.status === 409) {
-      return err.error?.error ?? 'El usuario o el correo ya están registrados.';
+      return err.error?.message ?? 'El usuario o el correo ya están registrados.';
     }
     if (err.status === 400 && err.error && typeof err.error === 'object') {
       const first = Object.values(err.error)[0];
