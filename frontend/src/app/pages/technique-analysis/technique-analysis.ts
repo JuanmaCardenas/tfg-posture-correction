@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { PoseLandmarkerService } from '../../core/pose/pose-landmarker.service';
+import { DrawingUtils, NormalizedLandmark, PoseLandmarker } from '@mediapipe/tasks-vision';
 
 /** En E4-46 solo se usan 'idle' y 'ready'; 'analyzing' y 'results' llegan después. */
 type AnalysisPhase = 'idle' | 'ready';
@@ -29,6 +30,7 @@ export class TechniqueAnalysis {
   private rafId: number | null = null;
   private lastVideoTime = -1; // ¿es un fotograma nuevo?
   private lastSentTs = 0; // último timestamp enviado a MediaPipe (global, solo crece)
+  private drawingUtils: DrawingUtils | null = null;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -76,45 +78,70 @@ export class TechniqueAnalysis {
 
   /** Al pulsar play se arranca el bucle. El modelo se carga la primera vez;
    *  las siguientes reproducciones lo reutilizan (init es idempotente). */
-  onPlay(video: HTMLVideoElement): void {
-    if (this.loopRunning) return; // evita bucles duplicados
+  onPlay(video: HTMLVideoElement, canvas: HTMLCanvasElement): void {
+    if (this.loopRunning) return;
     this.loopRunning = true;
     this.lastVideoTime = -1;
     this.pose.init().then(() => {
-      if (this.loopRunning) this.loop(video);
+      if (this.loopRunning) this.loop(video, canvas);
     });
   }
 
-  private loop(video: HTMLVideoElement): void {
+  private loop(video: HTMLVideoElement, canvas: HTMLCanvasElement): void {
     if (!this.loopRunning || video.paused || video.ended) {
       this.stopLoop();
       return;
     }
 
-    // currentTime solo sirve para saber si el fotograma es nuevo.
     if (video.currentTime !== this.lastVideoTime) {
       this.lastVideoTime = video.currentTime;
 
-      // El timestamp para MediaPipe NO se deriva del vídeo: performance.now()
-      // es un reloj global que nunca retrocede ni se reinicia (ni al rebobinar
-      // ni al cambiar de vídeo). El Math.max garantiza "estrictamente mayor"
-      // aunque dos lecturas coincidieran. Aquí estaba el fallo de fondo:
-      // currentTime sí retrocede y sí vuelve a 0, y eso mataba el grafo.
+      // Timestamp monótono global, desacoplado del vídeo (ver 46b).
       const ts = Math.max(Math.round(performance.now()), this.lastSentTs + 1);
       this.lastSentTs = ts;
 
       try {
         const result = this.pose.detect(video, ts);
-        const landmarks = result?.landmarks?.[0];
-        if (landmarks) {
-          console.log(`t=${video.currentTime.toFixed(2)}s · ${landmarks.length} puntos`);
-        }
+        this.draw(video, canvas, result?.landmarks?.[0]);
       } catch (err) {
         console.warn('Fotograma omitido:', err);
       }
     }
 
-    this.rafId = requestAnimationFrame(() => this.loop(video));
+    this.rafId = requestAnimationFrame(() => this.loop(video, canvas));
+  }
+
+  private draw(
+    video: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    landmarks: NormalizedLandmark[] | undefined,
+  ): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // El canvas se dimensiona a la RESOLUCIÓN REAL del vídeo (no a su tamaño
+    // en pantalla). Los landmarks vienen normalizados 0..1; DrawingUtils los
+    // multiplica por estas dimensiones. El CSS ya lo estira sobre el <video>.
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!landmarks) return;
+
+    this.drawingUtils ??= new DrawingUtils(ctx);
+
+    // Conexiones = las líneas del esqueleto; landmarks = los puntos.
+    this.drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
+      color: '#3FB950', // tu verde de acento
+      lineWidth: 3,
+    });
+    this.drawingUtils.drawLandmarks(landmarks, {
+      color: '#E6EBF2', // tu color de texto claro
+      lineWidth: 1,
+      radius: 4,
+    });
   }
 
   private stopLoop(): void {
@@ -168,6 +195,13 @@ export class TechniqueAnalysis {
       URL.revokeObjectURL(this.objectUrl);
       this.objectUrl = null;
     }
+  }
+
+  /** Al saltar por la barra, el vídeo cambia de fotograma antes de que se
+   *  analice el nuevo. Limpiar el canvas evita ver el esqueleto anterior
+   *  "pegado" sobre la imagen ya cambiada durante ese instante. */
+  clearOverlay(canvas: HTMLCanvasElement): void {
+    canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   private isAcceptedType(file: File): boolean {
