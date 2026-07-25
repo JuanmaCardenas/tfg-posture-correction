@@ -7,6 +7,8 @@ import { AnalysisTypeCode } from '../../core/exercise/exercise.models';
 import { analyzeSquat, Frame } from '../../core/pose/squat-analyzer';
 import { analyzePlank } from '../../core/pose/plank-analyzer';
 import { calculateAngle } from '../../core/pose/angle';
+import { AnalysisService } from '../../core/analysis/analysis.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type AnalysisPhase = 'idle' | 'analyzing' | 'results';
 
@@ -14,7 +16,7 @@ type AnalysisPhase = 'idle' | 'analyzing' | 'results';
 type Feedback = AnalysisScore & { repCount?: number };
 
 const MAX_DURATION_SECONDS = 30;
-const ACCEPTED_TYPES = ['video/mp4', 'video/quicktime'];
+const ACCEPTED_TYPES = new Set(['video/mp4', 'video/quicktime']);
 
 @Component({
   selector: 'app-technique-analysis',
@@ -24,9 +26,12 @@ const ACCEPTED_TYPES = ['video/mp4', 'video/quicktime'];
 export class TechniqueAnalysis {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly pose = inject(PoseLandmarkerService);
+  private readonly analysisService = inject(AnalysisService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Tipo de análisis del ejercicio (viene del detalle). */
   readonly analysisType = input<AnalysisTypeCode | null>(null);
+  readonly exerciseId = input<number | null>(null);
 
   protected readonly phase = signal<AnalysisPhase>('idle');
   protected readonly dragging = signal(false);
@@ -81,7 +86,7 @@ export class TechniqueAnalysis {
   private frames: Frame[] = [];
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => {
+    this.destroyRef.onDestroy(() => {
       this.stopLoop();
       this.revoke();
     });
@@ -185,7 +190,7 @@ export class TechniqueAnalysis {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!landmarks) return;
 
-    if (!this.drawingUtils) this.drawingUtils = new DrawingUtils(ctx);
+    this.drawingUtils ??= new DrawingUtils(ctx);
 
     this.drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
       color: '#3FB950',
@@ -252,8 +257,24 @@ export class TechniqueAnalysis {
     } else {
       this.analysisError.set(null);
       this.result.set(feedback);
+      this.persist(feedback.score); // guarda en segundo plano
     }
     this.phase.set('results');
+  }
+
+  /** Guarda el resultado sin bloquear al usuario. Si falla la red, el análisis
+   *  ya se ve en pantalla; simplemente no queda en el historial. */
+  private persist(score: number): void {
+    const id = this.exerciseId();
+    if (id === null) return;
+    this.analysisService
+      .save({ exerciseId: id, score })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () => {
+          /* silencioso a propósito: el guardado es un extra, no el objetivo */
+        },
+      });
   }
 
   // ── Carga y validación del vídeo ──
@@ -308,7 +329,7 @@ export class TechniqueAnalysis {
   }
 
   private isAcceptedType(file: File): boolean {
-    if (ACCEPTED_TYPES.includes(file.type)) return true;
+    if (ACCEPTED_TYPES.has(file.type)) return true;
     return /\.(mp4|mov)$/i.test(file.name);
   }
 }
