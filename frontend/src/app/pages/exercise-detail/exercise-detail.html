@@ -140,7 +140,7 @@
     }
 
     @if (activeTab() === 'analysis') {
-      <app-technique-analysis />
+      <app-technique-analysis [analysisType]="ex.analysisType ?? null" />
     }
 
     @if (activeTab() === 'ratings') {

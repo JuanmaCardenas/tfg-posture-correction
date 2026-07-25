@@ -55,23 +55,89 @@
   </div>
 }
 
-@if (phase() === 'ready') {
-  <div class="analysis">
+@if (phase() === 'analyzing') {
+  <div class="analysis analysis--single">
     <div class="analysis__stage">
       <video
         #videoEl
         class="analysis__video"
         [src]="safeVideoUrl()"
+        autoplay
+        muted
         controls
         playsinline
         (play)="onPlay(videoEl, canvasEl)"
+        (ended)="onEnded()"
         (seeking)="clearOverlay(canvasEl)"
       ></video>
       <canvas #canvasEl class="analysis__overlay"></canvas>
     </div>
+  </div>
+}
 
-    <button type="button" class="analysis__secondary" (click)="analyzeAnother()">
-      Analizar otro vídeo
-    </button>
+@if (phase() === 'results') {
+  <div class="analysis">
+    <div class="analysis__stage">
+      <video class="analysis__video" [src]="safeVideoUrl()" controls playsinline muted></video>
+    </div>
+
+    <div class="analysis__panel">
+      @if (result(); as r) {
+        <div class="score" [class]="'score--' + scoreLevel()">
+          <div class="score__circle">{{ r.score }}</div>
+          <div class="score__text">
+            <p class="score__headline">{{ scoreHeadline() }}</p>
+            <p class="score__sub">
+              @if (issueCount() === 0) {
+                Sin correcciones
+              } @else {
+                {{ issueCount() }}
+                {{ issueCount() === 1 ? 'aspecto a mejorar' : 'aspectos a mejorar' }}
+              }
+              @if (r.repCount !== undefined) {
+                · {{ r.repCount }} reps
+              }
+            </p>
+          </div>
+        </div>
+
+        @if (shownCorrections().length > 0) {
+          <p class="corrections__title">Correcciones</p>
+          <ul class="corrections">
+            @for (c of shownCorrections(); track c.ruleId) {
+              <li class="correction" [class]="'correction--' + c.severity">
+                <span class="correction__icon" aria-hidden="true">
+                  {{ c.severity === 'ok' ? '✓' : '⚠' }}
+                </span>
+                <div class="correction__body">
+                  <p class="correction__message">{{ c.message }}</p>
+                  @if (c.measured && c.target) {
+                    <p class="correction__detail">{{ c.measured }} · debería ser {{ c.target }}</p>
+                  }
+                  @if (r.repCount !== undefined && c.severity !== 'ok') {
+                    <p class="correction__detail">
+                      {{ c.violatedCount }} de {{ c.totalCount }} repeticiones
+                    </p>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="correction correction--ok">
+            <span class="correction__icon" aria-hidden="true">✓</span>
+            <p class="correction__message">Técnica correcta, sin desviaciones destacables.</p>
+          </div>
+        }
+      } @else {
+        <div class="analysis__empty">
+          <p>{{ analysisError() }}</p>
+        </div>
+      }
+
+      <button type="button" class="analysis__secondary" (click)="analyzeAnother()">
+        Analizar otro vídeo
+      </button>
+    </div>
   </div>
 }
