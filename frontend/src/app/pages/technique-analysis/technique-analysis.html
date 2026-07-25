@@ -57,7 +57,14 @@
 
 @if (phase() === 'ready') {
   <div class="analysis">
-    <video class="analysis__video" [src]="safeVideoUrl()" controls playsinline></video>
+    <video
+      #videoEl
+      class="analysis__video"
+      [src]="safeVideoUrl()"
+      controls
+      playsinline
+      (play)="onPlay(videoEl)"
+    ></video>
 
     <button type="button" class="analysis__secondary" (click)="analyzeAnother()">
       Analizar otro vídeo
