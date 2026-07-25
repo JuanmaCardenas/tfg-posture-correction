@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { PoseLandmarkerService } from '../../core/pose/pose-landmarker.service';
 import { DrawingUtils, NormalizedLandmark, PoseLandmarker } from '@mediapipe/tasks-vision';
+import { calculateAngle, toAspectCorrected } from '../../core/pose/angle';
 
 /** En E4-46 solo se usan 'idle' y 'ready'; 'analyzing' y 'results' llegan después. */
 type AnalysisPhase = 'idle' | 'ready';
@@ -142,6 +143,15 @@ export class TechniqueAnalysis {
       lineWidth: 1,
       radius: 4,
     });
+
+    // Temporal (verificación 48): ángulo de rodilla derecha en vivo.
+    const ratio = video.videoWidth / video.videoHeight;
+    const rodilla = calculateAngle(
+      toAspectCorrected(landmarks[24], ratio), // cadera dcha
+      toAspectCorrected(landmarks[26], ratio), // rodilla dcha
+      toAspectCorrected(landmarks[28], ratio), // tobillo dcho
+    );
+    console.log(`Rodilla dcha: ${rodilla.toFixed(0)}°`);
   }
 
   private stopLoop(): void {
