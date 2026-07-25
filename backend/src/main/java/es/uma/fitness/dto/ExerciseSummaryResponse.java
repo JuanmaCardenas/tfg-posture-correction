@@ -8,6 +8,7 @@ public record ExerciseSummaryResponse(
         List<LabelResponse> muscleGroups,
         LabelResponse difficulty,
         String thumbnailUrl,
+        boolean analyzable,
         double averageRating,
         int ratingCount,
         boolean favorite

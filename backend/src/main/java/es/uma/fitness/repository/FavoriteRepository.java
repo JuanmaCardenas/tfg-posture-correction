@@ -13,6 +13,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     Optional<Favorite> findByUserIdAndExerciseId(Long userId, Long exerciseId);
 
+    int countByUserId(Long userId);
+
     /**
      * Cuáles de estos ejercicios ha marcado el usuario, en una sola consulta.
      */

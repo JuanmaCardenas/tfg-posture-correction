@@ -1,5 +1,63 @@
-<h1>Inicio</h1>
-<p class="placeholder-note">
-  Aquí irá tu panel: el saludo, tus últimos análisis y tus favoritos. Se construirá en los
-  siguientes increments.
-</p>
+<section class="dashboard">
+  <header class="dashboard__header">
+    <h1 class="dashboard__greeting">Hola, {{ username() }}</h1>
+    <p class="dashboard__stats">
+      {{ favoriteCount() }} {{ favoriteCount() === 1 ? 'ejercicio' : 'ejercicios' }} en favoritos ·
+      {{ analysisCount() }}
+      {{ analysisCount() === 1 ? 'análisis realizado' : 'análisis realizados' }}
+    </p>
+  </header>
+
+  @if (serverError()) {
+    <p class="dashboard__error">{{ serverError() }}</p>
+  }
+
+  <!-- CTA de análisis -->
+  <div class="cta">
+    <div class="cta__text">
+      <p class="cta__title">Analiza tu técnica</p>
+      <p class="cta__sub">Sube un vídeo de tu ejecución y recibe correcciones al instante.</p>
+    </div>
+    <a class="cta__button" routerLink="/exercises">Empezar</a>
+  </div>
+
+  <!-- Últimos análisis -->
+  @if (recentAnalyses().length > 0) {
+    <h2 class="dashboard__section-title">Tus últimos análisis</h2>
+    <div class="analyses">
+      @for (a of recentAnalyses(); track a.id) {
+        <a class="analysis-card" [routerLink]="['/exercises', a.exerciseId]">
+          <span class="analysis-card__score" [class]="'score--' + scoreLevel(a.score)">
+            {{ a.score }}
+          </span>
+          <span class="analysis-card__info">
+            <span class="analysis-card__name">{{ a.exerciseName }}</span>
+            <span class="analysis-card__date">{{ a.createdAt | relativeDate }}</span>
+          </span>
+        </a>
+      }
+    </div>
+  }
+
+  <!-- Favoritos -->
+  @if (favorites().length > 0) {
+    <div class="dashboard__section-head">
+      <h2 class="dashboard__section-title">Tus favoritos</h2>
+      <a class="dashboard__see-all" routerLink="/favorites">Ver todos →</a>
+    </div>
+    <div class="fav-grid">
+      @for (ex of favorites(); track ex.id) {
+        <a class="fav-card" [routerLink]="['/exercises', ex.id]">
+          <img
+            class="fav-card__img"
+            [src]="ex.thumbnailUrl"
+            [alt]="ex.name"
+            loading="lazy"
+            (error)="onImageError($event)"
+          />
+          <span class="fav-card__name">{{ ex.name }}</span>
+        </a>
+      }
+    </div>
+  }
+</section>

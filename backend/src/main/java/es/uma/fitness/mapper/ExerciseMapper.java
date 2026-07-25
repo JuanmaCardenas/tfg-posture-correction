@@ -27,6 +27,7 @@ public final class ExerciseMapper {
                 toMuscleGroupList(exercise),
                 toLabel(exercise.getDifficulty()),
                 thumbnailUrl(exercise.getYoutubeVideoId()),
+                exercise.getAnalysisType() != null,
                 averageRating,
                 ratingCount,
                 favorite

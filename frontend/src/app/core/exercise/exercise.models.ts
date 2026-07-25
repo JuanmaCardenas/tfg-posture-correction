@@ -19,6 +19,7 @@ export interface ExerciseSummaryResponse {
   averageRating: number;
   ratingCount: number;
   favorite: boolean;
+  analyzable: boolean;
 }
 
 export interface ExerciseDetailResponse extends ExerciseSummaryResponse {

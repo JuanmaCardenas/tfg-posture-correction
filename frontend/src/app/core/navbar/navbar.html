@@ -5,7 +5,9 @@
 
   <nav class="menu">
     <a routerLink="/home" routerLinkActive="active">Inicio</a>
-    <a routerLink="/exercises" routerLinkActive="active">Ejercicios</a>
+    <a routerLink="/exercises" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Ejercicios</a
+    >
     <a routerLink="/favorites" routerLinkActive="active">Favoritos</a>
   </nav>
 
