@@ -9,11 +9,21 @@ import { analyzePlank } from '../../core/pose/plank-analyzer';
 import { calculateAngle } from '../../core/pose/angle';
 import { AnalysisService } from '../../core/analysis/analysis.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BodySide, RIGHT_SIDE } from '../../core/pose/landmark-quality';
 
 type AnalysisPhase = 'idle' | 'analyzing' | 'results';
 
 /** Resultado unificado: la sentadilla añade repCount; la plancha no. */
 type Feedback = AnalysisScore & { repCount?: number };
+
+const NOSE_LIVE = 0;
+
+/** Una métrica mostrada en vivo bajo el vídeo. */
+interface LiveMetric {
+  label: string;
+  value: number; // grados
+  ok: boolean; // cumple el umbral real de evaluación
+}
 
 const MAX_DURATION_SECONDS = 30;
 const ACCEPTED_TYPES = new Set(['video/mp4', 'video/quicktime']);
@@ -40,6 +50,8 @@ export class TechniqueAnalysis {
 
   protected readonly result = signal<Feedback | null>(null);
   protected readonly analysisError = signal<string | null>(null);
+  protected readonly liveMetrics = signal<LiveMetric[]>([]);
+
   /** Color y titular de la nota según los umbrales ≥80 / 50-79 / <50. */
   protected readonly scoreLevel = computed<'good' | 'warning' | 'bad' | null>(() => {
     const r = this.result();
@@ -120,6 +132,7 @@ export class TechniqueAnalysis {
 
   analyzeAnother(): void {
     this.stopLoop();
+    this.liveMetrics.set([]);
     this.drawingUtils = null; // el canvas se recrea; el contexto viejo ya no vale
     this.lastVideoTime = -1;
     this.frames = [];
@@ -188,7 +201,10 @@ export class TechniqueAnalysis {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!landmarks) return;
+    if (!landmarks) {
+      this.liveMetrics.set([]);
+      return;
+    }
 
     this.drawingUtils ??= new DrawingUtils(ctx);
 
@@ -201,28 +217,42 @@ export class TechniqueAnalysis {
       lineWidth: 1,
       radius: 4,
     });
-    // Badge del ángulo de rodilla en vivo (indicativo, lado derecho).
-    const hip = landmarks[24];
-    const knee = landmarks[26];
-    const ankle = landmarks[28];
-    if (hip && knee && ankle) {
-      const ratio = video.videoWidth / video.videoHeight;
-      const angle = Math.round(
-        calculateAngle(
-          { x: hip.x * ratio, y: hip.y },
-          { x: knee.x * ratio, y: knee.y },
-          { x: ankle.x * ratio, y: ankle.y },
-        ),
+
+    this.updateLiveMetrics(landmarks, video.videoWidth / video.videoHeight);
+  }
+
+  /** Calcula los ángulos del fotograma actual y su cumplimiento, con los
+   *  mismos umbrales reales de evaluación. Sin badge sobre el vídeo: el dato
+   *  se muestra en el panel bajo el reproductor. */
+  /** Calcula los ángulos del fotograma actual y su cumplimiento, con los
+   *  mismos umbrales reales de evaluación. Sin badge sobre el vídeo: el dato
+   *  se muestra en el panel bajo el reproductor. */
+  private updateLiveMetrics(landmarks: NormalizedLandmark[], aspectRatio: number): void {
+    const side: BodySide = RIGHT_SIDE;
+    const type = this.analysisType();
+    const A = (i: number) => ({ x: landmarks[i].x * aspectRatio, y: landmarks[i].y });
+
+    if (type === 'SQUAT') {
+      const knee = Math.round(calculateAngle(A(side.hip), A(side.knee), A(side.ankle)));
+      // Inclinación del tronco respecto a la vertical (mismo cálculo que el analizador).
+      const shoulder = A(side.shoulder);
+      const hip = A(side.hip);
+      const trunk = Math.round(
+        Math.abs((Math.atan2(shoulder.x - hip.x, -(shoulder.y - hip.y)) * 180) / Math.PI),
       );
-      const px = knee.x * canvas.width;
-      const py = knee.y * canvas.height;
-      const label = `Rodilla ${angle}°`;
-      ctx.font = 'bold 20px sans-serif';
-      const w = ctx.measureText(label).width + 16;
-      ctx.fillStyle = angle > 100 ? '#F85149' : '#3FB950';
-      ctx.fillRect(px + 10, py - 14, w, 28);
-      ctx.fillStyle = '#0b0f14';
-      ctx.fillText(label, px + 18, py + 5);
+      this.liveMetrics.set([
+        { label: 'Rodilla', value: knee, ok: knee <= 100 },
+        { label: 'Tronco', value: trunk, ok: trunk <= 45 },
+      ]);
+    } else if (type === 'PLANK') {
+      const hipAngle = Math.round(calculateAngle(A(side.shoulder), A(side.hip), A(side.ankle)));
+      const neck = Math.round(calculateAngle(A(NOSE_LIVE), A(side.shoulder), A(side.hip)));
+      this.liveMetrics.set([
+        { label: 'Cadera', value: hipAngle, ok: hipAngle >= 158 && hipAngle <= 182 },
+        { label: 'Cuello', value: neck, ok: neck >= 150 && neck <= 195 },
+      ]);
+    } else {
+      this.liveMetrics.set([]);
     }
   }
 
@@ -310,6 +340,7 @@ export class TechniqueAnalysis {
 
   private commit(rawUrl: string): void {
     this.revoke();
+    this.liveMetrics.set([]);
     this.objectUrl = rawUrl;
     this.safeVideoUrl.set(this.sanitizer.bypassSecurityTrustUrl(rawUrl));
     // Estado limpio para el nuevo análisis.

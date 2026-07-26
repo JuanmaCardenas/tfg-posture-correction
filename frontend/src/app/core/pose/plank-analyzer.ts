@@ -44,7 +44,9 @@ const PLANK_FRAME_RULES: Rule<PlankFrameFeatures>[] = [
     message: 'La cadera no está alineada con hombros y tobillos.',
     okMessage: 'Cadera bien alineada.',
     maxPenalty: 45,
-    isViolated: (f) => f.hipAngle < 160 || f.hipAngle > 180,
+    // Se evalúa sobre el valor redondeado para que coincida con el mostrado,
+    // con 2° de tolerancia en los bordes para absorber el ruido de estimación.
+    isViolated: (f) => Math.round(f.hipAngle) < 158 || Math.round(f.hipAngle) > 182,
     describe: (f) => ({ measured: `${Math.round(f.hipAngle)}°`, target: '160°–180°' }),
   },
   {
@@ -80,7 +82,14 @@ export function analyzePlank(frames: Frame[]): AnalysisScore | null {
   const reliable = frames.filter((f) => isFrameReliable(f.landmarks, side));
   if (reliable.length === 0) return null;
 
-  const features = reliable.map((f) => extractFrameFeatures(f, side));
+  // Se descarta un margen inicial (arranque/entrada en posición) para no
+  // evaluar los fotogramas de transición antes de que se sostenga la plancha.
+  const WARMUP_FRACTION = 0.15; // primer 15%
+  const start = Math.floor(reliable.length * WARMUP_FRACTION);
+  const held = reliable.slice(start);
+  if (held.length === 0) return null;
+
+  const features = held.map((f) => extractFrameFeatures(f, side));
 
   // Reglas por fotograma → motor común.
   const base = score(features, PLANK_FRAME_RULES);
@@ -91,12 +100,15 @@ export function analyzePlank(frames: Frame[]): AnalysisScore | null {
   const stabilityFraction = Math.min(1, deviation / (STABILITY_TOLERANCE_DEG * 2));
   const stabilityPenalty = STABILITY_MAX_PENALTY * stabilityFraction;
 
-  // Mensaje direccional de la alineación: ¿predomina hundida o elevada?
-  const belowCount = features.filter((f) => f.hipBelowLine).length;
   const alignment = base.corrections.find((c) => c.ruleId === 'alignment');
   if (alignment && alignment.severity !== 'ok') {
+    // Se mira la dirección SOLO en los fotogramas que incumplen, no en todos.
+    const failing = features.filter(
+      (f) => Math.round(f.hipAngle) < 158 || Math.round(f.hipAngle) > 182,
+    );
+    const hundidas = failing.filter((f) => f.hipBelowLine).length;
     alignment.message =
-      belowCount > features.length / 2
+      hundidas > failing.length / 2
         ? 'Hundes la cadera: falta tensión abdominal.'
         : 'Elevas demasiado la cadera.';
   }
@@ -108,7 +120,7 @@ export function analyzePlank(frames: Frame[]): AnalysisScore | null {
         ? 'Mantienes la posición estable.'
         : 'No mantienes la posición estable durante el ejercicio.',
     violatedCount: 0,
-    totalCount: reliable.length,
+    totalCount: held.length,
     penalty: stabilityPenalty,
     severity: stabilityFraction === 0 ? 'ok' : stabilityFraction < 0.34 ? 'warning' : 'error',
   };

@@ -315,3 +315,59 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+.live-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.live-metric {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &__label {
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  &__value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums; // evita que "baile" el ancho
+    min-width: 3.5ch;
+    text-align: right;
+  }
+
+  &.is-ok {
+    border-color: var(--color-accent);
+    background: rgba(63, 185, 80, 0.12);
+    .live-metric__value {
+      color: var(--color-accent);
+    }
+  }
+
+  &.is-bad {
+    border-color: var(--color-danger);
+    background: rgba(248, 81, 73, 0.12);
+    .live-metric__value {
+      color: var(--color-danger);
+    }
+  }
+}
+
+.live-metrics__hint {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

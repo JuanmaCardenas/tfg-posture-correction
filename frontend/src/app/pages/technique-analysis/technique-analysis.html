@@ -72,6 +72,21 @@
       ></video>
       <canvas #canvasEl class="analysis__overlay"></canvas>
     </div>
+
+    @if (liveMetrics().length > 0) {
+      <div class="live-metrics">
+        @for (m of liveMetrics(); track m.label) {
+          <div class="live-metric" [class.is-ok]="m.ok" [class.is-bad]="!m.ok">
+            <span class="live-metric__label">{{ m.label }}</span>
+            <span class="live-metric__value">{{ m.value }}°</span>
+          </div>
+        }
+      </div>
+      <p class="live-metrics__hint">
+        Valores en tiempo real durante el análisis. Verde indica que el ángulo está dentro del rango
+        correcto.
+      </p>
+    }
   </div>
 }
 
