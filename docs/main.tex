@@ -4,7 +4,7 @@
 %───────── Auxiliary packages ──────────────────────────────────────────
 \usepackage{blindtext}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
 \usepackage{mwe}
 \usepackage{csquotes}
 \usepackage{graphicx}
@@ -81,32 +81,42 @@
 %────────────────────── Abstracts ──────────────────────────────────────
     \renewcommand{\abstractname}{Resumen}
     \begin{abstract}
-        Describimos un \emph{pipeline} de \textbf{reconstrucción SR} de RM y
-        \textbf{segmentación de tumores} basado en redes neuronales profundas.
-        Integramos una U-Net 3D para segmentación y un modelo SR tipo EDSR para
-        reconstrucción, con pérdidas compuestas que combinan L1, SSIM y TV.
-        Evaluamos en volúmenes cerebrales con métricas PSNR, SSIM y Dice, y
-        comparamos frente a baselines clásicos de interpolación y \emph{Random
-        Forest}. El sistema reduce artefactos por \emph{undersampling} y mejora
-        la precisión de contornos clínicamente relevantes.
+        Este Trabajo Fin de Grado presenta \emph{PoseCoach}, una aplicación web
+        de fitness que integra un módulo de corrección postural ejecutado
+        íntegramente en el navegador. El sistema combina un catálogo de
+        ejercicios con vídeos demostrativos, valoraciones, comentarios y
+        favoritos, con un módulo de análisis que evalúa la técnica de ejecución
+        a partir de un vídeo aportado por el usuario. El análisis se apoya en la
+        estimación de pose de MediaPipe para obtener los puntos clave del cuerpo,
+        a partir de los cuales se calculan ángulos articulares y alineaciones que
+        un motor de reglas traduce en una puntuación y en correcciones concretas.
+        Todo el procesamiento se realiza en el cliente, sin que el vídeo llegue a
+        salir del dispositivo. La aplicación se ha desarrollado con una
+        arquitectura cliente-servidor, con frontend en Angular y una API REST en
+        Spring Boot con persistencia en MySQL.
         \medskip
 
-        \noindent\textbf{Palabras clave:} imagen biomédica, U-Net, super-resolución,
-        segmentación, PSNR, SSIM, Dice
+        \noindent\textbf{Palabras clave:} corrección postural, estimación de
+        pose, MediaPipe, fitness, Angular, Spring Boot, aplicación web
     \end{abstract}
 
     \renewcommand{\abstractname}{Abstract}
     \begin{abstract}
-        We present a deep-learning pipeline for \textbf{MRI super-resolution} and
-        \textbf{tumor segmentation}. A 3D U-Net segments lesions, while an EDSR-style
-        SR module reconstructs high-resolution volumes. We optimize a composite loss
-        (L1 + SSIM + TV) and report PSNR, SSIM, and Dice on brain MRI.
-        Compared to classical interpolation and Random Forest baselines, the model
-        reduces undersampling artifacts and sharpens clinically relevant boundaries.
+        This Bachelor's Thesis presents \emph{PoseCoach}, a web-based fitness
+        application featuring a posture-correction module that runs entirely in
+        the browser. The system combines an exercise catalogue with
+        demonstration videos, ratings, comments and favourites, together with an
+        analysis module that evaluates exercise technique from a user-supplied
+        video. The analysis relies on MediaPipe pose estimation to obtain body
+        landmarks, from which joint angles and alignments are computed and turned
+        into a score and specific corrections by a rule engine. All processing
+        takes place on the client, so the video never leaves the device. The
+        application follows a client-server architecture, with an Angular
+        frontend and a Spring Boot REST API backed by a MySQL database.
         \medskip
 
-        \noindent\textbf{Keywords:} biomedical imaging, U-Net, super-resolution,
-        segmentation, PSNR, SSIM, Dice
+        \noindent\textbf{Keywords:} posture correction, pose estimation,
+        MediaPipe, fitness, Angular, Spring Boot, web application
     \end{abstract}
 
 %──────────────── Acknowledgments ───────────────────────────────────────
@@ -124,14 +134,13 @@
     \clearpage
 
 %────────────────────── Nomenclature ───────────────────────────────────
-    \nomenclature{$x \in \mathbb{R}^{H\times W\times D}$}{HR volume}
-    \nomenclature{$y \in \mathbb{R}^{h\times w\times d}$}{LR volume}
-    \nomenclature{$A$}{Forward operator (blur+downsample)}
-    \nomenclature{$\hat x$}{Network reconstruction}
-    \nomenclature{$\mathcal{L}$}{Training objective}
-    \nomenclature{$\operatorname{PSNR}$}{Peak Signal-to-Noise Ratio}
-    \nomenclature{$\operatorname{SSIM}$}{Structural Similarity}
-    \nomenclature{$\operatorname{Dice}$}{Sørensen–Dice coefficient}
+    \nomenclature{MediaPipe}{Biblioteca de estimación de pose en el navegador}
+    \nomenclature{Landmark}{Punto clave del cuerpo detectado por el modelo de pose}
+    \nomenclature{JWT}{JSON Web Token, credencial firmada de autenticación}
+    \nomenclature{DTO}{Data Transfer Object, objeto de transferencia de datos}
+    \nomenclature{API REST}{Interfaz de programación basada en recursos sobre HTTP}
+    \nomenclature{WASM}{WebAssembly, formato binario ejecutable en el navegador}
+    \nomenclature{RIUMA}{Repositorio Institucional de la Universidad de Málaga}
     \printnomenclature
     \clearpage
 
@@ -302,26 +311,65 @@
     \chapter{Estado del arte}
     \label{cap:estado-del-arte}
 
-    \section{Aplicaciones de fitness actuales}
-    
+\section{Aplicaciones de fitness actuales}
+
     El mercado de aplicaciones de fitness ha crecido de forma sostenida en los
-    últimos años, ofreciendo rutinas de entrenamiento, catálogos de ejercicios
-    y herramientas de seguimiento de la actividad. Sin embargo, la mayoría de
-    estas soluciones se limitan a presentar contenido estático o guías
-    visuales, y no proporcionan mecanismos objetivos para evaluar o corregir la
-    técnica de ejecución del usuario.
-    
+    últimos años, ofreciendo rutinas de entrenamiento, catálogos de ejercicios y
+    herramientas de seguimiento de la actividad. Atendiendo a su enfoque, pueden
+    distinguirse varias categorías. Un primer grupo lo forman las aplicaciones de
+    seguimiento y registro, como \textit{Strava}~\cite{strava} o \textit{MyFitnessPal}~\cite{myfitnesspal},
+    centradas en cuantificar la actividad, distancias, calorías o
+    repeticiones, pero sin evaluar cómo se ejecuta el movimiento. Un segundo
+    grupo lo constituyen las aplicaciones de rutinas guiadas, como
+    \textit{Nike Training Club}~\cite{niketraining} o \textit{Freeletics}~\cite{freeletics},
+    que proponen ejercicios mediante vídeos e instrucciones, de modo que la
+    corrección de la técnica queda a cargo del propio usuario, que carece de
+    una referencia objetiva sobre su ejecución.
+
+    Un tercer grupo, más reciente, incorpora el análisis del movimiento del
+    usuario mediante la cámara del dispositivo. Es el caso de propuestas como
+    \textit{Kaia Health}~\cite{kaia}, orientada a la fisioterapia, o de sistemas comerciales
+    de \textit{fitness} con cámara que ofrecen retroalimentación en tiempo real.
+    Estas soluciones se aproximan al objetivo de este trabajo, si bien suelen
+    depender de procesamiento en servidor, de suscripciones de pago o de
+    hardware específico, y rara vez explicitan cómo tratan la privacidad del
+    vídeo capturado. La propuesta de este trabajo se sitúa en esta última
+    categoría, con la particularidad de realizar todo el análisis en el propio
+    navegador, sin que el vídeo abandone el dispositivo.
+
     \section{Estimación de pose y corrección postural}
-    
-    % AMPLIAR: esta sección necesita fuentes propias. Explica brevemente qué es
-    % la estimación de pose por visión por computador, menciona MediaPipe Pose
-    % y cita 2-3 trabajos o herramientas similares.
-    
-    Las técnicas de estimación de pose permiten detectar puntos clave del
-    cuerpo humano a partir de imágenes o vídeo y calcular métricas como ángulos
-    articulares y alineaciones. Herramientas como MediaPipe Pose posibilitan
-    realizar este análisis en tiempo real y directamente en el navegador, sin
-    necesidad de equipamiento especializado.
+
+    La corrección postural asistida se apoya en la \textit{estimación de pose}
+    (\textit{pose estimation}), una técnica de visión por computador que localiza
+    en una imagen o un vídeo los puntos clave del cuerpo humano, articulaciones
+    y referencias anatómicas, y devuelve sus coordenadas. A partir de esos
+    puntos pueden calcularse magnitudes geométricas como ángulos articulares y
+    alineaciones, que constituyen la base para evaluar la ejecución de un
+    ejercicio sin necesidad de sensores ni equipamiento especializado.
+
+    Entre las soluciones de referencia destaca \textit{OpenPose}~\cite{openpose}, desarrollada
+    por la Universidad Carnegie Mellon, uno de los primeros sistemas capaces de
+    estimar la pose de múltiples personas en tiempo real, aunque con unos
+    requisitos de cómputo, habitualmente una tarjeta gráfica dedicada, que
+    dificultan su uso en el lado del cliente. Frente a este enfoque,
+    \textit{MediaPipe}~\cite{mediapipe}, desarrollada por Google, ofrece modelos de estimación de
+    pose optimizados para ejecutarse en dispositivos de recursos limitados,
+    incluido el navegador, lo que la hace especialmente adecuada para una
+    aplicación web. Su modelo de pose, basado en la arquitectura
+    \textit{BlazePose}~\cite{blazepose}, detecta treinta y tres puntos del cuerpo y prioriza un
+    equilibrio entre precisión y rendimiento que permite el análisis en tiempo
+    real sobre hardware convencional.
+
+    El uso de la estimación de pose para evaluar ejercicio físico cuenta ya con
+    respaldo en la literatura. Trabajos como el de \textcite{myer2014} demuestran
+    que la técnica de ejercicios como la sentadilla puede descomponerse en un
+    conjunto de factores observables y evaluables, un enfoque que este proyecto
+    adopta al traducir dichos factores en reglas aplicadas sobre los ángulos
+    medidos. Conviene precisar, no obstante, que estas técnicas presentan
+    limitaciones inherentes: la estimación bidimensional no capta la profundidad
+    y su fiabilidad depende del ángulo de la cámara y de las condiciones de la
+    grabación, aspectos que delimitan el alcance de cualquier herramienta basada
+    en ellas y que se abordan explícitamente en el diseño del sistema.
     
     \section{Aportación diferencial del proyecto}
     
@@ -360,6 +408,7 @@
             IntelliJ IDEA  & 2026.1.4 (Ultimate) \\
             Postman        & 12.19.0 \\
             jjwt (JWT)     & 0.13.0 \\
+            MediaPipe Tasks Vision & 0.10.35 \\
             Figma          & Web \\
             \bottomrule
         \end{tabular}
@@ -367,50 +416,75 @@
         \label{tab:versiones}
     \end{table}
     
-    \section{Frontend: Angular, NgRx y SCSS}
-    
-    La interfaz de usuario se desarrolla con Angular, un framework de código
-    abierto para la construcción de aplicaciones web de página única (SPA)
-    basado en TypeScript. La gestión del estado de la aplicación se realiza con
-    NgRx, una librería que implementa el patrón Redux y centraliza el estado en
-    un único almacén, facilitando su trazabilidad. Para los estilos se emplea
-    SCSS, una extensión de CSS que aporta variables y anidamiento, y el formato
-    del código se mantiene consistente mediante la herramienta Prettier.
+    \section{Frontend: Angular y SCSS}
+
+    La interfaz de usuario se desarrolla con Angular~\cite{angular}, un
+    \textit{framework} de código abierto para la construcción de aplicaciones
+    web de página única (\textit{SPA}) basado en TypeScript. Se emplea su modelo
+    de componentes \textit{standalone} y su sistema de reactividad basado en
+    \textit{signals}, valores que notifican automáticamente los cambios a quienes
+    los consultan, lo que permite gestionar el estado de la interfaz sin recurrir
+    a una biblioteca externa de gestión de estado. Para los estilos se utiliza
+    SCSS~\cite{scss}, una extensión de CSS que aporta variables y anidamiento y
+    facilita la definición de un sistema de diseño coherente.
     
     \section{Backend: Spring Boot, API REST y JWT}
     
-    El servidor se implementa con Spring Boot, un framework de Java que agiliza
+    El servidor se implementa con Spring Boot~\cite{springboot}, un framework de Java que agiliza
     la creación de aplicaciones y servicios web. Expone una API REST que
     comunica el frontend con la lógica de negocio mediante peticiones HTTP en
-    formato JSON. La seguridad se gestiona con Spring Security y autenticación
-    basada en JSON Web Tokens (JWT), que permiten un control de acceso sin
+    formato JSON. La seguridad se gestiona con Spring Security~\cite{springsecurity} y autenticación
+    basada en JSON Web Tokens (JWT)~\cite{jwt}, que permiten un control de acceso sin
     estado en el servidor. La gestión de dependencias y la construcción del
-    proyecto se realizan con Maven, y se emplea Lombok para reducir código
+    proyecto se realizan con Maven~\cite{maven}, y se emplea Lombok~\cite{lombok} para reducir código
     repetitivo en las clases del modelo. Para probar los endpoints de la API
     de forma aislada durante el desarrollo, sin depender del frontend,
-    se ha utilizado Postman, una herramienta para construir y examinar peticiones HTTP.
+    se ha utilizado Postman~\cite{postman}, una herramienta para construir y examinar peticiones HTTP.
     
     \section{Persistencia: MySQL y Docker}
     
-    La información se almacena en MySQL, un sistema gestor de bases de datos
+    La información se almacena en MySQL~\cite{mysql}, un sistema gestor de bases de datos
     relacional. Para facilitar su despliegue y garantizar un entorno
-    reproducible, la base de datos se ejecuta en un contenedor Docker con un
+    reproducible, la base de datos se ejecuta en un contenedor Docker~\cite{docker} con un
     volumen persistente, de modo que los datos se conservan entre reinicios sin
     necesidad de instalar MySQL directamente en el sistema anfitrión.
     
     \section{Visión por computador: MediaPipe Pose}
-    
-    El módulo de corrección postural se apoya en MediaPipe Pose, concretamente
-    en el modelo PoseLandmarker, que permite detectar los puntos clave del
-    cuerpo humano a partir de vídeo. El procesamiento se realiza directamente en
-    el navegador mediante WebAssembly (WASM), lo que evita enviar y almacenar
-    los vídeos del usuario y preserva su privacidad. A partir de los puntos
-    detectados se calculan métricas como ángulos articulares y alineaciones.
+
+    El módulo de corrección postural se apoya en MediaPipe~\cite{mediapipe}, una biblioteca de
+    Google para la aplicación de modelos de aprendizaje automático sobre
+    imagen y vídeo. De su conjunto de soluciones se emplea la tarea
+    \texttt{PoseLandmarker}, que detecta treinta y tres puntos clave del cuerpo
+    humano (\textit{landmarks}) a partir de cada fotograma, cada uno con sus
+    coordenadas y un valor de confianza. Se utiliza el paquete
+    \texttt{@mediapipe/tasks-vision}, integrado en el proyecto de Angular como
+    una dependencia más.
+
+    El modelo admite tres variantes, \textit{lite}, \textit{full} y
+    \textit{heavy}, que intercambian precisión por coste de cómputo. Se ha
+    optado por la variante \textit{lite}, la más ligera, por resultar
+    suficiente para el análisis de perfil que realiza la aplicación y permitir
+    un procesamiento fluido en tiempo real sobre equipos de gama media, sin la
+    penalización de las variantes de mayor tamaño.
+
+    El procesamiento se ejecuta íntegramente en el navegador mediante
+    WebAssembly (WASM), un formato binario que permite ejecutar código de alto
+    rendimiento en el cliente a velocidad cercana a la nativa. Tanto los
+    ficheros WASM del motor como el modelo de pose se sirven desde la propia
+    aplicación, y no desde una red de distribución de contenido externa, lo que
+    evita cualquier dependencia de red en tiempo de ejecución y resulta coherente
+    con el despliegue reproducible mediante contenedores que exige el requisito
+    RNF-05. Esta ejecución local es, además, la que hace posible cumplir el
+    requisito RNF-02: el vídeo del usuario nunca abandona el dispositivo, ya que
+    tanto la detección de pose como el cálculo de métricas se realizan en el
+    navegador. A partir de los puntos detectados se calculan ángulos articulares
+    y alineaciones, cuyo tratamiento se detalla en el
+    Capítulo~\ref{cap:diseno}.
     
     \section{Entorno de desarrollo, control de versiones y gestión de tareas}
     
     El desarrollo se lleva a cabo en el IDE IntelliJ IDEA. El control de
-    versiones se gestiona con Git, utilizando GitHub como repositorio remoto,
+    versiones con Git~\cite{git}, utilizando GitHub como repositorio remoto,
     organizado como un monorepo que agrupa el frontend, el backend y la
     documentación en un único proyecto. La planificación y el seguimiento de las
     tareas se realizan con Jira, tal como se describe en la
@@ -457,7 +531,7 @@
             \bottomrule
         \end{tabular}
         \caption{Requisitos funcionales del sistema.}
-        \label{tab:req-funcionales},
+        \label{tab:req-funcionales}
     \end{table}
 
     Conviene precisar el alcance del requisito RF-11 en relación con el
@@ -638,7 +712,7 @@
         \label{fig:casos-uso}
     \end{figure}
 
-    A continuación se detallan tres de los casos de uso, seleccionados por
+    A continuación se detallan cuatro de los casos de uso, seleccionados por
     concentrar las decisiones de diseño y las reglas de negocio más relevantes
     del sistema.
 
@@ -710,6 +784,30 @@
         \end{tabular}
         \caption{Descripción detallada del caso de uso CU-11.}
         \label{tab:cu-11}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{2.7cm} p{9.8cm}}
+            \toprule
+            \multicolumn{2}{l}{\textbf{CU-13 · Analizar la técnica de ejecución}} \\
+            \midrule
+            Actor & Usuario registrado \\
+            Descripción & El usuario aporta un vídeo de su ejecución de un ejercicio y recibe una puntuación de su técnica junto con las correcciones detectadas. \\
+            Precondición & El usuario ha iniciado sesión y consulta un ejercicio que dispone de analizador postural. \\
+            Flujo principal & 1. El usuario abre la pestaña de análisis y selecciona un vídeo local. \newline
+                              2. El sistema reproduce el vídeo y estima la pose en cada fotograma, superponiendo el esqueleto detectado. \newline
+                              3. Al finalizar la reproducción, el sistema calcula la puntuación y las correcciones. \newline
+                              4. El sistema muestra el resultado y registra la puntuación en el historial del usuario. \\
+            Flujo alternativo A & Si el vídeo excede la duración o el formato admitidos, el sistema lo rechaza antes de analizarlo. \\
+            Flujo alternativo B & Si la grabación no reúne las condiciones necesarias, no se detecta ninguna repetición completa o los puntos clave son poco fiables, el sistema informa de ello y no emite puntuación. \\
+            Flujo alternativo C & Si el registro del resultado en el servidor falla, el análisis se muestra igualmente y solo se omite su incorporación al historial. \\
+            Postcondición & El usuario dispone de la evaluación de su ejecución y, salvo fallo de registro, esta figura en su historial. \\
+            \bottomrule
+        \end{tabular}
+        \caption{Descripción detallada del caso de uso CU-13.}
+        \label{tab:cu-13}
     \end{table}
 
 
@@ -912,6 +1010,41 @@
         \label{tab:entidad-favorite}
     \end{table}
 
+    La sexta y última entidad, \texttt{AnalysisResult}, registra el resultado de
+    cada análisis postural y da soporte al historial del requisito RF-11. Sus
+    atributos se recogen en la Tabla~\ref{tab:entidad-analysis}.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Atributo} & \textbf{Tipo} & \textbf{Descripción} \\
+            \midrule
+            id        & Long          & Identificador único (clave primaria) \\
+            user      & User          & Usuario que realizó el análisis \\
+            exercise  & Exercise      & Ejercicio evaluado \\
+            score     & int           & Puntuación global obtenida (0--100) \\
+            createdAt & LocalDateTime & Fecha del análisis \\
+            \bottomrule
+        \end{tabular}
+        \caption{Atributos de la entidad \texttt{AnalysisResult}.}
+        \label{tab:entidad-analysis}
+    \end{table}
+
+    Esta entidad almacena deliberadamente el mínimo de información: la puntuación,
+    el ejercicio y la fecha, y nunca el vídeo ni las correcciones detalladas. La
+    razón no es una simplificación por conveniencia, sino una consecuencia lógica,
+    del requisito RNF-02. Las correcciones que produce el análisis
+    acompañadas del instante del vídeo en que se detectan, solo tienen
+    sentido mientras el vídeo permanece cargado en el navegador; una vez
+    finalizada la sesión, ese vídeo deja de existir, ya que nunca se transmite ni
+    se almacena. Conservar las correcciones en el historial produciría, por
+    tanto, una lista de avisos que apuntarían a instantes de un vídeo
+    inexistente. El historial se concibe así como un resumen, qué ejercicio se
+    analizó, qué puntuación se obtuvo y cuándo, que es la información que la
+    página de inicio muestra y la única cuya persistencia es coherente con el
+    procesamiento local del vídeo.
+
     La decisión de diseño más relevante de este modelo es que los requisitos
     RF-05 y RF-06, que el enunciado presenta como funcionalidades separadas, se
     satisfacen con \textbf{una única entidad}. El motivo procede del diseño de
@@ -965,7 +1098,7 @@
     cómo se hace sin penalizar el rendimiento del listado.
 
     La Figura~\ref{fig:modelo-datos} resume el modelo de datos completo, con
-    las cinco entidades del sistema y las relaciones entre ellas.
+    las seis entidades del sistema y las relaciones entre ellas.
 
     \begin{figure}[htbp]
         \centering
@@ -1152,6 +1285,40 @@
         \caption{Rutas de la API para el catálogo de ejercicios.}
         \label{tab:api-catalogo}
     \end{table}
+
+    \subsection{Análisis postural y resumen de inicio}
+    \label{sec:api-analisis}
+
+    El módulo de corrección postural expone las rutas recogidas en la
+    Tabla~\ref{tab:api-analisis}, todas ellas privadas. Conviene subrayar que el
+    análisis en sí no genera tráfico con el servidor: se ejecuta por completo en
+    el navegador, y estas rutas se limitan a persistir y recuperar su resultado.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Método} & \textbf{Ruta} & \textbf{Función} \\
+            \midrule
+            POST & /api/analyses          & Guardar el resultado de un análisis \\
+            GET  & /api/analyses          & Historial de análisis del usuario \\
+            GET  & /api/dashboard/summary & Resumen de la página de inicio \\
+            \bottomrule
+        \end{tabular}
+        \caption{Rutas de la API del módulo de corrección postural y del inicio.}
+        \label{tab:api-analisis}
+    \end{table}
+
+    La ruta de resumen merece una justificación de diseño. La cabecera de la
+    página de inicio muestra dos cifras, el número de ejercicios en favoritos y
+    el de análisis realizados, que son cardinalidades y no colecciones.
+    Obtenerlas recuperando las listas completas y contando sus elementos
+    supondría transferir datos que la cabecera no utiliza. Se ha optado por un
+    endpoint de resumen dedicado que devuelve ambos recuentos mediante dos
+    consultas de agregación, de modo que la página de inicio se compone a partir
+    de tres fuentes independientes, el resumen, el historial de análisis y la
+    lista de favoritos, cada una de las cuales devuelve exactamente lo que la
+    vista necesita.
 
     La operación de listado acepta los parámetros de consulta recogidos en la
     Tabla~\ref{tab:api-catalogo-params}, todos ellos opcionales. Al omitirse,
@@ -1601,7 +1768,7 @@
     Figma, que han servido de referencia directa durante la implementación de
     la interfaz.
 
-C   onviene precisar que el prototipo abarca el alcance funcional completo
+    Conviene precisar que el prototipo abarca el alcance funcional completo
     previsto para la aplicación, y no únicamente el del incremento descrito en
     este capítulo. Algunas de las pantallas incluyen, por tanto, elementos cuya
     implementación corresponde a incrementos posteriores, como el resumen de
@@ -1642,6 +1809,347 @@ C   onviene precisar que el prototipo abarca el alcance funcional completo
 
 
     \section{Diseño del módulo de corrección postural}
+    El módulo de corrección postural constituye la aportación diferencial del
+    sistema y concentra las decisiones de diseño más específicas de este
+    trabajo. Su cometido es evaluar la técnica de ejecución de un ejercicio a
+    partir de un vídeo aportado por el usuario y traducir esa evaluación en una
+    puntuación y en un conjunto de correcciones comprensibles. Toda la cadena de
+    procesamiento, desde la lectura del vídeo hasta el cálculo de la nota, se
+    ejecuta en el navegador, conforme al requisito RNF-02.
+
+    \subsection{Visión general del proceso}
+
+    El análisis se organiza como una secuencia de etapas en la que cada una
+    transforma la salida de la anterior, desde el vídeo en bruto hasta un
+    resultado interpretable. La Figura~\ref{fig:pipeline-postural} representa
+    esta secuencia.
+
+    El vídeo, seleccionado del dispositivo del usuario, se reproduce en el
+    cliente sin llegar a transmitirse a ningún servidor. Durante la
+    reproducción, cada fotograma se entrega al modelo de estimación de pose, que
+    devuelve la posición de los puntos clave del cuerpo. A partir de esos puntos
+    se calculan las métricas geométricas relevantes, esencialmente ángulos
+    articulares y alineaciones, que constituyen la señal sobre la que opera el
+    resto del proceso. Esa señal se segmenta después según la naturaleza del
+    ejercicio: en los ejercicios dinámicos se identifican las repeticiones
+    individuales, mientras que en los estáticos se considera cada instante por
+    separado. Sobre las muestras así obtenidas se evalúa un conjunto de reglas
+    técnicas, cada una de las cuales penaliza una desviación concreta, y la suma
+    de sus penalizaciones determina la puntuación final y las correcciones que se
+    muestran al usuario.
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{tikzpicture}[
+            font=\small,
+            etapa/.style={draw, rounded corners, align=center, inner sep=6pt,
+                          minimum height=12mm, text width=44mm, fill=black!5},
+            flecha/.style={-{Stealth[length=2mm]}, thick},
+            etiq/.style={font=\scriptsize\itshape}
+        ]
+
+        \node[etapa] (video)   at (0, 0)     {Vídeo local (reproducción)};
+        \node[etapa] (pose)    at (0, -2.3)  {Estimación de pose (\textit{landmarks})};
+        \node[etapa] (metrica) at (0, -4.6)  {Cálculo de métricas (ángulos)};
+        \node[etapa] (muestra) at (0, -6.9)  {Extracción de muestras};
+        \node[etapa] (reglas)  at (0, -9.2)  {Evaluación de reglas y penalizaciones};
+        \node[etapa] (nota)    at (0, -11.5) {Puntuación y correcciones};
+
+        \draw[flecha] (video)   -- (pose)    node[etiq, midway, right=2mm] {fotograma};
+        \draw[flecha] (pose)    -- (metrica) node[etiq, midway, right=2mm] {33 puntos};
+        \draw[flecha] (metrica) -- (muestra) node[etiq, midway, right=2mm] {señal de ángulos};
+        \draw[flecha] (muestra) -- (reglas)  node[etiq, midway, right=2mm] {muestras};
+        \draw[flecha] (reglas)  -- (nota)    node[etiq, midway, right=2mm] {nota 0--100};
+
+        \end{tikzpicture}
+    \end{figure}
+
+    Esta organización por etapas cumple una función que va más allá de lo
+    descriptivo: cada etapa tiene una responsabilidad única y una interfaz
+    definida con las contiguas, lo que permite razonar sobre ellas de forma
+    independiente y, como se verá, sustituir la lógica específica de un ejercicio
+    sin alterar el resto de la cadena. Las secciones siguientes detallan las
+    etapas que concentran las decisiones de diseño: el cálculo de métricas, la
+    extracción de muestras y el modelo de puntuación.
+
+    \subsection{Cálculo de métricas geométricas}
+
+    El modelo de estimación de pose devuelve, para cada fotograma, treinta y
+    tres puntos clave del cuerpo, cada uno con sus coordenadas en el plano de la
+    imagen y un valor de confianza que indica la fiabilidad de la detección. Las
+    coordenadas están normalizadas al intervalo $[0,1]$: la horizontal respecto
+    a la anchura de la imagen y la vertical respecto a su altura. El análisis se
+    limita a la vista de perfil, decisión cuyo alcance se justifica más adelante,
+    por lo que de cada articulación se emplean los puntos de un único costado.
+
+    La métrica fundamental del sistema es el ángulo que forman tres puntos del
+    cuerpo en el vértice central: el de la rodilla (cadera--rodilla--tobillo)
+    para la sentadilla, o el de la cadera (hombro--cadera--tobillo) para la
+    plancha, entre otros. Dados tres puntos $A$, $B$ y $C$, el ángulo en el
+    vértice $B$ se obtiene a partir de los vectores $\vec{BA}$ y $\vec{BC}$
+    mediante la definición del producto escalar:
+
+    \begin{equation}
+        \theta = \arccos\!\left(
+            \frac{\vec{BA} \cdot \vec{BC}}
+                 {\lVert \vec{BA} \rVert \, \lVert \vec{BC} \rVert}
+        \right)
+        \label{eq:angulo}
+    \end{equation}
+
+    El resultado es un ángulo en el intervalo $[0^\circ, 180^\circ]$. Su cálculo
+    se ha aislado en una función pura, sin dependencia del resto del sistema, lo
+    que la convierte en la primera pieza del proyecto verificada mediante pruebas
+    unitarias automatizadas, según se detalla en el
+    Capítulo~\ref{cap:pruebas}.
+
+    Dos aspectos de este cálculo requieren precisión, ya que condicionan la
+    corrección del resultado.
+
+    El primero es la \textbf{corrección de la relación de aspecto}. Dado que las
+    coordenadas horizontal y vertical se normalizan por magnitudes distintas, la
+    anchura y la altura de la imagen, una misma distancia real se representa
+    con valores normalizados diferentes según su orientación cuando el vídeo no
+    es cuadrado, que es el caso habitual. Emplear las coordenadas normalizadas
+    directamente distorsionaría los ángulos. Antes de aplicar la
+    Ecuación~\ref{eq:angulo} se restituye por tanto la proporción original,
+    multiplicando la coordenada horizontal por la relación de aspecto del vídeo,
+    de modo que ambas queden expresadas en una unidad común.
+
+    El segundo es el \textbf{convenio angular}. El ángulo calculado mediante la
+    Ecuación~\ref{eq:angulo} es el \textit{ángulo interior} del vértice: con la
+    pierna completamente extendida, la rodilla mide aproximadamente $180^\circ$,
+    y en una flexión profunda, en torno a $60^\circ$. La literatura biomecánica,
+    en cambio, suele expresar la postura mediante el \textit{ángulo de flexión},
+    que es el complementario del anterior:
+
+    \begin{equation}
+        \theta_{\text{interior}} = 180^\circ - \theta_{\text{flexión}}
+        \label{eq:convenio}
+    \end{equation}
+
+    Ambos convenios coinciden en $90^\circ$, valor de referencia habitual, lo que
+    facilita que la diferencia pase inadvertida; sin embargo, difieren en
+    cualquier otro punto. Todos los umbrales que se definen en este trabajo se
+    expresan en ángulo interior, el que produce directamente la
+    Ecuación~\ref{eq:angulo}, y los valores tomados de la literatura se convierten
+    a ese convenio antes de emplearse. Explicitar esta correspondencia evita una
+    fuente de error entre la fuente consultada y el valor implementado.
+
+    Por último, no todos los fotogramas contribuyen al análisis. Los puntos
+    clave de la pierna o el tronco pueden detectarse con baja confianza cuando
+    quedan parcialmente ocultos o la iluminación es deficiente, en cuyo caso el
+    fotograma se descarta antes de incorporarse a la señal, para no introducir
+    ruido en las métricas. El criterio con el que se elige el costado visible y
+    se filtran los fotogramas poco fiables se apoya en el valor de confianza que
+    acompaña a cada punto, y se detalla en el Capítulo~\ref{cap:implementacion}.
+
+    \subsection{Abstracción de analizadores}
+
+    Los ejercicios que el sistema evalúa no comparten la misma naturaleza. La
+    sentadilla es un ejercicio \textbf{dinámico}: consiste en una serie de
+    repeticiones, y su técnica se juzga en instantes concretos de cada una, la
+    profundidad, en el punto más bajo; la extensión, al final del ascenso. La
+    plancha, en cambio, es un ejercicio \textbf{estático}: no hay repeticiones,
+    sino una postura que debe sostenerse en el tiempo, de modo que su técnica se
+    evalúa de forma continua a lo largo de toda la ejecución.
+
+    Esta diferencia podría sugerir la necesidad de dos módulos de análisis
+    independientes. Sin embargo, un examen más detenido revela que ambos
+    ejercicios comparten la mayor parte del proceso: los dos calculan ángulos a
+    partir de los mismos landmarks, los dos evalúan un conjunto de reglas
+    técnicas y los dos derivan de ellas una puntuación con el mismo criterio. La
+    única etapa que difiere entre ellos es la \textbf{extracción de muestras}: la
+    forma en que la señal continua de métricas se convierte en el conjunto de
+    observaciones concretas sobre las que se aplican las reglas.
+
+    El diseño se articula en torno a esa observación. Se define un
+    \textbf{motor de puntuación común}, independiente del ejercicio, que recibe
+    un conjunto de muestras y un conjunto de reglas y produce la puntuación y las
+    correcciones. Cada ejercicio se modela como un \textbf{analizador} cuya única
+    responsabilidad propia es extraer las muestras de la señal, y que delega en
+    el motor común todo lo demás. En términos de la señal del ángulo:
+
+    \begin{itemize}
+        \item El analizador de la \textbf{sentadilla} identifica las
+        repeticiones y produce \textit{una muestra por repetición}, tomada en el
+        instante relevante de cada una.
+        \item El analizador de la \textbf{plancha} produce \textit{una muestra
+        por fotograma}, ya que en un ejercicio sostenido cada instante es una
+        observación válida de la postura.
+    \end{itemize}
+
+    La consecuencia de este diseño es que las reglas de cada ejercicio no son
+    código, sino \textbf{datos}: una tabla de condiciones que el motor común
+    interpreta. Añadir un ejercicio nuevo del mismo tipo, una zancada, que es
+    dinámica como la sentadilla, o una flexión, no requiere escribir un
+    analizador nuevo, sino definir su tabla de reglas y, a lo sumo, reutilizar
+    una de las dos formas de extracción de muestras ya existentes. La abstracción
+    queda así justificada por dos casos reales y cualitativamente distintos, y no
+    por una generalización anticipada: es precisamente la existencia de un
+    ejercicio dinámico y otro estático la que demuestra que la separación entre
+    el motor y la extracción de muestras responde a una necesidad y no a un
+    adorno.
+
+    Por su dificultad, la extracción de muestras del caso dinámico merece
+    detallarse. Contar las repeticiones de una sentadilla equivale a localizar
+    los mínimos de la señal del ángulo de rodilla: cada repetición es un descenso
+    seguido de un ascenso. El problema es que esa señal no es limpia, sino que
+    presenta pequeñas oscilaciones, procedentes tanto del movimiento real como
+    de la imprecisión de la estimación de pose, de modo que una detección
+    ingenua de mínimos contaría repeticiones inexistentes ante cualquier temblor.
+    La solución adoptada combina dos mecanismos: un suavizado previo de la señal
+    mediante una media móvil, que atenúa el ruido de alta frecuencia, y una
+    \textbf{banda de histéresis} en la detección, que exige que el ángulo cruce
+    dos umbrales distintos, uno para dar comienzo a la repetición y otro,
+    más alto, para darla por concluida, en lugar de uno solo. La franja
+    comprendida entre ambos actúa como zona muerta que impide que una oscilación
+    en torno a un único valor se contabilice como varias repeticiones. Los
+    umbrales que gobiernan esta detección son independientes de los que evalúan
+    la corrección técnica: los primeros determinan qué constituye una
+    repetición, y los segundos, si esa repetición es correcta.
+
+    \subsection{Modelo de puntuación}
+
+    La evaluación de la técnica se apoya en un modelo de reglas y penalizaciones
+    común a todos los ejercicios. Cada ejercicio define un conjunto de reglas, y
+    cada regla comprueba un aspecto técnico concreto, la profundidad de una
+    sentadilla, la alineación de una plancha, sobre cada una de las muestras
+    extraídas. A cada regla se le asigna una \textbf{penalización máxima}, y el
+    diseño impone que la suma de las penalizaciones máximas de un ejercicio sea
+    exactamente $100$. Esta condición garantiza que una ejecución perfecta, en la
+    que ninguna regla se incumple, obtenga la puntuación máxima, y que el peor
+    caso posible corresponda a una puntuación nula, sin necesidad de recortar
+    artificialmente el resultado.
+
+    La penalización de cada regla no es de todo o nada, sino \textbf{proporcional
+    a la fracción de muestras que la incumplen}. Si $p_i$ es la penalización
+    máxima de la regla $i$ y $f_i$ la fracción de muestras que la incumplen, la
+    puntuación final se obtiene como:
+
+    \begin{equation}
+        \text{nota} = 100 - \sum_{i} p_i \, f_i
+        \label{eq:puntuacion}
+    \end{equation}
+
+    Este carácter proporcional es lo que distingue una ejecución con un fallo
+    puntual de otra sistemáticamente incorrecta: fallar la profundidad en dos de
+    ocho repeticiones penaliza la cuarta parte que fallarla en todas. Además, la
+    fracción incumplida determina también la gravedad con que se presenta cada
+    corrección al usuario, leve o grave, de modo que el color y el mensaje
+    de la interfaz se derivan del propio dato y no de una decisión arbitraria.
+
+    A partir de la puntuación se establece una valoración cualitativa mediante
+    tres umbrales: se considera correcta una ejecución de $80$ puntos o más,
+    mejorable entre $50$ y $79$, y necesitada de revisión por debajo de $50$.
+    Estos cortes constituyen un criterio orientativo propio, an\'alogo al de una
+    calificación, y no una escala clínica. Conviene subrayar, en este sentido,
+    que la finalidad del sistema es servir de apoyo al entrenamiento autónomo y
+    no sustituir la valoración de un profesional.
+
+    \subsection{Reglas de la sentadilla}
+
+    Las reglas de la sentadilla se apoyan en la literatura biomecánica del
+    ejercicio. El marco de referencia lo proporciona el trabajo de
+    \textcite{myer2014}, que descompone la técnica de la sentadilla en un
+    conjunto de factores evaluables, enfoque que este sistema adopta al traducir
+    cada factor observable en una regla. El umbral de profundidad se apoya en la
+    revisión biomecánica de \textcite{escamilla2001}, que caracteriza la
+    sentadilla paralela, aquella en que el muslo alcanza la horizontal y la
+    recomienda frente a la sentadilla profunda para articulaciones sanas. El
+    sistema toma como objetivo esa profundidad paralela, empleando el ángulo de
+    rodilla como aproximación operativa del criterio, y la evidencia de
+    \textcite{han2017} sobre la activación muscular en función del ángulo de
+    flexión respalda la relevancia de ese rango. La Tabla~\ref{tab:reglas-sentadilla}
+    recoge las cuatro reglas, expresadas en ángulo interior.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{4.6cm} p{5.2cm} c}
+            \toprule
+            \textbf{Regla} & \textbf{Criterio (ángulo interior)} & \textbf{Penal.} \\
+            \midrule
+            Profundidad insuficiente & Rodilla $\le 100^\circ$ en el punto más bajo & 40 \\
+            Inclinación del tronco   & Tronco $\le 45^\circ$ respecto a la vertical  & 25 \\
+            Talón despegado          & Talón apoyado en el punto más bajo            & 20 \\
+            Extensión incompleta     & Rodilla $\ge 165^\circ$ al finalizar la subida & 15 \\
+            \midrule
+            \multicolumn{2}{r}{\textbf{Total}} & \textbf{100} \\
+            \bottomrule
+        \end{tabular}
+        \caption{Reglas del analizador de sentadilla y su penalización máxima.}
+        \label{tab:reglas-sentadilla}
+    \end{table}
+
+    \subsection{Reglas de la plancha}
+
+    La literatura de acondicionamiento físico describe la técnica correcta de la
+    plancha de forma cualitativa, como el mantenimiento de una alineación
+    corporal recta desde los hombros hasta los tobillos, sin que la cadera se
+    hunda ni se eleve. Este principio se sostiene sobre el concepto de
+    \textbf{neutralidad de la columna} bajo carga que desarrolla
+    \textcite{mcgill2015}, para quien el fallo técnico en los ejercicios de
+    estabilización del tronco se manifiesta precisamente como una desviación de
+    esa posición neutra. Dado que dicha literatura no fija umbrales cinemáticos
+    exactos, se ha llevado a cabo una \textbf{operativización propia} del
+    criterio cualitativo: la alineación se mide como el ángulo
+    hombro--cadera--tobillo, y se considera correcta dentro de una franja de
+    $160^\circ$ a $180^\circ$, cuyo margen de tolerancia se ha ajustado
+    empíricamente sobre vídeos de prueba. La Tabla~\ref{tab:reglas-plancha}
+    recoge las reglas resultantes.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{4.6cm} p{5.2cm} c}
+            \toprule
+            \textbf{Regla} & \textbf{Criterio} & \textbf{Penal.} \\
+            \midrule
+            Alineación de la cadera & Ángulo hombro--cadera--tobillo entre $160^\circ$ y $180^\circ$ & 45 \\
+            Cuello no neutro        & Ángulo cabeza--tronco dentro del rango neutro & 25 \\
+            Estabilidad             & Variación baja del ángulo a lo largo del tiempo & 30 \\
+            \midrule
+            \multicolumn{2}{r}{\textbf{Total}} & \textbf{100} \\
+            \bottomrule
+        \end{tabular}
+        \caption{Reglas del analizador de plancha y su penalización máxima.}
+        \label{tab:reglas-plancha}
+    \end{table}
+
+    La regla de estabilidad presenta una particularidad frente a las demás: no
+    se evalúa sobre una muestra aislada, sino sobre la serie temporal completa,
+    ya que mide cuánto varía la alineación a lo largo de toda la ejecución, una
+    plancha correcta se sostiene inmóvil, mientras que una postura que cede
+    oscila. Esta regla global se integra en el modelo común como una
+    penalización más, preservando la condición de que el total sume $100$.
+    Asimismo, la regla de alineación distingue la dirección de la desviación,
+    cadera hundida o elevada, para ofrecer un mensaje de corrección
+    específico, dado que un mismo ángulo fuera de rango puede corresponder a
+    ambos casos.
+
+    \subsection{Alcance del análisis}
+
+    El diseño descrito asume dos restricciones que conviene explicitar. La
+    primera es que el análisis se realiza \textbf{únicamente sobre la vista de
+    perfil}. La profundidad de una sentadilla o la alineación de una plancha se
+    miden sobre el plano sagital del cuerpo, que es el que la cámara capta de
+    lado; una grabación en diagonal proyecta ese plano de forma escorzada y
+    degrada la fiabilidad de las métricas. Dar soporte a la vista frontal
+    requeriría un conjunto de reglas distinto, la frontal permite detectar
+    errores como el valgo de rodilla, invisibles de perfil, pero impide medir la
+    profundidad, y queda planteado como línea de trabajo futuro.
+
+    La segunda restricción deriva del propio modelo de estimación de pose, que es
+    bidimensional y carece de puntos intermedios de la columna. Ello implica que
+    ciertos errores no son observables: la curvatura de la espalda, que ocurre en
+    un tramo que el modelo no representa, o cualquier desviación que requiera
+    información de profundidad. El sistema mide, en consecuencia, la inclinación
+    del tronco pero no su redondeo, y expone estas limitaciones de forma
+    deliberada, ya que delimitan el alcance de una herramienta orientativa y no
+    clínica.
+    
+
 
 
 % ─────────────────────── Capítulo 6 ──────────────────────────────────
@@ -2369,7 +2877,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     fijaban la zona horaria de forma explícita y otras empleaban la del sistema
     anfitrión, lo que haría incomparables las fechas de un mismo sistema al
     desplegarse en máquinas distintas. Se centralizó por ello la obtención de
-    la marca temporal en una clase de utilidad común a las cuatro entidades.
+    la marca temporal en una clase de utilidad común a las entidades del modelo.
 
     Tras el primer arranque se verificó en MySQL la creación de ambas tablas
     con sus columnas, claves ajenas y restricciones de unicidad
@@ -2413,9 +2921,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \subsection{Cálculo de la valoración media y de la distribución}
 
     Conforme a la regla RN-06, la valoración media no se almacena, de modo que
-    debe obtenerse en cada consulta. Resolverlo de la manera más directa
-    ---preguntar por la media de cada ejercicio mientras se recorre la página
-    de resultados--- reproduciría el problema \textit{N+1} ya descrito en el
+    debe obtenerse en cada consulta. Resolverlo de la manera más directa,
+    preguntar por la media de cada ejercicio mientras se recorre la página
+    de resultados, reproduciría el problema \textit{N+1} ya descrito en el
     catálogo, con una consulta adicional por cada tarjeta mostrada. La solución
     empleada allí, la anotación \texttt{@BatchSize}, no es aplicable en este
     caso, ya que no se trata de cargar una colección de la propia entidad sino
@@ -2537,8 +3045,8 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \subsection{Componentes reutilizables de la interfaz}
 
     La representación de una puntuación mediante estrellas aparece en tres
-    contextos distintos ---la tarjeta del catálogo, la cabecera del detalle y
-    cada comentario---, además del formulario de valoración, donde debe admitir
+    contextos distintos, la tarjeta del catálogo, la cabecera del detalle y
+    cada comentario, además del formulario de valoración, donde debe admitir
     interacción. Se implementó por ello como un componente propio con tres
     modos de funcionamiento (lectura, selección y selección bloqueada) y tres
     tamaños, que sustituyó a las representaciones parciales que los incrementos
@@ -2671,13 +3179,186 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     razonada y descuido.
 
 
-    \section{Módulo de corrección postural}
+\section{Módulo de corrección postural}
+
+    La implementación del módulo de corrección postural materializa el diseño
+    descrito en el Capítulo~\ref{cap:diseno}. A diferencia de los módulos
+    anteriores, su lógica reside casi por completo en el cliente: el vídeo, la
+    estimación de pose y el cálculo de la puntuación se resuelven en el navegador,
+    y el servidor interviene únicamente para persistir el resultado. Esta sección
+    describe la construcción de esa cadena de procesamiento, desde la lectura del
+    vídeo hasta la generación del \textit{feedback}.
 
     \subsection{Estimación de pose con MediaPipe}
 
+    El punto de partida es la carga del vídeo. El usuario selecciona un archivo
+    local que se reproduce en el navegador mediante una dirección de tipo
+    \texttt{blob}, generada por el propio navegador y que apunta a un contenido
+    que reside únicamente en memoria. Como ocurría con el vídeo embebido de
+    YouTube, el marco de trabajo bloquea por seguridad la asignación dinámica de
+    esta dirección, por lo que debe declararse explícitamente como segura. La
+    diferencia con aquel caso es instructiva: allí la dirección se componía a
+    partir de un identificador procedente de la base de datos, mientras que aquí
+    la acuña el navegador a partir del archivo elegido, sin intervenir dato alguno
+    manipulable. Al descartar el vídeo o cargar otro, la dirección se libera
+    explícitamente para no retener el contenido en memoria, precaución que con
+    archivos de vídeo resulta especialmente relevante.
+
+    Sobre el vídeo en reproducción opera el modelo de estimación de pose. El
+    componente inicializa el \texttt{PoseLandmarker} en modo vídeo y recorre la
+    reproducción mediante el ciclo de refresco del navegador, entregando cada
+    fotograma al modelo y acumulando los puntos detectados. El análisis se
+    resuelve al finalizar la reproducción y no durante ella, ya que la puntuación
+    de un ejercicio dinámico requiere disponer de todas sus repeticiones antes de
+    poder emitirse.
+
+    La integración del modelo en modo vídeo reveló la incidencia más
+    característica de este módulo, relacionada con la marca temporal que debe
+    acompañar a cada fotograma. El modelo exige que esa marca sea estrictamente
+    creciente entre llamadas sucesivas; de no serlo, su grafo de cómputo interno
+    entra en un estado de error del que no se recupera. La primera aproximación,
+    derivar la marca del instante de reproducción del vídeo, resultó ser el error
+    de fondo: dicho instante puede repetirse entre dos fotogramas consecutivos,
+    retroceder si el usuario rebobina y reiniciarse a cero al cargar un vídeo
+    nuevo, y cualquiera de esas tres situaciones interrumpía el análisis. La
+    solución no consistió en corregir el cálculo de esa marca, sino en
+    desacoplarla por completo del vídeo: se emplea un reloj monótono global,
+    independiente de la reproducción, que por construcción nunca retrocede ni se
+    reinicia, mientras que el instante del vídeo se reserva únicamente para
+    detectar si un fotograma es nuevo. Este caso ilustra que un síntoma
+    aparentemente puntual, un fallo intermitente en cierto fotograma, puede
+    responder a una decisión conceptual equivocada, y que su resolución pasa por
+    replantear el enfoque y no por acumular correcciones sobre él.
+
+    Los puntos detectados se representan sobre el vídeo mediante un lienzo
+    (\textit{canvas}) superpuesto, que dibuja el esqueleto en tiempo real
+    conforme avanza la reproducción. La correcta superposición exige que el
+    lienzo se dimensione según la resolución real del vídeo, y no según su tamaño
+    de representación en pantalla, dado que los puntos se expresan en coordenadas
+    normalizadas que deben proyectarse sobre las dimensiones nativas de la imagen;
+    un dimensionado incorrecto desplaza el esqueleto respecto al cuerpo.
+
     \subsection{Cálculo de métricas: ángulos articulares y alineaciones}
 
-    \subsection{Feedback y puntuación global}
+    Con los puntos de cada fotograma disponibles, el cálculo de las métricas se
+    resuelve mediante la función de ángulo de tres puntos descrita en el diseño,
+    implementada como una función pura que opera sobre coordenadas ya corregidas
+    en su relación de aspecto. Su carácter autónomo y determinista la hizo
+    idónea como primera pieza del proyecto cubierta por pruebas unitarias
+    automatizadas.
+
+    Antes de calcular ángulo alguno, el sistema decide qué costado del cuerpo
+    analizar. En una grabación de perfil, uno de los dos lados queda parcialmente
+    oculto, y sus puntos se detectan con menor confianza. En lugar de fijar un
+    lado de antemano, el módulo compara la confianza acumulada de ambos costados
+    a lo largo de todo el vídeo y selecciona el más visible, decisión que se toma
+    una sola vez por análisis para no alternar de lado a mitad de la ejecución.
+    Con el costado ya elegido, se descartan además los fotogramas en que los
+    puntos clave de la articulación evaluada presentan baja confianza, de manera
+    que la señal de ángulos sobre la que se detectan las repeticiones y se
+    aplican las reglas queda depurada de las observaciones menos fiables.
+
+    Este filtrado tiene una consecuencia que conviene notar: la señal resultante
+    deja de ser temporalmente continua, al haberse eliminado fotogramas
+    intermedios. No obstante, la detección de repeticiones no depende de la
+    continuidad temporal sino de la forma de la señal, la sucesión de descensos
+    y ascensos del ángulo, por lo que la ausencia de algunos fotogramas no la
+    afecta. La mejora de fiabilidad que aporta descartar los datos dudosos
+    compensa con holgura esa pérdida de continuidad, y constituye un ejemplo del
+    principio de cuidar la calidad de los datos de entrada antes de complicar el
+    algoritmo que los procesa.
+
+    \subsection{Generación del feedback y la puntuación}
+
+    La puntuación se calcula mediante el motor de reglas común descrito en el
+    diseño. Cada regla se implementa como una estructura de datos que declara la
+    condición que comprueba, el mensaje de corrección asociado y su penalización
+    máxima, de modo que el motor es genérico y las reglas de cada ejercicio se
+    reducen a una tabla que aquel interpreta. Esta separación permitió que la
+    incorporación del analizador de la plancha, una vez construido el de la
+    sentadilla, no requiriese modificar el motor: bastó con definir sus reglas y
+    su forma de extracción de muestras.
+
+    El analizador de la sentadilla extrae una muestra por repetición, aplicando
+    la detección basada en suavizado e histéresis descrita en el diseño, mientras
+    que el de la plancha trata cada fotograma como una muestra. La regla de
+    estabilidad de la plancha, que evalúa la serie temporal completa en lugar de
+    una muestra aislada, se integra como una penalización adicional que el motor
+    incorpora al cómputo global sin alterar la condición de que el total sume
+    cien. El resultado se distingue según el tipo de ejercicio: en la sentadilla,
+    cada corrección indica en cuántas repeticiones se ha incumplido la regla; en
+    la plancha, esa cuenta por repeticiones carece de sentido y se omite. Es un
+    caso de un mismo dato presentado de forma distinta según el contexto, en el
+    que la lógica produce la información y la interfaz decide cómo mostrarla.
+
+    El módulo se niega a emitir una puntuación cuando no dispone de datos
+    fiables: si no se detecta ninguna repetición completa, o si ningún fotograma
+    supera el umbral de confianza, no se inventa una nota, sino que se informa al
+    usuario de que la grabación no reúne las condiciones necesarias. Esta cautela
+    es coherente con la naturaleza orientativa de la herramienta: una puntuación
+    espuria derivada de una grabación deficiente resultaría más perjudicial que
+    la ausencia de puntuación.
+
+    La interfaz del módulo se organiza como una máquina de estados de tres fases,
+    selección del vídeo, análisis y resultado, cada una con su
+    representación propia. La vista de resultado reproduce la maqueta diseñada:
+    un indicador circular con la puntuación, coloreado según los umbrales de
+    valoración, y la relación de correcciones, cada una con su gravedad y, cuando
+    procede, el valor medido frente al esperado. Las reglas satisfechas se
+    muestran también, en positivo, de modo que el usuario reciba una devolución
+    equilibrada y no únicamente la relación de errores.
+
+    Se descartó deliberadamente una funcionalidad presente en la maqueta: el
+    enlace desde cada corrección al instante exacto del vídeo en que se detecta.
+    Su implementación exigiría conservar, junto a cada corrección, la marca
+    temporal del fotograma que la origina, dato que solo tiene sentido mientras el
+    vídeo permanece cargado en el navegador. Dado que el vídeo no se persiste,
+    conforme al requisito RNF-02, dicho enlace quedaría sin destino una vez
+    recuperado el análisis del historial, por lo que se pospone como línea de
+    trabajo futuro.
+
+    \subsection{Persistencia del resultado y página de inicio}
+
+    Al concluir un análisis válido, su resultado se envía al servidor para
+    incorporarse al historial. Este envío se realiza en segundo plano y sin
+    bloquear la interfaz: el usuario visualiza su puntuación de inmediato, con
+    independencia de que la persistencia llegue a completarse. Si la comunicación
+    con el servidor falla, el análisis se ha mostrado igualmente y solo se pierde
+    su registro en el historial, consecuencia asumible dado que el objetivo
+    principal, evaluar la técnica, se cumple en el cliente. Únicamente se
+    persisten los análisis que han producido una puntuación, de modo que una
+    grabación que el módulo rechaza no genera entrada alguna.
+
+    En el servidor, la entidad \texttt{AnalysisResult} y sus operaciones siguen
+    la misma arquitectura por capas del resto del sistema. El historial se
+    recupera mediante una consulta que reúne cada resultado con su ejercicio en
+    un único acceso, evitando el problema \textit{N+1} descrito en los módulos
+    anteriores. El resumen de la página de inicio se resuelve, conforme al
+    diseño, con dos consultas de recuento independientes.
+
+    Con este módulo se completa la página de inicio con sesión, que los
+    incrementos anteriores habían dejado como marcador de posición a la espera de
+    los datos que debía mostrar. La vista reúne ahora tres bloques procedentes de
+    fuentes distintas: el resumen con los recuentos de la cabecera, las tarjetas
+    de los últimos análisis, cada una con su puntuación coloreada, el ejercicio
+    y su antigüedad, y la rejilla de ejercicios favoritos. Para las tarjetas de
+    análisis se reutiliza el esquema de color de la puntuación ya definido, y para
+    las de favoritos se emplea una tarjeta simplificada, distinta de la del
+    catálogo: al mostrar la página de inicio únicamente la miniatura y el nombre,
+    la tarjeta completa, con sus distintivos y su valoración, habría
+    introducido una variación de altura entre elementos que rompería la
+    uniformidad de la rejilla. Es un caso en que reutilizar el componente
+    existente habría resultado menos adecuado que definir uno específico.
+
+    Por último, la vista de catálogo incorpora un distintivo que señala los
+    ejercicios que admiten análisis postural. Esta marca resuelve la
+    \textit{visibilidad} del módulo sin ampliar el filtrado del catálogo: al
+    llevar la acción de análisis de la página de inicio al catálogo completo, el
+    distintivo permite al usuario identificar de un vistazo qué ejercicios puede
+    analizar, evitando así definir un filtro adicional que habría ampliado el
+    alcance del requisito RF-03. La tarjeta expone para ello un único indicador
+    booleano, y no el tipo concreto de analizador, por ser lo único que su
+    representación necesita.
 
 
     \section{Contenerización con Docker}
@@ -3116,6 +3797,113 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \label{fig:app-favoritos}
     \end{figure}
 
+    \section{Pruebas del módulo de corrección postural}
+
+    La verificación de este módulo combina dos enfoques complementarios. La
+    lógica de cálculo, geométrica y determinista, se ha cubierto mediante
+    pruebas unitarias automatizadas, las primeras del proyecto; el
+    comportamiento del análisis sobre vídeo real, que depende de la calidad de la
+    estimación de pose y no admite un resultado exacto de referencia, se ha
+    validado de forma manual sobre grabaciones controladas.
+
+    \subsection{Pruebas unitarias automatizadas}
+
+    Las funciones que sustentan el análisis son puras: dado un mismo conjunto de
+    puntos o de muestras, producen siempre el mismo resultado, sin depender del
+    vídeo ni del estado de la interfaz. Esta propiedad las hace idóneas para la
+    verificación automatizada, que se ha implementado con la herramienta Vitest~\cite{vitest}.
+    La Tabla~\ref{tab:pruebas-postural-unit} recoge los conjuntos de pruebas
+    definidos y el aspecto que verifica cada uno.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{4.3cm} c p{6.2cm}}
+            \toprule
+            \textbf{Conjunto} & \textbf{Casos} & \textbf{Aspecto verificado} \\
+            \midrule
+            Cálculo de ángulos      & 9 & Ángulos recto, llano, nulo y diagonal; simetría; puntos coincidentes y casi colineales \\
+            Detección de repeticiones & 8 & Recuento correcto, localización del punto más bajo, robustez ante temblor y movimientos superficiales \\
+            Motor de puntuación     & 5 & Ejecución perfecta, incumplimiento total, penalización proporcional y acotación del resultado \\
+            Selección y filtrado    & 6 & Elección del costado más visible y descarte de fotogramas de baja confianza \\
+            Analizador de plancha   & 4 & Alineación correcta, cadera hundida, inestabilidad y ausencia de datos fiables \\
+            \midrule
+            \multicolumn{1}{r}{\textbf{Total}} & \textbf{32} & \\
+            \bottomrule
+        \end{tabular}
+        \caption{Conjuntos de pruebas unitarias del módulo de corrección
+        postural.}
+        \label{tab:pruebas-postural-unit}
+    \end{table}
+
+    Los casos no se limitan al comportamiento nominal, sino que atienden
+    especialmente a los límites que rompen las implementaciones ingenuas. En el
+    cálculo de ángulos se verifican dos situaciones que, sin el tratamiento
+    adecuado, producirían un resultado indefinido: los puntos coincidentes, que
+    anularían el denominador de la Ecuación~\ref{eq:angulo}, y los puntos casi
+    colineales, en los que el error de redondeo puede llevar el argumento del
+    arcocoseno fuera de su dominio. En la detección de repeticiones se comprueba
+    que un temblor de la señal en torno a un umbral no genere repeticiones
+    inexistentes ni divida una en dos, que es precisamente lo que la banda de
+    histéresis previene. En el motor de puntuación se confirma que una ejecución
+    sin fallos obtiene cien, que el incumplimiento total conduce a cero y que un
+    caso intermedio se penaliza en la proporción esperada. La
+    Figura~\ref{fig:tests-vitest} recoge la ejecución completa del conjunto.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{img/tests-vitest.png}
+        \caption{Ejecución de las pruebas unitarias del módulo de corrección
+        postural.}
+        \label{fig:tests-vitest}
+    \end{figure}
+
+    \subsection{Validación sobre vídeo real}
+
+    Las pruebas unitarias garantizan que el cálculo es correcto, pero no que el
+    sistema evalúe adecuadamente una ejecución real, cuyo resultado depende de la
+    estimación de pose y carece de un valor exacto de referencia. Para
+    comprobarlo se analizaron grabaciones controladas de cada ejercicio,
+    contrastando una ejecución técnicamente correcta con otra que incorpora un
+    error deliberado, y verificando que la puntuación discrimina entre ambas y
+    que las correcciones señaladas se corresponden con los errores introducidos.
+    Las Figuras~\ref{fig:analisis-correcto} y~\ref{fig:analisis-error} recogen
+    ambos casos para la sentadilla.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/analisis-video-correcto.png}
+        \caption{Análisis de una sentadilla correctamente ejecutada: puntuación
+        alta y ausencia de correcciones relevantes.}
+        \label{fig:analisis-correcto}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/analisis-video-error.png}
+        \caption{Análisis de una sentadilla con profundidad insuficiente: la
+        puntuación desciende y la corrección identifica el error.}
+        \label{fig:analisis-error}
+    \end{figure}
+
+    Esta validación puso de manifiesto, además, el comportamiento del sistema
+    ante grabaciones que se apartan de las condiciones previstas, confirmando de
+    forma empírica las restricciones de alcance descritas en el diseño. Una
+    grabación en diagonal, en lugar de perfil, degrada la detección de
+    repeticiones, ya que la profundidad se mide sobre un plano escorzado; y una
+    sentadilla marcadamente profunda queda fuera del rango que el analizador está
+    concebido para evaluar, centrado en la sentadilla paralela. Lejos de
+    constituir defectos, estos comportamientos delimitan las condiciones de uso
+    de la herramienta y coinciden con las que la propia interfaz recomienda al
+    usuario antes de iniciar el análisis.
+
+    \subsection{Compatibilidad entre navegadores}
+
+    Por último, conforme al requisito RNF-06, se verificó el funcionamiento del
+    módulo en los navegadores Chrome y Firefox, comprobando en ambos la carga del
+    modelo de estimación de pose, el procesamiento del vídeo y la generación del
+    resultado.
+
 
     \section{Resultados}
 
@@ -3200,6 +3988,53 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     invertido en automatizar una tarea puntual puede superar con holgura al de
     ejecutarla a mano.
 
+    \subsection{Una marca temporal que no podía retroceder}
+
+    La integración del modelo de estimación de pose en modo vídeo produjo la
+    incidencia más instructiva del proyecto. El modelo exige que la marca
+    temporal asociada a cada fotograma sea estrictamente creciente entre llamadas
+    sucesivas; de lo contrario, su grafo de cómputo interno entra en un estado de
+    error irrecuperable que detiene el análisis. La primera aproximación,
+    aparentemente natural, consistió en tomar esa marca del instante de
+    reproducción del propio vídeo. Resultó ser el origen del problema: dicho
+    instante puede repetirse entre dos fotogramas consecutivos, retroceder si el
+    usuario rebobina y reiniciarse a cero al cargar un vídeo nuevo, y cada una de
+    esas tres situaciones desencadenaba el fallo de forma intermitente y difícil
+    de reproducir.
+
+    El diagnóstico costó precisamente porque el síntoma, un error interno del
+    modelo en cierto fotograma, no señalaba en absoluto a su causa la
+    procedencia de la marca temporal. La solución no consistió en corregir el
+    cálculo de esa marca, sino en abandonar por completo su origen: se sustituyó
+    por un reloj monótono global, independiente de la reproducción, que por
+    construcción nunca retrocede ni se reinicia, reservando el instante del vídeo
+    únicamente para detectar si un fotograma es nuevo. El caso ilustra una
+    situación recurrente en la depuración: cuando un síntoma resulta
+    desconcertante, la vía de solución no siempre es refinar el enfoque vigente,
+    sino reconocer que el enfoque mismo es la causa y reemplazarlo.
+
+    \subsection{La calidad de los datos frente a la complejidad del algoritmo}
+
+    El análisis sobre vídeo real puso de manifiesto dos fenómenos propios de la
+    estimación de pose bidimensional. El primero es el temblor (\textit{jitter})
+    de los puntos detectados: el modelo estima cada fotograma de forma
+    independiente, de modo que en zonas de baja confianza un miembro
+    parcialmente ocluido, iluminación deficiente los puntos oscilan de un
+    fotograma a otro aunque el cuerpo permanezca inmóvil. El segundo es la
+    dependencia del ángulo de la cámara: una grabación en diagonal, en lugar de
+    perfil, degradaba la detección de repeticiones al proyectar sobre un plano
+    escorzado la profundidad que se pretende medir.
+
+    La tentación inicial ante estos fenómenos es aumentar la sofisticación del
+    algoritmo que procesa la señal. La solución adoptada siguió el camino
+    contrario: mejorar la calidad de los datos antes de que lleguen al algoritmo.
+    Seleccionar el costado más visible del cuerpo y descartar los fotogramas de
+    baja confianza redujo el ruido en origen y mejoró la detección de
+    repeticiones sin modificar una sola línea del detector. La experiencia
+    confirma un principio general del tratamiento de datos: depurar la entrada
+    suele resultar más eficaz, y desde luego más simple de mantener, que
+    complicar el procesamiento para absorber un ruido que podría haberse evitado.
+
 
     \section{Líneas de trabajo futuro}
 
@@ -3270,7 +4105,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     Entre lo pendiente destaca la extracción de los campos de auditoría de las
     entidades a una clase base común, que eliminaría la repetición de los
-    métodos de asignación de marcas temporales en las cuatro entidades del
+    métodos de asignación de marcas temporales en las entidades del
     modelo. Se pospuso por afectar simultáneamente a todas ellas en un momento
     del calendario en que la prioridad era completar la funcionalidad prevista.
 
