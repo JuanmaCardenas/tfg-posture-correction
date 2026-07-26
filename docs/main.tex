@@ -829,7 +829,29 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.9\textwidth]{img/arquitectura-general.png}
+        \begin{tikzpicture}[
+            font=\small,
+            bloque/.style={draw, rounded corners, align=center, inner sep=8pt,
+                           minimum height=20mm, minimum width=30mm},
+            cliente/.style={bloque, fill=blue!8, draw=blue!40},
+            servidor/.style={bloque, fill=green!8, draw=green!45},
+            datos/.style={bloque, fill=black!8, draw=black!35},
+            flecha/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, thick},
+            etiq/.style={font=\scriptsize, align=center}
+        ]
+
+        \node[cliente]  (nav) at (0, 0)   {\textbf{Navegador}\\[2pt]Angular\\Cliente};
+        \node[servidor] (srv) at (5.2, 0) {\textbf{Servidor}\\[2pt]Spring Boot\\API REST};
+        \node[datos]    (bd)  at (10.4, 0){\textbf{Base de datos}\\[2pt]MySQL\\Docker};
+
+        \draw[flecha] (nav) -- (srv)
+            node[etiq, midway, above=1pt] {HTTP · JSON}
+            node[etiq, midway, below=1pt] {(REST)};
+        \draw[flecha] (srv) -- (bd)
+            node[etiq, midway, above=1pt] {SQL}
+            node[etiq, midway, below=1pt] {(JDBC)};
+
+        \end{tikzpicture}
         \caption{Arquitectura general del sistema.}
         \label{fig:arquitectura-general}
     \end{figure}
@@ -1645,15 +1667,6 @@
     de modo que unas acciones ancladas al comentario lo dejarían sin ninguna
     forma de modificar o retirar su valoración.
 
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-valoraciones-publicada.png}
-        \caption{Pestaña de valoraciones con una valoración ya publicada:
-        formulario bloqueado con las acciones de edición y eliminación, y
-        comentario propio destacado al inicio del listado.}
-        \label{fig:mockup-valoraciones-publicada}
-    \end{figure}
-
     Cada comentario se identifica mediante el nombre de su autor, un avatar
     generado a partir de sus iniciales y la antigüedad de la publicación
     expresada en términos relativos, más legible que una fecha absoluta en un
@@ -1786,7 +1799,7 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.7\textwidth]{img/mockup-login.png}
+        \includegraphics[width=\textwidth]{img/mockup-login.png}
         \caption{Maqueta de la pantalla de inicio de sesión.}
         \label{fig:mockup-login}
     \end{figure}
@@ -2148,6 +2161,21 @@
     del tronco pero no su redondeo, y expone estas limitaciones de forma
     deliberada, ya que delimitan el alcance de una herramienta orientativa y no
     clínica.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-analisis-dropzone.png}
+        \caption{Maqueta de la selección del vídeo para el análisis postural.}
+        \label{fig:mockup-analisis-dropzone}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-analisis-resultados.png}
+        \caption{Maqueta de la vista de resultados del análisis, con la
+        puntuación y las correcciones.}
+        \label{fig:mockup-analisis-resultados}
+    \end{figure}
     
 
 
@@ -2191,7 +2219,7 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.85\textwidth]{img/spike-mediapipe.png}
+        \includegraphics[width=\textwidth]{img/spike-mediapipe.png}
         \caption{Prueba de concepto de estimación de pose en el navegador:
         detección de los puntos clave del cuerpo y cálculo del ángulo de la
         rodilla sobre un vídeo local.}
@@ -2468,6 +2496,13 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     favoritos completado, dispone ya de parte de los datos que debe mostrar;
     su composición definitiva queda condicionada al módulo de corrección
     postural, del que procede el resumen de análisis recientes.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/mockup-dashboard.png}
+        \caption{Maqueta de la página de inicio con sesión iniciada.}
+        \label{fig:mockup-dashboard}
+    \end{figure}
 
     \subsection{Formularios y validación en el cliente}
 
@@ -3238,6 +3273,14 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     normalizadas que deben proyectarse sobre las dimensiones nativas de la imagen;
     un dimensionado incorrecto desplaza el esqueleto respecto al cuerpo.
 
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/analisis-esqueleto.png}
+        \caption{Esqueleto detectado superpuesto sobre el vídeo durante el
+        análisis.}
+        \label{fig:analisis-esqueleto}
+    \end{figure}
+
     \subsection{Cálculo de métricas: ángulos articulares y alineaciones}
 
     Con los puntos de cada fotograma disponibles, el cálculo de las métricas se
@@ -3308,6 +3351,14 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     muestran también, en positivo, de modo que el usuario reciba una devolución
     equilibrada y no únicamente la relación de errores.
 
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/analisis-resultados.png}
+        \caption{Vista de resultados del análisis en la aplicación, con la
+        puntuación coloreada y las correcciones detectadas.}
+        \label{fig:analisis-resultados}
+    \end{figure}
+
     Se descartó deliberadamente una funcionalidad presente en la maqueta: el
     enlace desde cada corrección al instante exacto del vídeo en que se detecta.
     Su implementación exigiría conservar, junto a cada corrección, la marca
@@ -3336,6 +3387,14 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     anteriores. El resumen de la página de inicio se resuelve, conforme al
     diseño, con dos consultas de recuento independientes.
 
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\textwidth]{img/tabla-analysis-creacion.png}
+        \caption{Estructura de la tabla \texttt{analysis\_results} generada en
+        la base de datos.}
+        \label{fig:tabla-analysis-creacion}
+    \end{figure}
+
     Con este módulo se completa la página de inicio con sesión, que los
     incrementos anteriores habían dejado como marcador de posición a la espera de
     los datos que debía mostrar. La vista reúne ahora tres bloques procedentes de
@@ -3350,6 +3409,14 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     uniformidad de la rejilla. Es un caso en que reutilizar el componente
     existente habría resultado menos adecuado que definir uno específico.
 
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/dashboard-implementado.png}
+        \caption{Página de inicio con el resumen de análisis recientes y los
+        ejercicios favoritos.}
+        \label{fig:dashboard-implementado}
+    \end{figure}
+
     Por último, la vista de catálogo incorpora un distintivo que señala los
     ejercicios que admiten análisis postural. Esta marca resuelve la
     \textit{visibilidad} del módulo sin ampliar el filtrado del catálogo: al
@@ -3359,6 +3426,14 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     alcance del requisito RF-03. La tarjeta expone para ello un único indicador
     booleano, y no el tipo concreto de analizador, por ser lo único que su
     representación necesita.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/catalogo-analizable.png}
+        \caption{Catálogo de ejercicios con el distintivo que señala los que
+        admiten análisis postural.}
+        \label{fig:catalogo-analizable}
+    \end{figure}
 
 
     \section{Contenerización con Docker}
@@ -3884,6 +3959,21 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \caption{Análisis de una sentadilla con profundidad insuficiente: la
         puntuación desciende y la corrección identifica el error.}
         \label{fig:analisis-error}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\textwidth]{img/postman-analisis-guardado.png}
+        \caption{Guardado de un análisis mediante \texttt{POST /api/analyses}.}
+        \label{fig:postman-analisis-guardado}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\textwidth]{img/postman-dashboard-summary.png}
+        \caption{Resumen de la página de inicio mediante
+        \texttt{GET /api/dashboard/summary}.}
+        \label{fig:postman-dashboard-summary}
     \end{figure}
 
     Esta validación puso de manifiesto, además, el comportamiento del sistema
