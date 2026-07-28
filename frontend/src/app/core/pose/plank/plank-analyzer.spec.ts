@@ -1,6 +1,6 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { analyzePlank } from './plank-analyzer';
-import type { Frame } from './squat-analyzer';
+import type { Frame } from '../squat/squat-analyzer';
 
 /** Construye un fotograma de plancha con hombro, cadera y tobillo colocados a
  *  mano (lado derecho), todos bien visibles. `hipY` desplaza la cadera para

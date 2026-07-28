@@ -1,7 +1,7 @@
-import { calculateAngle, Point2D, toAspectCorrected } from './angle';
-import { AnalysisScore, Correction, Rule, score } from './scoring';
-import { BodySide, chooseBestSide, isFrameReliable } from './landmark-quality';
-import type { Frame } from './squat-analyzer';
+import { calculateAngle, Point2D, toAspectCorrected } from '../angle';
+import { AnalysisScore, Correction, Rule, score } from '../scoring';
+import { BodySide, chooseBestSide, isFrameReliable } from '../landmark-quality';
+import type { Frame } from '../squat/squat-analyzer';
 
 const NOSE = 0;
 

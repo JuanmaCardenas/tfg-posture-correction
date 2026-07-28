@@ -1,8 +1,8 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
-import { calculateAngle, Point2D, toAspectCorrected } from './angle';
-import { detectReps, Rep } from './rep-detection';
-import { AnalysisScore, Rule, score } from './scoring';
-import { BodySide, chooseBestSide, isFrameReliable } from './landmark-quality';
+import { calculateAngle, Point2D, toAspectCorrected } from '../angle';
+import { detectReps, Rep } from '../rep-detection';
+import { AnalysisScore, Rule, score } from '../scoring';
+import { BodySide, chooseBestSide, isFrameReliable } from '../landmark-quality';
 
 /** Un fotograma ya con sus landmarks y la relación de aspecto del vídeo. */
 export interface Frame {

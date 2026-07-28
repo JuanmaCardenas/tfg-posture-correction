@@ -4,12 +4,14 @@ import { DrawingUtils, type NormalizedLandmark, PoseLandmarker } from '@mediapip
 import { PoseLandmarkerService } from '../../core/pose/pose-landmarker.service';
 import { AnalysisScore } from '../../core/pose/scoring';
 import { AnalysisTypeCode } from '../../core/exercise/exercise.models';
-import { analyzeSquat, Frame } from '../../core/pose/squat-analyzer';
-import { analyzePlank } from '../../core/pose/plank-analyzer';
+import { analyzeSquat, Frame } from '../../core/pose/squat/squat-analyzer';
+import { analyzePlank } from '../../core/pose/plank/plank-analyzer';
 import { calculateAngle } from '../../core/pose/angle';
 import { AnalysisService } from '../../core/analysis/analysis.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BodySide, RIGHT_SIDE } from '../../core/pose/landmark-quality';
+import { analyzeLunge } from '../../core/pose/lunge/lunge-analyzer';
+import { analyzePushUp } from '../../core/pose/push-up/push-up-analyzer';
 
 type AnalysisPhase = 'idle' | 'analyzing' | 'results';
 
@@ -251,6 +253,25 @@ export class TechniqueAnalysis {
         { label: 'Cadera', value: hipAngle, ok: hipAngle >= 158 && hipAngle <= 182 },
         { label: 'Cuello', value: neck, ok: neck >= 150 && neck <= 195 },
       ]);
+    } else if (type === 'PUSH_UP') {
+      const arm = side === RIGHT_SIDE ? { elbow: 14, wrist: 16 } : { elbow: 13, wrist: 15 };
+      const elbow = Math.round(calculateAngle(A(side.shoulder), A(arm.elbow), A(arm.wrist)));
+      const body = Math.round(calculateAngle(A(side.shoulder), A(side.hip), A(side.ankle)));
+      this.liveMetrics.set([
+        { label: 'Codo', value: elbow, ok: elbow <= 90 },
+        { label: 'Cuerpo', value: body, ok: body >= 160 },
+      ]);
+    } else if (type === 'LUNGE') {
+      const knee = Math.round(calculateAngle(A(side.hip), A(side.knee), A(side.ankle)));
+      const shoulder = A(side.shoulder);
+      const hip = A(side.hip);
+      const trunk = Math.round(
+        Math.abs((Math.atan2(shoulder.x - hip.x, -(shoulder.y - hip.y)) * 180) / Math.PI),
+      );
+      this.liveMetrics.set([
+        { label: 'Rodilla', value: knee, ok: knee <= 100 },
+        { label: 'Tronco', value: trunk, ok: trunk <= 25 },
+      ]);
     } else {
       this.liveMetrics.set([]);
     }
@@ -277,7 +298,11 @@ export class TechniqueAnalysis {
         ? analyzePlank(this.frames)
         : type === 'SQUAT'
           ? analyzeSquat(this.frames)
-          : null;
+          : type === 'PUSH_UP'
+            ? analyzePushUp(this.frames)
+            : type === 'LUNGE'
+              ? analyzeLunge(this.frames)
+              : null;
 
     if (!feedback) {
       this.result.set(null);
