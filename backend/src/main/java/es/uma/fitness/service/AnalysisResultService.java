@@ -28,6 +28,8 @@ public class AnalysisResultService {
     private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
 
+    private static final int MAX_ANALYSES_PER_USER = 10;
+
     @Transactional
     public AnalysisResultResponse save(String username, AnalysisResultRequest request) {
         User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
@@ -39,6 +41,8 @@ public class AnalysisResultService {
                 .exercise(exercise)
                 .score(request.score())
                 .build());
+        
+        analysisResultRepository.deleteOldestBeyondLimit(user.getId(), MAX_ANALYSES_PER_USER);
 
         return AnalysisResultMapper.toResponse(saved);
     }

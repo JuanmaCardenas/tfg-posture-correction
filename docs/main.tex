@@ -1994,15 +1994,19 @@
 
     La consecuencia de este diseño es que las reglas de cada ejercicio no son
     código, sino \textbf{datos}: una tabla de condiciones que el motor común
-    interpreta. Añadir un ejercicio nuevo del mismo tipo, una zancada, que es
-    dinámica como la sentadilla, o una flexión, no requiere escribir un
-    analizador nuevo, sino definir su tabla de reglas y, a lo sumo, reutilizar
-    una de las dos formas de extracción de muestras ya existentes. La abstracción
-    queda así justificada por dos casos reales y cualitativamente distintos, y no
-    por una generalización anticipada: es precisamente la existencia de un
-    ejercicio dinámico y otro estático la que demuestra que la separación entre
-    el motor y la extracción de muestras responde a una necesidad y no a un
-    adorno.
+    interpreta. Esta propiedad se validó de forma tangible al ampliar el sistema
+    de dos a cuatro ejercicios: partiendo de la sentadilla y la plancha, la
+    incorporación de la \textbf{flexión} y la \textbf{zancada} no requirió
+    modificar el motor de puntuación ni la detección de repeticiones, sino
+    únicamente definir la tabla de reglas de cada una y elegir qué ángulo medir.
+    La flexión reutiliza la extracción de muestras por repetición de la
+    sentadilla, midiendo el ángulo del codo en lugar del de la rodilla, y
+    combina, además, una regla de alineación del cuerpo análoga a la de la
+    plancha; la zancada es dinámica como la sentadilla y comparte con ella la
+    lógica de detección, con umbrales propios. La abstracción queda así
+    justificada no por una generalización anticipada, sino por cuatro casos
+    reales: dos patrones cualitativamente distintos, dinámico y estático, y
+    la extensión efectiva del sistema sin tocar su núcleo.
 
     Por su dificultad, la extracción de muestras del caso dinámico merece
     detallarse. Contar las repeticiones de una sentadilla equivale a localizar
@@ -2141,6 +2145,66 @@
     específico, dado que un mismo ángulo fuera de rango puede corresponder a
     ambos casos.
 
+    \subsection{Reglas de la flexión y de la zancada}
+
+    Los dos ejercicios incorporados en la ampliación del sistema siguen el mismo
+    esquema de reglas y penalizaciones. La \textbf{flexión} se evalúa a partir
+    del ángulo del codo, cuya relevancia biomecánica en este ejercicio ha sido
+    estudiada mediante electromiografía por \textcite{sanjuan2015}. Su técnica se
+    descompone en la profundidad de la bajada, la extensión completa al subir y
+    el mantenimiento de una alineación corporal recta ---este último criterio
+    apoyado, como en la plancha, en la neutralidad de la columna de
+    \textcite{mcgill2015}---. El umbral de profundidad de $90^\circ$ de codo
+    constituye una operativización propia del criterio habitual de bajar hasta
+    que el pecho se aproxima al suelo. La Tabla~\ref{tab:reglas-flexion} recoge
+    sus reglas.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{4.6cm} p{5.2cm} c}
+            \toprule
+            \textbf{Regla} & \textbf{Criterio (ángulo interior)} & \textbf{Penal.} \\
+            \midrule
+            Profundidad insuficiente & Codo $\le 90^\circ$ en el punto más bajo & 40 \\
+            Alineación del cuerpo    & Hombro--cadera--tobillo $\ge 160^\circ$   & 35 \\
+            Extensión incompleta     & Codo $\ge 160^\circ$ al finalizar la subida & 25 \\
+            \midrule
+            \multicolumn{2}{r}{\textbf{Total}} & \textbf{100} \\
+            \bottomrule
+        \end{tabular}
+        \caption{Reglas del analizador de flexión y su penalización máxima.}
+        \label{tab:reglas-flexion}
+    \end{table}
+
+    La \textbf{zancada} comparte fundamento biomecánico con la sentadilla, al
+    tratarse igualmente de una flexión de la rodilla, por lo que sus reglas se
+    apoyan en las mismas referencias ---\textcite{escamilla2001} y
+    \textcite{han2017}---. La diferencia técnica principal reside en el tronco,
+    que en la zancada debe mantenerse más erguido que en la sentadilla, dado que
+    la posición escalonada de los pies desplaza el centro de gravedad y reduce la
+    inclinación necesaria; el umbral más estricto de $25^\circ$ es una
+    operativización propia de esa diferencia. La Tabla~\ref{tab:reglas-zancada}
+    recoge sus reglas.
+
+    \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{p{4.6cm} p{5.2cm} c}
+            \toprule
+            \textbf{Regla} & \textbf{Criterio (ángulo interior)} & \textbf{Penal.} \\
+            \midrule
+            Profundidad insuficiente & Rodilla $\le 100^\circ$ en el punto más bajo & 45 \\
+            Inclinación del tronco   & Tronco $\le 25^\circ$ respecto a la vertical  & 30 \\
+            Extensión incompleta     & Rodilla $\ge 160^\circ$ al finalizar la subida & 25 \\
+            \midrule
+            \multicolumn{2}{r}{\textbf{Total}} & \textbf{100} \\
+            \bottomrule
+        \end{tabular}
+        \caption{Reglas del analizador de zancada y su penalización máxima.}
+        \label{tab:reglas-zancada}
+    \end{table}
+
     \subsection{Alcance del análisis}
 
     El diseño descrito asume dos restricciones que conviene explicitar. La
@@ -2161,6 +2225,20 @@
     del tronco pero no su redondeo, y expone estas limitaciones de forma
     deliberada, ya que delimitan el alcance de una herramienta orientativa y no
     clínica.
+
+    A estas dos restricciones se añade una condición sobre las propias
+    condiciones de grabación: dado que el modelo procesa cada fotograma de forma
+    independiente, una iluminación deficiente, en particular las sombras
+    marcadas sobre el cuerpo, introduce bordes espurios que desestabilizan la
+    detección de los puntos clave. El filtrado por confianza atenúa su efecto,
+    pero no puede recuperar una grabación cuya iluminación es inadecuada de
+    principio a fin, por lo que se recomienda al usuario grabar con buena luz,
+    del mismo modo que se le indica hacerlo de perfil.
+
+    El sistema implementa cuatro analizadores, sentadilla, plancha, flexión y
+    zancada, que cubren los dos patrones de ejercicio contemplados, dinámico y
+    estático. Otros ejercicios podrían incorporarse siguiendo el mismo esquema,
+    definiendo su tabla de reglas sobre la infraestructura ya existente.
 
     \begin{figure}[htbp]
         \centering
@@ -3281,6 +3359,18 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \label{fig:analisis-esqueleto}
     \end{figure}
 
+    Junto al esqueleto, la interfaz muestra bajo el vídeo un panel de métricas en
+    tiempo real que expone los ángulos relevantes del ejercicio en curso ---la
+    rodilla y la inclinación del tronco en la sentadilla, la cadera y el cuello
+    en la plancha, y las magnitudes correspondientes en los demás---. Cada valor
+    se colorea en verde o rojo según cumpla o no el mismo umbral que emplea la
+    evaluación, de modo que la retroalimentación instantánea es coherente con la
+    puntuación final. Este panel sustituyó a una etiqueta que se superponía sobre
+    el vídeo en una versión anterior: al ocupar un espacio propio deja de tapar
+    la imagen del cuerpo, permite mostrar varias métricas a la vez y, al derivar
+    su color de los umbrales reales, sirve también como ayuda para el ajuste
+    empírico de dichos umbrales.
+
     \subsection{Cálculo de métricas: ángulos articulares y alineaciones}
 
     Con los puntos de cada fotograma disponibles, el cálculo de las métricas se
@@ -3901,9 +3991,12 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
             Detección de repeticiones & 8 & Recuento correcto, localización del punto más bajo, robustez ante temblor y movimientos superficiales \\
             Motor de puntuación     & 5 & Ejecución perfecta, incumplimiento total, penalización proporcional y acotación del resultado \\
             Selección y filtrado    & 6 & Elección del costado más visible y descarte de fotogramas de baja confianza \\
+            Analizador de sentadilla & 5 & Recuento de repeticiones, buena ejecución, profundidad insuficiente, tronco inclinado y ausencia de repeticiones \\
             Analizador de plancha   & 4 & Alineación correcta, cadera hundida, inestabilidad y ausencia de datos fiables \\
+            Analizador de flexión   & 4 & Recuento, buena ejecución, profundidad insuficiente y ausencia de repeticiones \\
+            Analizador de zancada   & 4 & Recuento, buena ejecución, tronco inclinado y ausencia de repeticiones \\
             \midrule
-            \multicolumn{1}{r}{\textbf{Total}} & \textbf{32} & \\
+            \multicolumn{1}{r}{\textbf{Total}} & \textbf{45} & \\
             \bottomrule
         \end{tabular}
         \caption{Conjuntos de pruebas unitarias del módulo de corrección
