@@ -1,25 +1,63 @@
 # ==============================================================
-#  docker-compose.yml — Base de datos MySQL para el TFG
-#  Levantar:            docker compose up -d
-#  Ver estado:          docker compose ps
+#  docker-compose.yml — Stack completo del TFG (BD + backend + frontend)
+#  Levantar todo:            docker compose up -d --build
+#  Solo la BD (dev):         docker compose up -d mysql
+#  Estado:                   docker compose ps
+#  Logs en vivo:             docker compose logs -f
 #  Parar (conserva datos):   docker compose down
 #  Parar y BORRAR datos:     docker compose down -v
+#
+#  Requiere un fichero .env en esta carpeta (ver .env.example).
 # ==============================================================
 services:
-  mysql:
-    image: mysql:8.4                 # versión LTS de MySQL
-    container_name: fitness-mysql
-    restart: unless-stopped          # se reinicia solo si se cae
-    environment:
-      MYSQL_ROOT_PASSWORD: fitness_root   # contraseña del usuario root (solo local)
-      MYSQL_DATABASE: fitness_tfg         # crea esta base de datos al arrancar
-    ports:
-      - "3306:3306"                  # conecta el contenedor con tu localhost:3306
-    volumes:
-      - fitness-mysql-data:/var/lib/mysql   # <-- el "volumen": guarda los datos
-                                            #     aunque apagues o borres el contenedor
 
-# Aquí se declara el volumen que usa el servicio de arriba.
-# Es lo que hace que tus datos NO se pierdan al apagar la caja.
+  mysql:
+    image: mysql:8.4
+    container_name: fitness-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: fitness_tfg
+    ports:
+      - "127.0.0.1:3306:3306"   # solo accesible desde tu propia máquina (IntelliJ, clientes SQL)
+    volumes:
+      - fitness-mysql-data:/var/lib/mysql
+    healthcheck: # el backend espera a que MySQL esté REALMENTE listo
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent" ]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  backend:
+    build: ./backend
+    container_name: fitness-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fitness_tfg
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: fitness-frontend
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      - caddy-data:/data        # certificados HTTPS (persisten entre reinicios)
+      - caddy-config:/config
+
 volumes:
   fitness-mysql-data:
+  caddy-data:
+  caddy-config:

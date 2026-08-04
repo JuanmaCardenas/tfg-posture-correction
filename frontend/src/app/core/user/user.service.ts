@@ -2,11 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ChangePasswordRequest, UpdateProfileRequest, UserProfile } from './user.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = environment.apiUrl;
 
   getProfile(): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.apiUrl}/users/me`);

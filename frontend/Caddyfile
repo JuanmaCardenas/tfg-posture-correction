@@ -1,0 +1,15 @@
+{$SITE_ADDRESS::80} {
+	encode gzip
+	root * /srv
+
+	# Todo lo que empiece por /api va al backend
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# El resto: servir la SPA de Angular (con fallback para las rutas)
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}
