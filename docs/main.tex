@@ -140,6 +140,20 @@
     \nomenclature{DTO}{Data Transfer Object, objeto de transferencia de datos}
     \nomenclature{API REST}{Interfaz de programación basada en recursos sobre HTTP}
     \nomenclature{WASM}{WebAssembly, formato binario ejecutable en el navegador}
+    \nomenclature{BCrypt}{Función de cifrado unidireccional específica para contraseñas}
+    \nomenclature{JPA}{Jakarta Persistence API; correspondencia entre objetos Java y tablas de la base de datos}
+    \nomenclature{CORS}{Cross-Origin Resource Sharing; control del navegador sobre las peticiones entre orígenes distintos}
+    \nomenclature{CSRF}{Cross-Site Request Forgery; falsificación de peticiones propia de sesiones con formulario}
+    \nomenclature{XSS}{Cross-Site Scripting; inyección de código a través de contenido introducido por un usuario}
+    \nomenclature{N+1}{Problema de acceso a datos: una consulta adicional por cada elemento de un listado}
+    \nomenclature{Histéresis}{Uso de dos umbrales distintos para evitar oscilaciones espurias en una detección}
+    \nomenclature{Idempotente}{Operación cuyo resultado no cambia al repetirse}
+    \nomenclature{Estimación de pose}{Técnica de visión por computador que localiza los puntos clave del cuerpo}
+    \nomenclature{Docker}{Plataforma de contenedores que empaqueta cada servicio con sus dependencias}
+    \nomenclature{RF}{Requisito funcional}
+    \nomenclature{RNF}{Requisito no funcional}
+    \nomenclature{RN}{Regla de negocio}
+    \nomenclature{RIUMA}{Repositorio Institucional de la Universidad de Málaga}
     \printnomenclature
     \clearpage
 
@@ -952,9 +966,9 @@
     postural corresponde a cada ejercicio y admite valor nulo. Los ejercicios
     sin analizador asociado se distinguen así de los analizables, lo que
     permite a la interfaz mostrar u ocultar el acceso al módulo de corrección
-    postural. Aunque dicho módulo pertenece a un incremento posterior, el
-    atributo se introduce desde el diseño inicial del catálogo para evitar una
-    modificación posterior del esquema de la base de datos.
+    postural. Aunque el módulo de corrección postural se desarrolló con
+    posterioridad, el atributo se incorporó desde el diseño inicial del catálogo
+    para evitar una modificación posterior del esquema de la base de datos.
 
     \subsection{Tipos enumerados del catálogo}
 
@@ -1052,19 +1066,15 @@
         \label{tab:entidad-analysis}
     \end{table}
 
-    Esta entidad almacena deliberadamente el mínimo de información: la puntuación,
-    el ejercicio y la fecha, y nunca el vídeo ni las correcciones detalladas. La
-    razón no es una simplificación por conveniencia, sino una consecuencia lógica,
-    del requisito RNF-02. Las correcciones que produce el análisis
-    acompañadas del instante del vídeo en que se detectan, solo tienen
-    sentido mientras el vídeo permanece cargado en el navegador; una vez
-    finalizada la sesión, ese vídeo deja de existir, ya que nunca se transmite ni
-    se almacena. Conservar las correcciones en el historial produciría, por
-    tanto, una lista de avisos que apuntarían a instantes de un vídeo
-    inexistente. El historial se concibe así como un resumen, qué ejercicio se
-    analizó, qué puntuación se obtuvo y cuándo, que es la información que la
-    página de inicio muestra y la única cuya persistencia es coherente con el
-    procesamiento local del vídeo.
+    Esta entidad almacena deliberadamente el mínimo de información ---la
+    puntuación, el ejercicio y la fecha---, y nunca el vídeo ni las correcciones
+    detalladas. No es una simplificación por conveniencia, sino una consecuencia
+    del requisito RNF-02: las correcciones solo tienen sentido mientras el vídeo
+    permanece cargado en el navegador y, como este nunca se transmite ni se
+    almacena, conservarlas produciría una lista de avisos que apuntarían a
+    instantes de un vídeo inexistente. El historial se concibe así como un resumen
+    ---qué ejercicio se analizó, con qué puntuación y cuándo---, lo único cuya
+    persistencia resulta coherente con el procesamiento local del vídeo.
 
     La decisión de diseño más relevante de este modelo es que los requisitos
     RF-05 y RF-06, que el enunciado presenta como funcionalidades separadas, se
@@ -1085,12 +1095,10 @@
 
     Ambas entidades incorporan una restricción de unicidad sobre el par
     (usuario, ejercicio), que es el mecanismo que hace cumplir las reglas RN-01
-    y RN-05. Situar esta garantía en la base de datos, y no solo en la lógica
-    de la aplicación, resulta necesario porque dos peticiones simultáneas del
-    mismo usuario podrían superar ambas una comprobación previa en el código y
-    generar filas duplicadas; la restricción de la tabla rechaza la segunda en
-    cualquier caso. Es el mismo criterio aplicado a los campos
-    \texttt{username} y \texttt{email} de la entidad \texttt{User}.
+    y RN-05, del mismo modo que ya ocurría con los campos \texttt{username} y
+    \texttt{email} de \texttt{User}. El Capítulo~\ref{cap:implementacion} detalla
+    por qué esta garantía se sitúa en la base de datos y no solo en la lógica de
+    la aplicación.
 
     La entidad \texttt{Review} registra dos marcas temporales porque la
     valoración es modificable. Al sustituirse el contenido de la fila, la fecha
@@ -1146,12 +1154,9 @@
             \midrule
             POST & /api/auth/register & Registro de un nuevo usuario \\
             POST & /api/auth/login    & Inicio de sesión y obtención del token \\
-            GET & /api/users/me & Consultar el perfil del usuario autenticado \\
-            PUT & /api/users/me & Actualizar el email del usuario autenticado \\
-            PUT & /api/users/me/password & Actualizar la contraseña del usuario autenticado \\
             \bottomrule
         \end{tabular}
-        \caption{Rutas del módulo de autenticación.}
+        \caption{Rutas públicas del módulo de autenticación.}
         \label{tab:api-auth}
     \end{table}
 
@@ -1307,6 +1312,71 @@
         \label{tab:api-catalogo}
     \end{table}
 
+        La operación de listado acepta los parámetros de consulta recogidos en la
+    Tabla~\ref{tab:api-catalogo-params}, todos ellos opcionales. Al omitirse,
+    la petición devuelve el catálogo completo.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{8cm}}
+            \toprule
+            \textbf{Parámetro} & \textbf{Descripción} \\
+            \midrule
+            search     & Texto contenido en el nombre del ejercicio \\
+            groups     & Grupos musculares, separados por comas \\
+            difficulty & Nivel de dificultad \\
+            page, size & Número y tamaño de la página solicitada \\
+            \bottomrule
+        \end{tabular}
+        \caption{Parámetros de consulta del listado de ejercicios.}
+        \label{tab:api-catalogo-params}
+    \end{table}
+
+    El filtro por grupo muscular sigue una semántica disyuntiva: un ejercicio
+    se incluye en el resultado si trabaja \textit{alguno} de los grupos
+    seleccionados. Se descartó la alternativa conjuntiva, que exigiría que el
+    ejercicio implicase simultáneamente todos los grupos marcados, porque
+    produciría listados casi vacíos ante cualquier combinación de dos o más
+    grupos. El filtro por dificultad, en cambio, admite un único valor, dado
+    que los tres niveles son mutuamente excluyentes.
+
+    La respuesta del listado es una estructura paginada, lo que evita que su
+    tamaño crezca sin cota al ampliarse el catálogo. Para ello se define un objeto
+    de transferencia propio en lugar de serializar la estructura de paginación del
+    marco de trabajo, que expone numerosos campos internos sin garantía de
+    estabilidad entre versiones; el objeto propio publica solo lo que el cliente
+    necesita, incluido el número total de resultados.
+
+    La ruta \texttt{/filters} sirve desde el servidor los valores admitidos por
+    los filtros. Codificarlos en el cliente duplicaría las etiquetas en castellano
+    que ya define el backend y obligaría a modificar ambos proyectos al añadir un
+    grupo muscular; sirviéndolos, la definición reside en un único lugar.
+
+    Por último, la Tabla~\ref{tab:api-catalogo-codigos} recoge los códigos de
+    estado que devuelven estas operaciones.
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l p{8cm}}
+            \toprule
+            \textbf{Código} & \textbf{Situación} \\
+            \midrule
+            200 & Petición correcta \\
+            400 & Valor no admitido en un parámetro de filtrado \\
+            401 & Petición sin token o con token no válido \\
+            404 & No existe ningún ejercicio con el identificador indicado \\
+            \bottomrule
+        \end{tabular}
+        \caption{Códigos de estado de las operaciones del catálogo.}
+        \label{tab:api-catalogo-codigos}
+    \end{table}
+
+    En el caso del código 400, el mensaje de error enumera los valores
+    admitidos por el parámetro rechazado, de modo que el cliente disponga de
+    información suficiente para corregir la petición. Se ha evitado
+    deliberadamente propagar el mensaje original de la excepción, que revela
+    los nombres de las clases internas del servidor.
+
     \subsection{Análisis postural y resumen de inicio}
     \label{sec:api-analisis}
 
@@ -1340,78 +1410,6 @@
     de tres fuentes independientes, el resumen, el historial de análisis y la
     lista de favoritos, cada una de las cuales devuelve exactamente lo que la
     vista necesita.
-
-    La operación de listado acepta los parámetros de consulta recogidos en la
-    Tabla~\ref{tab:api-catalogo-params}, todos ellos opcionales. Al omitirse,
-    la petición devuelve el catálogo completo.
-
-    \begin{table}[htbp]
-        \centering
-        \begin{tabular}{l p{8cm}}
-            \toprule
-            \textbf{Parámetro} & \textbf{Descripción} \\
-            \midrule
-            search     & Texto contenido en el nombre del ejercicio \\
-            groups     & Grupos musculares, separados por comas \\
-            difficulty & Nivel de dificultad \\
-            page, size & Número y tamaño de la página solicitada \\
-            \bottomrule
-        \end{tabular}
-        \caption{Parámetros de consulta del listado de ejercicios.}
-        \label{tab:api-catalogo-params}
-    \end{table}
-
-    El filtro por grupo muscular sigue una semántica disyuntiva: un ejercicio
-    se incluye en el resultado si trabaja \textit{alguno} de los grupos
-    seleccionados. Se descartó la alternativa conjuntiva, que exigiría que el
-    ejercicio implicase simultáneamente todos los grupos marcados, porque
-    produciría listados casi vacíos ante cualquier combinación de dos o más
-    grupos. El filtro por dificultad, en cambio, admite un único valor, dado
-    que los tres niveles son mutuamente excluyentes.
-
-    La respuesta del listado no devuelve una colección simple, sino una
-    estructura paginada. Aunque el volumen previsto de ejercicios es reducido,
-    la paginación evita que el tamaño de la respuesta crezca sin cota a medida
-    que el catálogo se amplíe. Se ha definido para ello un objeto de
-    transferencia propio, en lugar de serializar directamente la estructura de
-    paginación que proporciona el marco de trabajo: esta última expone en su
-    representación JSON numerosos campos internos que no constituyen un
-    contrato estable entre versiones, mientras que el objeto propio publica
-    exclusivamente los datos que el cliente necesita, entre ellos el número
-    total de resultados que la interfaz muestra al usuario.
-
-    La ruta \texttt{/filters} merece una justificación aparte. Los valores
-    admitidos por los filtros podrían haberse codificado directamente en el
-    cliente, pero ello supondría duplicar en el frontend las etiquetas en
-    castellano que ya define el backend, de modo que añadir un grupo muscular
-    obligaría a modificar ambos proyectos de forma coordinada. Al servirlos
-    desde el servidor, el cliente se limita a representar los valores que
-    recibe y la definición reside en un único lugar.
-
-    Por último, la Tabla~\ref{tab:api-catalogo-codigos} recoge los códigos de
-    estado que devuelven estas operaciones.
-
-    \begin{table}[htbp]
-        \centering
-        \begin{tabular}{l p{8cm}}
-            \toprule
-            \textbf{Código} & \textbf{Situación} \\
-            \midrule
-            200 & Petición correcta \\
-            400 & Valor no admitido en un parámetro de filtrado \\
-            401 & Petición sin token o con token no válido \\
-            404 & No existe ningún ejercicio con el identificador indicado \\
-            \bottomrule
-        \end{tabular}
-        \caption{Códigos de estado de las operaciones del catálogo.}
-        \label{tab:api-catalogo-codigos}
-    \end{table}
-
-    En el caso del código 400, el mensaje de error enumera los valores
-    admitidos por el parámetro rechazado, de modo que el cliente disponga de
-    información suficiente para corregir la petición. Se ha evitado
-    deliberadamente propagar el mensaje original de la excepción, que revela
-    los nombres de las clases internas del servidor.
 
     \subsection{Valoraciones y favoritos}
     \label{sec:api-social}
@@ -1520,14 +1518,14 @@
     cliente disponga de un único punto de lectura del mensaje de error con
     independencia de la operación que haya fallado.
 
-
     \section{Diseño de la interfaz de usuario}
 
-    La aplicación se organiza en un conjunto de vistas o pantallas, cada una
-    asociada a una ruta y a un nivel de acceso (pública o privada). Las
-    vistas privadas requieren un token JWT válido, comprobado en el cliente
-    mediante un guard y revalidado en el servidor. La
-    Tabla~\ref{tab:vistas-e1} recoge las vistas del módulo de autenticación.
+    La aplicación se organiza en un conjunto de vistas, cada una asociada a una
+    ruta y a un nivel de acceso, público o privado. Las vistas privadas requieren
+    un token JWT válido, comprobado en el cliente mediante un \textit{guard} ---un
+    control que actúa como portero de la ruta--- y revalidado siempre en el
+    servidor. La Tabla~\ref{tab:vistas-e1} recoge las vistas del módulo de
+    autenticación.
 
     \begin{table}[htbp]
         \centering
@@ -1546,9 +1544,8 @@
         \label{tab:vistas-e1}
     \end{table}
 
-    El catálogo de ejercicios añade las dos vistas recogidas en la
-    Tabla~\ref{tab:vistas-e2}, ambas privadas conforme a lo expuesto en la
-    Sección~\ref{sec:api-catalogo}.
+    El catálogo añade las dos vistas de la Tabla~\ref{tab:vistas-e2}, ambas
+    privadas.
 
     \begin{table}[htbp]
         \centering
@@ -1556,21 +1553,26 @@
             \toprule
             \textbf{Vista} & \textbf{Ruta} & \textbf{Acceso} \\
             \midrule
-            Catálogo           & /exercises      & Privada \\
-            Detalle de ejercicio & /exercises/:id & Privada \\
+            Catálogo             & /exercises      & Privada \\
+            Detalle de ejercicio & /exercises/:id  & Privada \\
             \bottomrule
         \end{tabular}
         \caption{Vistas del catálogo de ejercicios.}
         \label{tab:vistas-e2}
     \end{table}
 
-    La vista de catálogo, cuya maqueta se recoge en la
-    Figura~\ref{fig:mockup-catalogo}, se organiza en una barra de filtros y
-    una rejilla de tarjetas. Cada tarjeta muestra la miniatura del vídeo, el
-    nombre del ejercicio, sus grupos musculares, su nivel de dificultad, su
-    valoración media y un control para marcarlo como favorito. Esta misma
-    tarjeta se reutiliza en la vista de ejercicios favoritos, por lo que se ha
-    diseñado como un componente independiente y no como parte del catálogo.
+    La vista de catálogo (Figura~\ref{fig:mockup-catalogo}) se organiza en una
+    barra de filtros y una rejilla de tarjetas. Cada tarjeta muestra la miniatura
+    del vídeo, el nombre del ejercicio, sus grupos musculares, su dificultad, su
+    valoración media y un control de favorito. Esta misma tarjeta se reutiliza en
+    la vista de favoritos, por lo que se diseñó como un componente independiente.
+    Tanto el control de favorito como la valoración media se contemplaron desde el
+    primer diseño de la tarjeta, aun correspondiendo a una fase posterior, para no
+    tener que rediseñarla al incorporarlos. La vista contempla además tres
+    situaciones al margen del listado con resultados ---la espera de datos, el
+    fallo de comunicación (que ofrece reintentar) y la ausencia de resultados---,
+    distinguiendo en este último caso entre un catálogo vacío y unos filtros sin
+    coincidencias, ya que la acción esperada del usuario difiere.
 
     \begin{figure}[htbp]
         \centering
@@ -1580,28 +1582,12 @@
         \label{fig:mockup-catalogo}
     \end{figure}
 
-    El indicador de favorito presenta dos estados visuales: contorno sin
-    relleno cuando el ejercicio no está marcado y silueta rellena en color de
-    acento cuando sí lo está. Tanto este control como la valoración media se
-    contemplaron desde el diseño inicial de la tarjeta, pese a corresponder a
-    un incremento posterior, precisamente para no tener que rediseñarla al
-    incorporarlos.
-
-    La vista de catálogo contempla además tres situaciones distintas al margen
-    del listado con resultados: la espera mientras se recuperan los datos, el
-    fallo de comunicación con el servidor, que ofrece la posibilidad de
-    reintentar la operación, y la ausencia de resultados. Este último caso
-    distingue a su vez entre un catálogo vacío y una combinación de filtros
-    sin coincidencias, ya que la acción que se espera del usuario es diferente
-    en cada caso.
-
-    La vista de detalle, recogida en la Figura~\ref{fig:mockup-detalle}, se
-    estructura en una cabecera con el nombre y los distintivos del ejercicio y
-    un conjunto de tres pestañas cuyo contenido corresponde a requisitos e
-    incrementos distintos: \textit{Información} (RF-04), \textit{Analizar mi
-    técnica} (RF-08) y \textit{Valoraciones} (RF-05 y RF-06). La pestaña de
-    análisis solo se muestra en aquellos ejercicios que tienen un analizador
-    postural asociado.
+    La vista de detalle (Figura~\ref{fig:mockup-detalle}) se estructura en una
+    cabecera con el nombre y los distintivos del ejercicio y tres pestañas
+    correspondientes a requisitos distintos: \textit{Información} (RF-04),
+    \textit{Analizar mi técnica} (RF-08) y \textit{Valoraciones} (RF-05 y RF-06).
+    La pestaña de análisis solo se muestra en los ejercicios que disponen de
+    analizador postural.
 
     \begin{figure}[htbp]
         \centering
@@ -1610,20 +1596,12 @@
         \label{fig:mockup-detalle}
     \end{figure}
 
-    La navegación se organiza en torno a tres plantillas de página o
-    \textit{layouts}, cada una con una cabecera distinta según el contexto: una
-    plantilla pública para la página de presentación, con accesos a registro e
-    inicio de sesión; una plantilla de autenticación para el registro y el
-    inicio de sesión, que muestra únicamente el logotipo para minimizar
-    distracciones durante el proceso; y una plantilla privada que incorpora el
-    menú de navegación principal y el acceso al perfil del usuario. Cada vista
-    se asocia a una de estas plantillas, lo que evita duplicar la estructura
-    común y garantiza la coherencia visual entre pantallas del mismo tipo.
-
-    El módulo de valoraciones y favoritos incorpora una vista adicional,
-    recogida en la Tabla~\ref{tab:vistas-e3}, y añade contenido a la pestaña
-    \textit{Valoraciones} de la vista de detalle, prevista desde el diseño
-    inicial del catálogo.
+    La navegación se apoya en tres plantillas de página (\textit{layouts}) con
+    cabeceras distintas según el contexto: una pública para la presentación, con
+    accesos a registro e inicio de sesión; una de autenticación que muestra solo
+    el logotipo para minimizar distracciones; y una privada con el menú principal
+    y el acceso al perfil. Cada vista se asocia a una de ellas, lo que evita
+    duplicar la estructura común y mantiene la coherencia visual.
 
     \begin{table}[htbp]
         \centering
@@ -1638,14 +1616,21 @@
         \label{tab:vistas-e3}
     \end{table}
 
-    La pestaña de valoraciones, cuya maqueta se recoge en la
-    Figura~\ref{fig:mockup-valoraciones}, presenta tres bloques. A la
-    izquierda, la valoración media acompañada de la distribución de
-    puntuaciones, representada como cinco barras proporcionales al número de
-    valoraciones de cada nivel. A la derecha, el formulario de valoración
-    propia, que reúne en una sola acción la selección de estrellas y la
-    redacción del comentario. Debajo, el listado de comentarios, paginado
-    mediante un control que amplía la lista sin sustituirla.
+    El módulo de valoraciones y favoritos incorpora la vista de la
+    Tabla~\ref{tab:vistas-e3} y añade contenido a la pestaña \textit{Valoraciones}
+    del detalle (Figura~\ref{fig:mockup-valoraciones}), que presenta tres bloques:
+    a la izquierda, la valoración media con la distribución de puntuaciones en
+    cinco barras; a la derecha, el formulario que reúne en una sola acción la
+    selección de estrellas y el comentario; y debajo, el listado de comentarios,
+    ampliable sin sustituir los ya mostrados. Cuando el usuario ya ha valorado, el
+    formulario se muestra con sus valores y su comentario encabeza el listado,
+    señalado como propio. Las acciones de editar y eliminar se sitúan en el
+    formulario, y no junto al comentario destacado, por dos motivos: la
+    eliminación afecta a la valoración completa ---estrellas incluidas--- y un
+    usuario que puntúe sin comentar no genera comentario alguno al que anclarlas.
+    Cada comentario se identifica por el nombre de su autor, un avatar con sus
+    iniciales y la antigüedad relativa de la publicación, y se marca como editado
+    cuando procede.
 
     \begin{figure}[htbp]
         \centering
@@ -1654,63 +1639,16 @@
         \label{fig:mockup-valoraciones}
     \end{figure}
 
-    Cuando el usuario ya ha publicado su valoración, la pestaña adopta el
-    estado recogido en la Figura~\ref{fig:mockup-valoraciones-publicada}: el
-    formulario se muestra deshabilitado con los valores emitidos, y su
-    comentario encabeza el listado, señalado como propio. Las acciones de
-    edición y eliminación se sitúan en el formulario y no junto al comentario
-    destacado, por dos motivos. El primero es de alcance: la eliminación afecta
-    a la valoración completa, estrellas incluidas, y ubicarla junto al
-    comentario sugeriría que solo retira el texto. El segundo es de cobertura:
-    un usuario que haya puntuado sin escribir nada no genera comentario alguno,
-    de modo que unas acciones ancladas al comentario lo dejarían sin ninguna
-    forma de modificar o retirar su valoración.
-
-    Cada comentario se identifica mediante el nombre de su autor, un avatar
-    generado a partir de sus iniciales y la antigüedad de la publicación
-    expresada en términos relativos, más legible que una fecha absoluta en un
-    listado de mensajes recientes. Los comentarios modificados con
-    posterioridad a su publicación se señalan como tales.
-
-    La vista de ejercicios favoritos, recogida en la
-    Figura~\ref{fig:mockup-favoritos}, reutiliza íntegramente la rejilla de
-    tarjetas y la barra de filtros del catálogo, conforme a lo anticipado en el
-    diseño de la tarjeta como componente independiente. La barra de filtros
-    solo se muestra a partir de dos ejercicios guardados, ya que filtrar un
-    listado con un único elemento carece de utilidad; su presencia depende del
-    total de favoritos y no del número de resultados visibles, de manera que un
-    filtro que no arroje coincidencias siga pudiendo deshacerse.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-favoritos.png}
-        \caption{Maqueta de la vista de ejercicios favoritos.}
-        \label{fig:mockup-favoritos}
-    \end{figure}
-
-    Esta vista distingue dos situaciones de listado vacío que la interfaz no
-    debe confundir, ya que la acción esperada del usuario es distinta en cada
-    una. La ausencia de favoritos guardados, recogida en la
-    Figura~\ref{fig:mockup-favoritos-vacio}, explica el funcionamiento del
-    marcado y ofrece un acceso directo al catálogo; la ausencia de
-    coincidencias con los filtros activos, en cambio, no invita a abandonar la
-    vista, puesto que el contenido existe y lo que procede es modificar los
-    criterios de búsqueda.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-favoritos-vacio.png}
-        \caption{Vista de ejercicios favoritos sin ningún ejercicio guardado.}
-        \label{fig:mockup-favoritos-vacio}
-    \end{figure}
-
-    Por último, al retirar un ejercicio de favoritos desde esta vista su
-    tarjeta desaparece de inmediato del listado. Se valoró la alternativa de
-    mantenerla visible con el indicador desmarcado hasta la siguiente carga,
-    lo que permitiría deshacer una pulsación accidental, pero se descartó por
-    coherencia: una pantalla titulada «mis favoritos» no debería mostrar
-    ejercicios que han dejado de serlo, y recuperar el marcado supone una única
-    acción desde el catálogo.
+    La vista de ejercicios favoritos reutiliza íntegramente la rejilla y la barra
+    de filtros del catálogo. La barra solo aparece a partir de dos ejercicios
+    guardados, ya que filtrar un único elemento carece de utilidad. Como en el
+    catálogo, distingue dos listados vacíos que no deben confundirse: la ausencia
+    de favoritos ---que explica el marcado y ofrece un acceso directo al
+    catálogo--- y la ausencia de coincidencias con un filtro activo, que invita a
+    modificar los criterios y no a abandonar la vista. Al retirar un favorito
+    desde esta vista, su tarjeta desaparece de inmediato del listado: se descartó
+    mantenerla visible hasta la siguiente carga porque una pantalla titulada «mis
+    favoritos» no debería mostrar ejercicios que han dejado de serlo.
 
     \section{Prototipado y sistema de diseño}
 
@@ -1780,14 +1718,11 @@
     Figma, que han servido de referencia directa durante la implementación de
     la interfaz.
 
-    Conviene precisar que el prototipo abarca el alcance funcional completo
-    previsto para la aplicación, y no únicamente el del incremento descrito en
-    este capítulo. Algunas de las pantallas incluyen, por tanto, elementos cuya
-    implementación corresponde a incrementos posteriores, como el resumen de
-    análisis posturales recientes de la página de inicio. Esta anticipación es
-    deliberada: diseñar la interfaz de forma global desde el inicio permite
-    establecer un sistema de diseño coherente y dimensionar correctamente cada
-    pantalla, evitando rediseños parciales a medida que el proyecto avanza.
+    El prototipo abarca el alcance funcional completo de la aplicación, por lo
+    que algunas pantallas incluyen elementos de fases posteriores, como el resumen
+    de análisis recientes de la página de inicio. Diseñar la interfaz de forma
+    global desde el principio permitió fijar un sistema de diseño coherente y
+    dimensionar cada pantalla, evitando rediseños parciales.
 
     \begin{figure}[htbp]
         \centering
@@ -2435,39 +2370,23 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \subsection{Inicio de sesión y control de acceso}
 
-    El inicio de sesión se implementa en el endpoint
-    \texttt{POST /api/auth/login}. El servicio localiza al usuario por su nombre
-    y compara la contraseña recibida con el \textit{hash} almacenado mediante el
-    método \texttt{matches} del codificador BCrypt, que vuelve a cifrar la
-    contraseña y contrasta el resultado sin necesidad de descifrar la original.
-    Si las credenciales son válidas, se genera un token JWT firmado que incluye
-    el nombre de usuario y el rol, y que se devuelve al cliente
-    (Figura~\ref{fig:login-ok}); en caso contrario se responde con
-    \texttt{401 Unauthorized}.
+    El inicio de sesión (\texttt{POST /api/auth/login}) localiza al usuario por su
+    nombre y contrasta la contraseña recibida con el \textit{hash} almacenado
+    mediante el método \texttt{matches} de BCrypt, que vuelve a cifrar la entrada y
+    compara los resultados sin descifrar la original. Si las credenciales son
+    válidas se emite un token JWT firmado con el nombre de usuario y el rol; en
+    caso contrario se responde \texttt{401 Unauthorized}.
 
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/login-ok.png}
-        \caption{Inicio de sesión correcto: respuesta \texttt{200 OK} con el
-        token JWT emitido.}
-        \label{fig:login-ok}
-    \end{figure}
-
-    La generación y verificación de los tokens se centraliza en el componente
-    \texttt{JwtService}, apoyado en la biblioteca jjwt. El control de acceso a
-    las rutas protegidas se realiza mediante un filtro
+    El control de acceso a las rutas protegidas recae en un filtro
     (\texttt{JwtAuthenticationFilter}) que se ejecuta en cada petición: extrae el
-    token de la cabecera \texttt{Authorization}, verifica su firma y su vigencia,
-    y, si es válido, establece la identidad del usuario en el contexto de
-    seguridad de Spring. La configuración se establece en modo \textit{stateless}
-    y declara públicas únicamente las rutas de autenticación, de modo que
-    cualquier otra ruta exige un token válido.
-
-    Este comportamiento se comprobó accediendo a una ruta protegida
-    (\texttt{GET /api/users/me}) en dos situaciones. Sin un token válido, el
-    servidor deniega el acceso (Figura~\ref{fig:ruta-sin-token}); presentando el
-    token obtenido en el inicio de sesión, el servidor autoriza la petición y
-    devuelve los datos del usuario (Figura~\ref{fig:ruta-con-token}).
+    token de la cabecera \texttt{Authorization}, verifica su firma y su vigencia y,
+    si es válido, establece la identidad del usuario en el contexto de seguridad de
+    Spring. La configuración es \textit{stateless} y deja públicas únicamente las
+    rutas de autenticación. Se comprobó accediendo a una ruta protegida
+    (\texttt{GET /api/users/me}) sin token, que el servidor rechaza
+    (Figura~\ref{fig:ruta-sin-token}), y con el token del inicio de sesión, que el
+    servidor autoriza devolviendo los datos del usuario
+    (Figura~\ref{fig:ruta-con-token}).
 
     \begin{figure}[htbp]
         \centering
@@ -2480,40 +2399,28 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.9\textwidth]{img/ruta-con-token.png}
-        \caption{Acceso a la misma ruta protegida presentando un token JWT
-        válido: el servidor autoriza y devuelve los datos del usuario.}
+        \caption{Acceso a la misma ruta presentando un token JWT válido: el
+        servidor autoriza y devuelve los datos del usuario.}
         \label{fig:ruta-con-token}
     \end{figure}
 
-    La integración con el cliente web hizo necesarios dos ajustes adicionales en
-    la configuración de seguridad, ambos detectados durante la puesta en marcha
-    del frontend.
-
-    El primero es la configuración de CORS (\textit{Cross-Origin Resource
-    Sharing}). Durante el desarrollo, el frontend se sirve en el puerto 4200 y
-    el backend en el 8080; al tratarse de orígenes distintos, el navegador
-    bloquea por seguridad las peticiones entre ambos salvo que el servidor las
-    autorice explícitamente. Se definió por tanto un \textit{bean} de
-    configuración que declara como origen permitido el del cliente y habilita
-    los métodos \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE} y
-    \texttt{OPTIONS}. Este último resulta imprescindible porque el navegador
-    envía una petición previa de comprobación (\textit{preflight}) con dicho
-    método antes de ejecutar determinadas peticiones. Conviene precisar que
-    esta configuración es propia del entorno de desarrollo, en el que cliente
-    y servidor se sirven en puertos distintos; en el despliegue con contenedores,
-    donde ambos quedan tras un mismo punto de entrada y comparten origen,
-    la comprobación de origen deja de intervenir.
-
-    El segundo ajuste afecta al código de estado devuelto ante un token
-    inválido o caducado. Por omisión, Spring Security respondía con
-    \texttt{403 Forbidden}, código que semánticamente indica que el usuario está
-    identificado pero carece de permisos, cuando en realidad el problema es que
-    no ha podido identificarse. Esta imprecisión impedía al cliente distinguir
-    una sesión expirada de una falta de permisos. Se implementó por ello un
-    punto de entrada de autenticación personalizado
-    (\texttt{JwtAuthenticationEntryPoint}) que responde con
-    \texttt{401 Unauthorized} y un mensaje en formato JSON coherente con el
-    resto de errores de la API.
+    La integración con el cliente web exigió dos ajustes adicionales en la
+    configuración de seguridad. El primero es CORS (\textit{Cross-Origin Resource
+    Sharing}): en desarrollo el frontend se sirve en el puerto 4200 y el backend en
+    el 8080 y, al ser orígenes distintos, el navegador bloquea por seguridad las
+    peticiones entre ambos salvo que el servidor las autorice; se declaró por ello
+    el origen del cliente como permitido, habilitando también el método
+    \texttt{OPTIONS} de la comprobación previa (\textit{preflight}) que el navegador
+    envía antes de ciertas peticiones. Este ajuste es propio del entorno de
+    desarrollo: en el despliegue con contenedores, donde cliente y servidor
+    comparten un mismo origen tras el proxy inverso, la comprobación de origen deja
+    de intervenir. El segundo ajuste corrige el código de estado ante un token
+    inválido o caducado: Spring Security respondía por omisión \texttt{403
+    Forbidden} ---que indica falta de permisos--- cuando el problema real es que el
+    usuario no ha podido identificarse; se implementó un punto de entrada de
+    autenticación que responde \texttt{401 Unauthorized} con un mensaje coherente
+    con el resto de la API, de modo que el cliente distingue una sesión expirada de
+    una falta de permisos.
 
     \subsection{Consulta y edición del perfil}
 
@@ -2538,7 +2445,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     Con el módulo de usuarios operativo en el servidor, se abordó la
     construcción de la interfaz web en Angular. Además de las pantallas propias
     del módulo de autenticación, en esta fase se establecieron las bases
-    estructurales sobre las que se apoyarán los módulos posteriores: la
+    estructurales sobre las que se apoyaron los módulos siguientes: la
     organización del proyecto, el sistema de navegación, la comunicación con la
     API y la gestión de la sesión del usuario.
 
@@ -2571,12 +2478,11 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     exclusivamente de experiencia de usuario: la seguridad efectiva reside en el
     servidor, que revalida el token en cada petición.
 
-    En esta fase, la vista de inicio con sesión se ha implementado únicamente
-    como marcador de posición, ya que su contenido depende de funcionalidades
-    desarrolladas en incrementos posteriores. Con el módulo de valoraciones y
-    favoritos completado, dispone ya de parte de los datos que debe mostrar;
-    su composición definitiva queda condicionada al módulo de corrección
-    postural, del que procede el resumen de análisis recientes.
+    En esta fase, la vista de inicio con sesión se implementó únicamente como
+    marcador de posición, ya que su contenido dependía de funcionalidades
+    abordadas más adelante: recibió parte de sus datos con el módulo de
+    valoraciones y favoritos, y su composición definitiva se completó con el de
+    corrección postural, del que procede el resumen de análisis recientes.
 
     \begin{figure}[htbp]
         \centering
@@ -2825,11 +2731,10 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     Los objetos de transferencia incluyen ya los campos correspondientes a la
     valoración media, el número de valoraciones y la condición de favorito, que
-    en esta fase se devuelven con valores neutros. Anticiparlos permite que los
-    componentes de la interfaz queden construidos en su forma definitiva y que
-    la incorporación de dichas funcionalidades, prevista en un incremento
-    posterior, no requiera modificar el contrato de la API ni los componentes
-    ya desarrollados.
+    en esta fase se devolvían con valores neutros. Anticiparlos permitió que los
+    componentes de la interfaz quedaran construidos en su forma definitiva y que
+    la posterior incorporación de dichas funcionalidades no exigiera modificar el
+    contrato de la API ni los componentes ya desarrollados.
 
     \subsection{Vista de catálogo}
 
@@ -2923,35 +2828,30 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \label{fig:detalle-implementado}
     \end{figure}
 
-    \section{Valoraciones y favoritos}
+   \section{Valoraciones y favoritos}
 
     El tercer módulo implementado da soporte a los requisitos RF-05, RF-06 y
-    RF-07, e introduce una diferencia cualitativa respecto a los anteriores:
-    hasta ahora los datos eran o bien propios de un usuario, o bien comunes a
-    todos, mientras que aquí cada dato pertenece a un usuario concreto pero se
-    muestra a los demás. Esta condición atraviesa todo el módulo y explica
-    buena parte de las decisiones que se detallan a continuación.
+    RF-07 e introduce una diferencia respecto a los anteriores: hasta ahora los
+    datos eran o bien propios de un usuario o bien comunes a todos, mientras que
+    aquí cada dato pertenece a un usuario concreto pero se muestra a los demás.
+    Esta condición atraviesa todo el módulo y explica buena parte de las
+    decisiones que se detallan a continuación.
 
-    \subsection{Reestructuración de la organización en paquetes}
+    \subsection{Reestructuración previa de los paquetes}
 
-    Antes de abordar la funcionalidad se acometió una reorganización del
-    código del servidor. Los dos módulos anteriores habían dado lugar a dos
-    criterios de organización simultáneos: la mayor parte de las clases se
-    agrupaban por capa arquitectónica (modelo, repositorio, servicio,
-    controlador), pero las del catálogo se habían agrupado por funcionalidad en
-    un paquete propio que reunía la entidad, su conversor a objetos de
-    transferencia y su componente de carga inicial, es decir, tres clases de
-    tres capas distintas.
-
-    Ambos criterios son legítimos y de uso extendido, pero su coexistencia no
-    lo es: obliga a conocer el historial del proyecto para saber dónde buscar
-    una clase. Se optó por unificar en la organización por capas, que era la
-    predominante y la descrita en los capítulos previos, distribuyendo las
-    clases del catálogo entre los paquetes correspondientes y creando dos
-    paquetes adicionales para los conversores y para las excepciones de
-    dominio, que hasta entonces convivían con los servicios y los
-    controladores. La Tabla~\ref{tab:paquetes} recoge la estructura
-    resultante.
+    Antes de abordar la funcionalidad se unificó la organización del código del
+    servidor. Los dos incrementos anteriores habían dejado dos criterios
+    simultáneos ---la mayoría de las clases agrupadas por capa (modelo,
+    repositorio, servicio, controlador) y las del catálogo agrupadas por
+    funcionalidad---, lo que obligaba a conocer el historial del proyecto para
+    saber dónde buscar una clase. Se optó por la organización por capas, que era
+    la predominante, repartiendo las clases del catálogo entre los paquetes
+    correspondientes y añadiendo dos paquetes para los conversores y las
+    excepciones de dominio. La Tabla~\ref{tab:paquetes} recoge la estructura
+    resultante. Al tratarse de una reorganización que solo cambia declaraciones
+    de paquete e importaciones, sin alterar la lógica ni el nombre de las tablas
+    ---fijado por la anotación \texttt{@Table} y no por la ubicación del
+    código---, se registró como un cambio independiente del resto del incremento.
 
     \begin{table}[htbp]
         \centering
@@ -2976,52 +2876,27 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
         \label{tab:paquetes}
     \end{table}
 
-    La reestructuración se realizó mediante las herramientas de refactorización
-    automática del entorno de desarrollo, que actualizan las referencias
-    afectadas, y se registró en un cambio independiente del resto del
-    incremento. Esta separación no es accesoria: permite comprobar que la
-    modificación se limita a declaraciones de paquete e importaciones, sin
-    alterar una sola línea de lógica, lo que constituye la definición misma de
-    una refactorización. Conviene subrayar además que el cambio no afecta a la
-    base de datos, ya que el nombre de cada tabla lo fija la anotación
-    \texttt{@Table} de la entidad y no su ubicación en el código.
-
     \subsection{Modelo de dominio y persistencia}
 
     Las entidades \texttt{Review} y \texttt{Favorite}, cuyos atributos se
     recogieron en las Tablas~\ref{tab:entidad-review}
-    y~\ref{tab:entidad-favorite}, se mapean a las tablas \texttt{reviews} y
-    \texttt{favorites}. Ambas se relacionan con \texttt{User} y con
-    \texttt{Exercise} mediante asociaciones de muchos a uno con carga diferida,
-    y ninguna de las dos entidades del otro extremo declara la colección
-    inversa. Esta omisión es deliberada: una colección de valoraciones en
-    \texttt{Exercise} induciría a recorrerla para calcular la media, con el
-    coste de recuperar de la base de datos todas las valoraciones de un
-    ejercicio cada vez que se consulta su ficha.
+    y~\ref{tab:entidad-favorite}, se relacionan con \texttt{User} y con
+    \texttt{Exercise} mediante asociaciones de muchos a uno con carga diferida
+    (la fila asociada se recupera solo cuando se necesita). Ninguna de las dos
+    entidades del otro extremo declara la colección inversa: hacerlo induciría a
+    recorrer todas las valoraciones de un ejercicio para calcular su media, con
+    el consiguiente coste.
 
-    La restricción que impone las reglas RN-01 y RN-05 se declara mediante el
-    atributo \texttt{uniqueConstraints} de la anotación \texttt{@Table}, que
-    genera en cada tabla un índice único sobre el par de claves ajenas. Es
-    importante notar que esta garantía no sustituye a la comprobación que
-    realiza el servicio, sino que la respalda: la comprobación previa permite
-    responder con un mensaje comprensible en el caso habitual, mientras que la
-    restricción de la tabla cubre el escenario en que dos peticiones
-    simultáneas superen ambas dicha comprobación antes de que ninguna haya
-    guardado.
-
-    Las marcas temporales se asignan mediante métodos anotados con
-    \texttt{@PrePersist} y \texttt{@PreUpdate}, siguiendo el mecanismo ya
-    empleado en las entidades anteriores. Durante la implementación se detectó
-    que las entidades existentes no eran consistentes en este punto: unas
-    fijaban la zona horaria de forma explícita y otras empleaban la del sistema
-    anfitrión, lo que haría incomparables las fechas de un mismo sistema al
-    desplegarse en máquinas distintas. Se centralizó por ello la obtención de
-    la marca temporal en una clase de utilidad común a las entidades del modelo.
-
-    Tras el primer arranque se verificó en MySQL la creación de ambas tablas
-    con sus columnas, claves ajenas y restricciones de unicidad
-    (Figura~\ref{fig:tablas-social-creacion}), siguiendo el mismo procedimiento
-    aplicado en los incrementos anteriores.
+    La regla de una sola valoración o favorito por usuario y ejercicio (RN-01 y
+    RN-05) se declara mediante una restricción de unicidad sobre el par de claves
+    ajenas. Esta garantía no sustituye a la comprobación previa del servicio,
+    sino que la respalda: la comprobación permite responder con un mensaje
+    comprensible en el caso habitual, mientras que la restricción de la tabla
+    cubre el escenario en que dos peticiones simultáneas la superen ambas antes
+    de que ninguna haya guardado. Las marcas temporales se asignan de forma
+    centralizada en una utilidad común, tras detectarse que las entidades
+    anteriores no eran consistentes en la zona horaria empleada, lo que habría
+    hecho incomparables las fechas al desplegar en máquinas distintas.
 
     \begin{figure}[htbp]
         \centering
@@ -3033,292 +2908,145 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \subsection{Registro y modificación de la valoración}
 
-    El registro de una valoración se resuelve con un único procedimiento que
-    localiza la valoración del usuario sobre el ejercicio y, si existe,
-    reutiliza la fila modificando sus valores, mientras que si no existe crea
-    una nueva. No hay por tanto ninguna comprobación explícita que rechace una
-    segunda valoración: la regla RN-01 se satisface porque el código no dispone
-    de ninguna vía para crearla. La consecuencia práctica es que publicar una
-    valoración por primera vez y editar una ya existente son literalmente la
-    misma operación, lo que permitió incorporar la edición desde la interfaz
-    sin escribir código adicional en el servidor.
+    El registro se resuelve con un único procedimiento que localiza la valoración
+    del usuario sobre el ejercicio y, si existe, reutiliza la fila modificando sus
+    valores; si no, crea una nueva. No hay por tanto ninguna comprobación que
+    rechace una segunda valoración: la regla RN-01 se cumple porque el código no
+    dispone de ninguna vía para crearla, y publicar por primera vez y editar son
+    literalmente la misma operación, lo que permitió incorporar la edición sin
+    escribir código adicional en el servidor. Esto se apoya en el diseño de la API
+    (Sección~\ref{sec:api-social}): al identificarse el recurso como la valoración
+    propia sobre un ejercicio, y no mediante un identificador de valoración, la
+    operación resulta idempotente ---repetirla no cambia el resultado--- y la
+    identidad del autor procede siempre del token. El comentario se normaliza
+    antes de guardarse: una cadena vacía o de solo espacios se almacena como nula,
+    de modo que puntuar sin comentar no genera una entrada en blanco en el listado
+    (RN-03).
 
-    Este planteamiento se apoya en el diseño de la API descrito en la
-    Sección~\ref{sec:api-social}: al identificarse el recurso como la
-    valoración propia del usuario sobre un ejercicio, y no mediante un
-    identificador de valoración, la operación resulta idempotente y la
-    identidad del autor procede necesariamente del token.
+    \subsection{Consultas de lectura: media, distribución y comentarios}
 
-    El comentario recibido se normaliza antes de persistirse: una cadena
-    compuesta únicamente por espacios, o vacía, se almacena como valor nulo. La
-    razón es que el formulario de la interfaz envía una cadena vacía cuando el
-    usuario se limita a seleccionar estrellas, y almacenarla tal cual haría
-    aparecer una entrada sin texto en el listado de comentarios. Con esta
-    normalización, la regla RN-03 se traduce en una distinción inequívoca entre
-    valoración con comentario y valoración sin él.
+    Tres consultas de lectura sostienen la pestaña de valoraciones, y las tres
+    comparten un mismo cuidado: evitar el problema \textit{N+1} descrito en el
+    catálogo, esto es, una consulta adicional por cada elemento del listado.
 
-    \subsection{Cálculo de la valoración media y de la distribución}
+    Conforme a la regla RN-06, la media no se almacena y se calcula en cada
+    consulta. En lugar de pedirla ejercicio a ejercicio, se emplea una única
+    consulta agregada que recibe los identificadores de la página y devuelve,
+    agrupados por ejercicio, su media y su número de valoraciones. Esto obliga a
+    contemplar dos situaciones implícitas: un ejercicio sin valoraciones no
+    aparece en el resultado ---su ausencia se interpreta como media y recuento
+    nulos, que la interfaz muestra como «Sin valoraciones»--- y una consulta con
+    una lista de identificadores vacía no es SQL válido, por lo que el servicio
+    evita lanzarla. La distribución de la vista de detalle se obtiene con una
+    consulta análoga agrupada por puntuación, completando con cero los niveles que
+    nadie ha seleccionado; de ella se deriva la media como media ponderada, lo que
+    ahorra un acceso y garantiza que el número y las barras no se contradigan.
 
-    Conforme a la regla RN-06, la valoración media no se almacena, de modo que
-    debe obtenerse en cada consulta. Resolverlo de la manera más directa,
-    preguntar por la media de cada ejercicio mientras se recorre la página
-    de resultados, reproduciría el problema \textit{N+1} ya descrito en el
-    catálogo, con una consulta adicional por cada tarjeta mostrada. La solución
-    empleada allí, la anotación \texttt{@BatchSize}, no es aplicable en este
-    caso, ya que no se trata de cargar una colección de la propia entidad sino
-    de agregar datos residentes en otra tabla.
-
-    Se optó por una consulta agregada única que recibe los identificadores de
-    todos los ejercicios de la página y devuelve, agrupados por ejercicio, su
-    media y su número de valoraciones. El servicio indexa el resultado en
-    memoria y lo combina con cada ejercicio al construir el objeto de
-    transferencia. El coste del listado pasa así a ser un número fijo de
-    consultas con independencia del número de tarjetas.
-
-    Este planteamiento obliga a contemplar dos situaciones que la agregación
-    deja implícitas. La primera es que una cláusula \texttt{GROUP BY} solo
-    devuelve grupos existentes, de modo que un ejercicio sin ninguna valoración
-    no aparece en el resultado; el servicio interpreta su ausencia como media y
-    recuento nulos, que es la representación correcta y la que la interfaz
-    traduce en la leyenda «Sin valoraciones». La segunda es que una cláusula
-    \texttt{IN} con una lista vacía no constituye SQL válido, situación que se
-    produce precisamente cuando un filtro no arroja resultados, por lo que el
-    servicio evita lanzar la consulta en ese caso.
-
-    La distribución de puntuaciones que muestra la vista de detalle se obtiene
-    con una consulta análoga, agrupada esta vez por puntuación. Presenta el
-    mismo fenómeno a mayor escala: los niveles que ninguna persona ha
-    seleccionado no figuran en el resultado, mientras que la interfaz debe
-    representar siempre las cinco barras. El servicio completa por ello los
-    niveles ausentes con valor cero antes de devolver el resultado.
-
-    Una vez obtenida la distribución, la media del ejercicio se deriva de ella
-    como media ponderada en lugar de solicitarse a la base de datos mediante
-    una segunda consulta. Además de ahorrar un acceso, este cálculo garantiza
-    que el valor mostrado y las barras representadas procedan del mismo dato y
-    no puedan contradecirse. El resultado se redondea a un decimal en el
-    servidor, evitando que la API publique valores con una precisión carente de
-    significado.
-
-    \subsection{Listado de comentarios}
-
-    El listado de comentarios de un ejercicio se obtiene mediante una consulta
-    paginada sobre la tabla de valoraciones que aplica tres condiciones. La
-    primera descarta las valoraciones sin texto, que computan en la media y en
-    la distribución pero no constituyen comentarios. La segunda excluye la
-    valoración del propio usuario, dado que la interfaz la presenta de forma
-    destacada al inicio; incluirla en el listado la duplicaría y, al estar
-    paginado, alteraría además el recuento de elementos pendientes. La tercera
-    ordena los resultados por fecha de publicación y no por fecha de
-    modificación, de manera que corregir un comentario antiguo no lo desplace
-    al primer puesto.
-
-    La consulta recupera de forma anticipada el autor de cada comentario
-    mediante una reunión explícita. Sin ella, la construcción del objeto de
-    transferencia, que necesita el nombre de usuario, provocaría una consulta
-    adicional por cada comentario de la página: es la tercera manifestación del
-    problema \textit{N+1} en este incremento, y la tercera técnica distinta
-    empleada para resolverlo, lo que ilustra que no existe una solución única
-    sino que depende de la naturaleza del dato que falta.
+    El listado de comentarios se obtiene con una consulta paginada que descarta
+    las valoraciones sin texto (computan en la media pero no son comentarios),
+    excluye la del propio usuario ---la interfaz la muestra destacada al inicio---
+    y ordena por fecha de publicación y no de modificación, de modo que corregir
+    un comentario antiguo no lo desplace al primer puesto. Recupera además de
+    forma anticipada el autor de cada comentario para no incurrir en una consulta
+    por fila: es la tercera manifestación del problema \textit{N+1} en el módulo,
+    resuelta con una tercera técnica distinta, lo que ilustra que la solución
+    depende de la naturaleza del dato que falta.
 
     \subsection{Marcado de ejercicios favoritos}
 
-    Las dos operaciones sobre el favorito se implementan de forma idempotente,
-    conforme al diseño de la API: marcar un ejercicio ya marcado no produce
-    efecto alguno ni se considera un error, y lo mismo ocurre al retirar uno
-    que no lo estaba. El listado de favoritos se obtiene mediante una consulta
-    que reúne los ejercicios con sus marcas y los ordena por la fecha en que se
-    guardaron, atributo cuya existencia justifica que la relación se modelase
-    como entidad.
-
-    Para determinar qué ejercicios de una página son favoritos del usuario se
-    aplica la misma estrategia empleada con las valoraciones: una única
-    consulta que devuelve, de entre los identificadores de la página,
-    únicamente los marcados. Devolver identificadores y no entidades resulta
-    suficiente, ya que la interfaz solo necesita saber si cada ejercicio
-    pertenece o no al conjunto.
-
-    La consecuencia de haber resuelto ambos datos de forma agregada es que el
-    listado del catálogo, que muestra por cada tarjeta información procedente
-    de tres tablas distintas, se resuelve con un número constante de consultas.
-    El listado de favoritos reutiliza íntegramente este mecanismo, de modo que
-    no constituye una vista nueva sino el mismo listado con un origen de datos
-    distinto.
+    Las dos operaciones sobre el favorito son idempotentes: marcar uno ya marcado,
+    o retirar uno que no lo estaba, se completa sin efecto ni error. El listado de
+    favoritos reúne los ejercicios con sus marcas y los ordena por la fecha en que
+    se guardaron ---atributo cuya existencia justifica que la relación se modelase
+    como entidad y no como una simple relación de muchos a muchos---. Para saber
+    qué ejercicios de una página son favoritos se usa, como con las valoraciones,
+    una única consulta que devuelve solo los identificadores marcados. Como
+    consecuencia, el listado del catálogo, que combina datos de tres tablas, se
+    resuelve con un número constante de consultas, y la vista de favoritos no es
+    una vista nueva sino ese mismo listado con un origen de datos distinto.
 
     \subsection{Control de acceso a las operaciones sociales}
 
-    Ninguna de las clases de este módulo contiene comprobaciones de
-    autenticación. La protección procede de la configuración de Spring
-    Security establecida en el primer incremento, que declara públicas
-    únicamente las rutas de autenticación y exige un token válido en cualquier
-    otra, por lo que las rutas nuevas quedaron protegidas sin necesidad de
-    modificarla. Una petición sin token válido no llega a alcanzar el
-    controlador.
+    Ninguna clase del módulo contiene comprobaciones de autenticación: la
+    protección procede de la configuración de Spring Security del primer
+    incremento, que exige un token válido en toda ruta que no sea de
+    autenticación, de modo que las rutas nuevas quedaron protegidas sin tocarla.
+    La identidad del usuario se toma siempre del contexto de seguridad ---nunca
+    del cuerpo de la petición ni de la ruta---, lo que produce una propiedad
+    relevante: como ninguna ruta acepta el identificador de una valoración sino el
+    del ejercicio, la búsqueda se realiza siempre por la pareja ejercicio--usuario
+    y solo puede encontrar valoraciones propias. La regla RN-04 no se sostiene por
+    tanto sobre una comprobación que pudiera omitirse, sino sobre la imposibilidad
+    de expresar la petición. En el cliente, el contenido de los comentarios ---que
+    redacta un usuario y se muestra a los demás--- se representa mediante
+    interpolación, que en Angular escapa el texto por defecto y evita así un
+    ataque de \textit{cross-site scripting} (la inyección de código a través del
+    contenido que introduce un usuario); se evita deliberadamente el enlace a
+    \texttt{innerHTML}, que sí lo interpretaría.
 
-    La identidad del usuario se obtiene siempre del contexto de seguridad, que
-    el filtro de autenticación establece a partir del token verificado, y nunca
-    del cuerpo de la petición ni de la ruta. Combinado con el diseño de la API,
-    esto produce una propiedad relevante: dado que ninguna ruta acepta el
-    identificador de una valoración, sino el del ejercicio, la búsqueda se
-    realiza siempre por la pareja formada por el ejercicio y el usuario
-    autenticado, de modo que solo puede localizar valoraciones propias. La
-    regla RN-04 no se sostiene por tanto sobre una comprobación que pudiera
-    omitirse en una operación futura, sino sobre la imposibilidad de expresar
-    la petición.
+    \subsection{La interfaz de valoraciones}
 
-    Los objetos de transferencia de entrada refuerzan este planteamiento al
-    declarar exclusivamente los campos que el cliente puede decidir. Una
-    petición que incluyese un nombre de usuario en el cuerpo no produciría
-    error alguno, sencillamente sería ignorada, ya que ningún campo del objeto
-    receptor le corresponde.
+    La puntuación mediante estrellas aparece en la tarjeta del catálogo, la
+    cabecera del detalle y cada comentario, además del formulario, donde debe
+    admitir interacción; se implementó por ello como un componente propio con tres
+    modos (lectura, selección y selección bloqueada) y tres tamaños. Para
+    representar medias decimales, en lugar de recurrir a media estrella se
+    superponen dos filas de cinco estrellas ---una neutra y otra de acento cuya
+    anchura se recorta en proporción al valor---, de modo que una media de 4,2
+    equivale a un 84\,\% de anchura. Las fechas se muestran en términos relativos
+    mediante la internacionalización que ofrece el propio navegador, evitando una
+    biblioteca adicional.
 
-    Un último aspecto de seguridad afecta al cliente. El contenido de los
-    comentarios lo redacta un usuario y se muestra a los demás, lo que
-    constituye el escenario propio de un ataque de \textit{cross-site
-    scripting}. La interfaz representa ese contenido mediante interpolación,
-    mecanismo que en Angular escapa el texto de forma predeterminada, de manera
-    que un comentario que incluyese etiquetas HTML se muestra literalmente en
-    lugar de interpretarse. Se evita deliberadamente el enlace a la propiedad
-    \texttt{innerHTML}, que sí interpretaría el contenido.
-
-    \subsection{Componentes reutilizables de la interfaz}
-
-    La representación de una puntuación mediante estrellas aparece en tres
-    contextos distintos, la tarjeta del catálogo, la cabecera del detalle y
-    cada comentario, además del formulario de valoración, donde debe admitir
-    interacción. Se implementó por ello como un componente propio con tres
-    modos de funcionamiento (lectura, selección y selección bloqueada) y tres
-    tamaños, que sustituyó a las representaciones parciales que los incrementos
-    anteriores habían resuelto con un carácter suelto.
-
-    El componente debe representar valores decimales, dado que la valoración
-    media rara vez es un número entero. En lugar de recurrir a un icono de
-    media estrella, que solo permitiría representar mitades, se superponen dos
-    filas de cinco estrellas: una inferior en color neutro y otra superior en
-    color de acento cuya anchura visible se recorta en proporción al valor. Una
-    media de 4,2 se traduce así en un 84\% de anchura, y el navegador secciona
-    la quinta estrella por el punto exacto, con independencia del tamaño de
-    representación.
-
-    Las fechas de los comentarios se muestran en términos relativos a partir de
-    la marca temporal recibida. La conversión se resuelve con la interfaz de
-    internacionalización que proporciona el propio navegador, evitando incluir
-    una biblioteca adicional únicamente para este fin y obteniendo los textos
-    en castellano sin necesidad de mantener traducciones propias. Conviene
-    señalar una limitación conocida: la transformación se evalúa una sola vez
-    por valor, de modo que el texto no se actualiza mientras la vista permanece
-    abierta, comportamiento aceptable en una pantalla de consulta.
-
-    \subsection{La pestaña de valoraciones}
-
-    La pestaña de valoraciones requiere dos peticiones: el resumen, que aporta
-    la media, la distribución y la valoración propia, y la primera página de
-    comentarios. Ambas se lanzan únicamente al abrir la pestaña, de modo que un
-    usuario que consulte la descripción de un ejercicio y abandone la vista no
-    incurre en su coste, y se emiten de forma simultánea, ya que ninguna
-    depende del resultado de la otra; la vista se compone cuando ambas han
-    respondido.
-
-    Tras publicar, modificar o eliminar una valoración se recargan ambas
-    peticiones en lugar de actualizar el estado local con la respuesta
-    recibida. Aunque esta segunda opción evitaría dos accesos, la operación
-    afecta simultáneamente a la media, a la distribución, al recuento y a la
-    composición del listado, dado que el comentario propio se excluye de este y
-    pasa a mostrarse de forma destacada. Reproducir en el cliente todas esas
-    transformaciones supondría duplicar reglas que ya residen en el servidor y
-    abriría la puerta a discrepancias entre lo mostrado y lo almacenado.
-
-    La cabecera de la vista, que muestra también la media y el recuento,
-    procede sin embargo de una petición distinta realizada al cargar el
-    ejercicio. Para no repetirla completa se actualizan únicamente esos dos
-    valores con los que devuelve el resumen. Por último, el estado de la
-    pestaña se reinicia al navegar de un ejercicio a otro, ya que el marco de
-    trabajo reutiliza la misma instancia del componente y, sin ese reinicio, se
-    mostrarían momentáneamente las valoraciones del ejercicio anterior.
-
-    Durante las pruebas de la interfaz se detectó un defecto que ilustra el
-    valor de recorrer la aplicación completa y no solo verificar los puntos de
-    entrada de la API por separado. Las acciones de edición y eliminación se
-    habían situado inicialmente junto al comentario propio destacado, ubicación
-    razonable mientras se supone que toda valoración lleva texto. Un usuario
-    que puntuase sin comentar no generaba comentario alguno y, en consecuencia,
-    quedaba sin ninguna forma de modificar o retirar su valoración, con el
-    formulario bloqueado por tenerla ya publicada. La corrección consistió en
-    trasladar ambas acciones al propio formulario, que está siempre presente, y
-    resultó además más coherente con el alcance real de la eliminación, que
-    afecta a la valoración completa y no solo al comentario.
+    La pestaña completa requiere dos peticiones ---el resumen y la primera página
+    de comentarios---, que se lanzan solo al abrirla y de forma simultánea. Tras
+    publicar, modificar o eliminar una valoración se recargan ambas en lugar de
+    actualizar el estado local con la respuesta: aunque supone dos accesos, la
+    operación afecta a la vez a la media, la distribución, el recuento y la
+    composición del listado, y reproducir esas transformaciones en el cliente
+    duplicaría reglas del servidor y abriría la puerta a discrepancias entre lo
+    mostrado y lo almacenado. El estado se reinicia al navegar de un ejercicio a
+    otro, ya que el marco de trabajo reutiliza la misma instancia del componente
+    y, sin ese reinicio, se mostrarían un instante las valoraciones del anterior.
 
     \subsection{Un efecto colateral entre la reactividad y el DOM}
 
     La incorporación del botón de favorito a la vista de detalle produjo un
-    comportamiento inesperado: tras marcarlo o desmarcarlo, el control de
-    retroceso del navegador exigía dos pulsaciones para abandonar la vista, y
-    el vídeo embebido se reiniciaba.
-
-    El origen resultó estar tres pasos por delante del síntoma. Al cambiar la
-    condición de favorito se sustituye el objeto que representa el ejercicio,
-    tal como exige el modelo de reactividad basado en señales, que detecta los
-    cambios comparando referencias. Esa sustitución provocaba el recálculo del
-    valor derivado que compone la dirección del vídeo, la cual debe declararse
-    explícitamente como segura para poder emplearse en un marco flotante; dicha
-    declaración devuelve una instancia distinta en cada invocación, aunque el
-    identificador del vídeo sea idéntico. El enlace de la propiedad
-    correspondiente detectaba por tanto un valor nuevo y reasignaba el origen
-    del marco, que volvía a cargarse. Y una navegación dentro de un marco
-    flotante añade una entrada al historial de la pestaña, de modo que la
-    primera pulsación de retroceso se consumía deshaciendo esa recarga.
-
-    La corrección consistió en interponer un valor derivado intermedio que
-    expone únicamente el identificador del vídeo. Al tratarse de una cadena de
-    texto, su comparación por igualdad determina que no ha cambiado y detiene
-    la propagación antes de alcanzar el cálculo de la dirección, que ya no se
-    reevalúa. Es un patrón de aplicación general: cuando un cálculo costoso o
-    con efectos colaterales depende de un objeto que se sustituye por motivos
-    ajenos a él, conviene intercalar un valor derivado con el dato mínimo del
-    que realmente depende.
+    comportamiento inesperado: tras pulsarlo, el control de retroceso del navegador
+    exigía dos pulsaciones y el vídeo embebido se reiniciaba. El origen estaba tres
+    pasos por delante del síntoma. Al cambiar la condición de favorito se sustituye
+    el objeto que representa el ejercicio, como exige el modelo reactivo basado en
+    señales, que detecta los cambios comparando referencias; esa sustitución
+    recalculaba el valor derivado que compone la dirección del vídeo, la cual debe
+    declararse como segura y devuelve una instancia distinta en cada invocación
+    aunque el identificador sea el mismo, de modo que el marco flotante se
+    recargaba y añadía una entrada al historial del navegador. La corrección
+    consistió en interponer un valor derivado intermedio que expone solo el
+    identificador del vídeo: al ser una cadena de texto, su comparación por
+    igualdad detiene la propagación antes de recalcular la dirección. Es un patrón
+    general: cuando un cálculo costoso depende de un objeto que se sustituye por
+    motivos ajenos a él, conviene intercalar un valor derivado con el dato mínimo
+    del que realmente depende.
 
     \subsection{Consolidación técnica al cierre del incremento}
 
-    Antes de dar por concluido el incremento se abordó un conjunto de mejoras
-    de coherencia interna acumuladas durante su desarrollo, registradas como
-    tareas específicas a medida que se detectaban. Este proceder responde a un
-    criterio deliberado: interrumpir la implementación de una funcionalidad
-    para corregir cada detalle fragmenta el trabajo, mientras que posponerlos
-    indefinidamente los convierte en deuda técnica. Las principales
-    actuaciones fueron las siguientes.
-
-    En el servidor se unificó la obtención de las marcas temporales en una
-    utilidad común, corrigiendo la inconsistencia de zona horaria ya descrita;
-    se homogeneizó el formato de las respuestas de error conforme a lo expuesto
-    en el capítulo de diseño, lo que exigió actualizar los cuatro puntos del
-    cliente que interpretaban el formato anterior; se sustituyeron las
-    recuperaciones del usuario autenticado que finalizaban con una excepción
-    genérica, y que habrían producido un error interno sin mensaje, por una
-    excepción propia traducida a \texttt{401 Unauthorized}, código que describe
-    con mayor precisión la situación, un token que identifica a un usuario
-    inexistente, y que el cliente ya interpreta cerrando la sesión; y se
-    uniformó el estilo de inyección de dependencias en todos los servicios.
-
-    En el cliente se extrajo a un fichero de configuración la dirección base de
-    la API, replicada hasta entonces en cada servicio; se incorporaron al
-    sistema de diseño las clases repetidas en varias hojas de estilo; se
-    corrigió el uso de los colores de superficie, que en el módulo nuevo se
-    habían aplicado en orden inverso al establecido; y se registró la
-    configuración regional española, sin la cual la valoración media se
-    representaba con separador decimal anglosajón.
-
-    No todas las incidencias registradas se resolvieron. Se descartó
-    conscientemente extraer a una utilidad una función auxiliar empleada
-    únicamente en dos lugares, incluir el identificador del usuario en el token
-    para ahorrar una consulta por petición, paginar el listado de favoritos y
-    reforzar el mecanismo de retroceso frente a interacciones del usuario con
-    el reproductor de vídeo. En los cuatro casos el coste de la modificación
-    excedía al beneficio con el volumen de datos previsto, y su registro
-    explícito permite distinguir entre deuda técnica asumida de forma
-    razonada y descuido.
+    Antes de cerrar el incremento se abordó un conjunto de mejoras de coherencia
+    interna acumuladas durante el desarrollo y registradas como tareas a medida
+    que se detectaban, criterio que evita tanto interrumpir cada funcionalidad
+    para corregir un detalle como dejar que se conviertan en deuda técnica. En el
+    servidor se unificaron la obtención de marcas temporales, el formato de las
+    respuestas de error y el estilo de inyección de dependencias, y se pasó a
+    responder \texttt{401} ante un token que identifica a un usuario inexistente;
+    en el cliente se extrajo a configuración la dirección base de la API, se
+    incorporaron al sistema de diseño las clases repetidas y se registró la
+    configuración regional española, sin la cual la media se mostraba con
+    separador decimal anglosajón. No todo se resolvió: se descartaron de forma
+    razonada, por exceder su coste al beneficio con el volumen de datos previsto,
+    la paginación del listado de favoritos y la inclusión del identificador de
+    usuario en el token, entre otras, cuyo registro explícito permite distinguir
+    la deuda técnica asumida de la que responde a un descuido.
 
 
-\section{Módulo de corrección postural}
+    \section{Módulo de corrección postural}
 
     La implementación del módulo de corrección postural materializa el diseño
     descrito en el Capítulo~\ref{cap:diseno}. A diferencia de los módulos
@@ -3427,6 +3155,66 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     principio de cuidar la calidad de los datos de entrada antes de complicar el
     algoritmo que los procesa.
 
+    \subsection{Detección de repeticiones y extracción de muestras}
+
+    La etapa que distingue a un ejercicio dinámico de uno estático es la
+    extracción de muestras: la forma en que la señal continua de ángulos se
+    convierte en las observaciones concretas sobre las que se aplican las reglas.
+    En la plancha, estática, cada fotograma es ya una muestra válida. En la
+    sentadilla ---y, análogamente, en la zancada y la flexión--- hace falta antes
+    identificar las repeticiones, pues la técnica se juzga en instantes concretos
+    de cada una, como la profundidad en el punto más bajo.
+
+    Contar repeticiones equivale a localizar los mínimos de la señal del ángulo de
+    rodilla: cada repetición es un descenso seguido de un ascenso. El problema es
+    que esa señal no es limpia. Presenta pequeñas oscilaciones procedentes tanto
+    del movimiento real como de la imprecisión de la estimación de pose, de modo
+    que una búsqueda ingenua de mínimos contabilizaría repeticiones inexistentes
+    ante cualquier temblor. La detección se apoya por ello en dos mecanismos
+    (Figura~\ref{fig:deteccion-repeticiones}).
+
+    El primero es un \textbf{suavizado} previo de la señal mediante una media
+    móvil, que promedia cada valor con sus vecinos y atenúa el ruido de alta
+    frecuencia sin desdibujar la forma general del movimiento. El segundo es una
+    \textbf{banda de histéresis}: en lugar de un único umbral que separe la
+    posición alta de la baja, se emplean dos, uno para dar por comenzada una
+    repetición y otro, más alto, para darla por concluida. El comportamiento es
+    análogo al de un termostato, que enciende y apaga a temperaturas distintas
+    para no oscilar sin fin en torno a un único valor: la franja comprendida entre
+    ambos umbrales actúa como zona muerta e impide que una vacilación del ángulo
+    alrededor de un mismo valor se contabilice como varias repeticiones.
+
+    Conviene subrayar que estos umbrales de detección son independientes de los
+    que evalúan la técnica: los primeros determinan \emph{qué constituye una
+    repetición} y los segundos, \emph{si esa repetición es correcta}. Una vez
+    delimitada cada repetición, el analizador toma de ella una única muestra en el
+    instante relevante ---el de mayor flexión, para la profundidad---, y es sobre
+    ese conjunto de muestras, y no sobre todos los fotogramas, sobre el que opera
+    después el motor de puntuación.
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{tikzpicture}[font=\small, >=Stealth]
+            \draw[->] (0,0) -- (10.6,0) node[right, font=\scriptsize] {tiempo};
+            \draw[->] (0,0) -- (0,4.2) node[above, font=\scriptsize] {ángulo de rodilla};
+            \draw[dashed] (0,3.1) -- (9.6,3.1) node[right, font=\scriptsize] {umbral de fin};
+            \draw[dashed] (0,1.6) -- (9.6,1.6) node[right, font=\scriptsize] {umbral de inicio};
+            \draw[thick]
+                plot[smooth, tension=0.7] coordinates
+                {(0,3.6) (1,3.5) (2,1.0) (3,3.5) (4,3.6) (5,3.5) (6,0.9) (7,3.5) (8,3.6)};
+            \fill (2,1.0) circle (2.2pt);
+            \fill (6,0.9) circle (2.2pt);
+            \node[font=\scriptsize] at (2,0.5) {rep.\ 1};
+            \node[font=\scriptsize] at (6,0.45) {rep.\ 2};
+        \end{tikzpicture}
+        \caption{Detección de repeticiones sobre la señal del ángulo de rodilla:
+        una repetición se cuenta al caer el ángulo por debajo del umbral de inicio
+        y no se da por concluida hasta superar el umbral de fin; la franja entre
+        ambos evita contabilizar oscilaciones espurias. Los puntos marcan el
+        instante de máxima flexión de cada repetición, del que se toma la muestra.}
+        \label{fig:deteccion-repeticiones}
+    \end{figure}
+
     \subsection{Generación del feedback y la puntuación}
 
     La puntuación se calcula mediante el motor de reglas común descrito en el
@@ -3438,9 +3226,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     sentadilla, no requiriese modificar el motor: bastó con definir sus reglas y
     su forma de extracción de muestras.
 
-    El analizador de la sentadilla extrae una muestra por repetición, aplicando
-    la detección basada en suavizado e histéresis descrita en el diseño, mientras
-    que el de la plancha trata cada fotograma como una muestra. La regla de
+    El analizador de la sentadilla extrae una muestra por repetición, conforme a
+    la detección descrita en el apartado anterior, mientras que el de la plancha
+    trata cada fotograma como una muestra. La regla de
     estabilidad de la plancha, que evalúa la serie temporal completa en lugar de
     una muestra aislada, se integra como una penalización adicional que el motor
     incorpora al cómputo global sin alterar la condición de que el total sume
@@ -3483,6 +3271,23 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     conforme al requisito RNF-02, dicho enlace quedaría sin destino una vez
     recuperado el análisis del historial, por lo que se pospone como línea de
     trabajo futuro.
+
+    \subsection{Ajuste empírico de los umbrales}
+
+    Los umbrales concretos de cada regla ---la profundidad que se considera
+    suficiente, la inclinación de tronco admisible o el margen de alineación de la
+    plancha--- parten de los valores tomados de la literatura biomecánica, pero su
+    valor final se afinó de forma empírica sobre grabaciones de prueba. El panel de
+    métricas en tiempo real descrito más arriba resultó decisivo para ello: al
+    mostrar, fotograma a fotograma, el valor medido junto al color que indica si
+    supera o no el umbral vigente, permitió contrastar ejecuciones correctas e
+    intencionadamente incorrectas y comprobar que cada umbral separa unas de otras
+    sin marcar como error una técnica válida ni pasar por alto una deficiente. Los
+    ajustes se limitaron a estrechar o ampliar ligeramente los márgenes de
+    tolerancia; los criterios de fondo, y su respaldo en la literatura, se
+    mantuvieron inalterados. Se trata de un ajuste orientado a la coherencia de la
+    herramienta, no de una calibración clínica, en consonancia con el carácter
+    orientativo del sistema.
 
     \subsection{Persistencia del resultado y página de inicio}
 
@@ -3839,8 +3644,8 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     \section{Pruebas del módulo de valoraciones y favoritos}
 
-    La verificación de este módulo se organizó en cuatro frentes, atendiendo a
-    la naturaleza de lo que se comprueba en cada caso: el comportamiento de los
+    La verificación de este módulo se organizó en cuatro frentes, según la
+    naturaleza de lo que se comprueba en cada caso: el comportamiento de los
     puntos de entrada de la API, el cumplimiento efectivo de las reglas de
     negocio y del control de acceso, el coste en accesos a la base de datos de
     las consultas de listado, y el recorrido completo de la interfaz. Los tres
@@ -3850,8 +3655,8 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     \subsection{Pruebas de la API}
 
     La Tabla~\ref{tab:pruebas-social-api} recoge los casos ejecutados sobre las
-    rutas del módulo, junto con el código de estado y el resultado esperado en
-    cada uno.
+    rutas del módulo, con el código de estado y el resultado esperado en cada
+    uno.
 
     \begin{table}[htbp]
         \centering
@@ -3881,61 +3686,25 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
         \label{tab:pruebas-social-api}
     \end{table}
 
-    Cuatro de estos casos merecen comentario, por comprobar decisiones de
-    diseño y no simplemente el funcionamiento de una operación.
-
-    El segundo verifica la regla RN-01. Al emitir dos valoraciones consecutivas
-    sobre el mismo ejercicio con puntuaciones distintas, la respuesta devuelve
-    en ambos casos el mismo identificador
-    (Figura~\ref{fig:postman-review-idempotente}), lo que evidencia que la
-    segunda petición ha sustituido la fila existente en lugar de crear una
-    nueva. Es la comprobación de que publicar y editar constituyen la misma
-    operación.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/postman-review-idempotente.png}
-        \caption{Dos valoraciones consecutivas sobre el mismo ejercicio: la
-        respuesta conserva el identificador, confirmando la sustitución de la
-        valoración anterior.}
-        \label{fig:postman-review-idempotente}
-    \end{figure}
-
-    El caso de la valoración sin comentario comprueba la regla RN-03: la
-    respuesta devuelve el comentario con valor nulo y la valoración computa en
-    el resumen sin aparecer en el listado de comentarios. Como consecuencia, y
-    tal como se aprecia en la Figura~\ref{fig:postman-summary}, el número de
-    valoraciones de un ejercicio puede ser superior al de comentarios sin que
-    ello suponga inconsistencia alguna. Esa misma figura permite verificar que
-    la distribución devuelve siempre los cinco niveles de puntuación, incluidos
-    aquellos que ninguna persona ha seleccionado.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/postman-summary.png}
-        \caption{Resumen de valoraciones de un ejercicio: la distribución
-        incluye los cinco niveles y el recuento supera al número de
-        comentarios.}
-        \label{fig:postman-summary}
-    \end{figure}
-
-    Los casos de marcado repetido y de retirada de un favorito no marcado
-    verifican la idempotencia descrita en el capítulo de diseño: ambas
-    peticiones se completan sin error y sin producir efecto adicional alguno,
-    comprobándose en la base de datos que la tabla de favoritos no acumula
-    filas duplicadas.
-
-    Por último, la eliminación repetida de una valoración devuelve
-    \texttt{404} mientras que la retirada repetida de un favorito devuelve
-    \texttt{204}. Esta asimetría, deliberada y justificada en el capítulo de
-    diseño, queda así documentada también en las pruebas.
+    De estos casos conviene resaltar los que comprueban decisiones de diseño y
+    no el mero funcionamiento de una operación. La segunda valoración sobre un
+    mismo ejercicio devuelve el identificador de la primera, lo que confirma la
+    regla RN-01: publicar y editar son la misma operación y no se acumulan
+    valoraciones duplicadas. La valoración sin comentario se registra con
+    comentario nulo y computa en el resumen sin figurar en el listado, de modo
+    que el número de valoraciones puede superar al de comentarios sin
+    incoherencia (RN-03), y la distribución devuelve siempre los cinco niveles
+    aunque alguno esté vacío. Por último, la eliminación repetida de una
+    valoración responde \texttt{404} y la retirada repetida de un favorito
+    \texttt{204}: una asimetría deliberada, justificada en el diseño, que las
+    pruebas dejan documentada.
 
     \subsection{Verificación de las reglas de negocio y del control de acceso}
 
     Las pruebas anteriores comprueban el comportamiento de la API cuando se
-    utiliza conforme a lo previsto. Las de este apartado persiguen lo
-    contrario: comprobar que las restricciones se sostienen ante intentos de
-    eludirlas, incluyendo aquellos que no pasan por la propia aplicación. La
+    utiliza conforme a lo previsto. Las de este apartado persiguen lo contrario:
+    comprobar que las restricciones se sostienen ante intentos de eludirlas,
+    incluidos los que no pasan por la propia aplicación. La
     Tabla~\ref{tab:pruebas-social-reglas} las recoge.
 
     \begin{table}[htbp]
@@ -3956,59 +3725,32 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
         \label{tab:pruebas-social-reglas}
     \end{table}
 
-    La primera prueba se realiza deliberadamente al margen de la aplicación,
-    mediante una sentencia \texttt{INSERT} ejecutada directamente sobre la base
-    de datos (Figura~\ref{fig:duplicate-entry}). Su propósito no es comprobar
-    la lógica del servicio, que nunca produciría esa situación, sino verificar
-    que la regla RN-01 se sostiene aunque dicha lógica fallase o se ejecutase
-    de forma concurrente. Es la diferencia entre una restricción implementada y
-    una restricción garantizada.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/duplicate-entry.png}
-        \caption{Intento de insertar una segunda valoración del mismo usuario
-        sobre el mismo ejercicio: la restricción de unicidad de la tabla
-        rechaza la operación.}
-        \label{fig:duplicate-entry}
-    \end{figure}
-
-    La segunda es la prueba de autorización propiamente dicha, y conviene
-    distinguirla de las pruebas de autenticación realizadas en el primer
-    incremento. Allí se verificaba que un usuario no autenticado no accede al
-    sistema; aquí se verifica que un usuario perfectamente autenticado no puede
-    operar sobre datos ajenos. La Figura~\ref{fig:postman-review-ajena} recoge
-    el intento de un usuario de eliminar la valoración de otro sobre el mismo
-    ejercicio, junto con la consulta que confirma que la valoración original
-    permanece almacenada. El código devuelto es \texttt{404} y no
-    \texttt{403} porque, conforme al diseño descrito, la búsqueda se realiza
-    siempre acotada al usuario autenticado: para el sistema no existe una
-    valoración prohibida, sencillamente no existe ninguna valoración propia que
-    eliminar.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/postman-review-ajena.png}
-        \caption{Intento de eliminar la valoración de otro usuario: el servidor
-        responde 404 y la valoración original permanece en la base de datos.}
-        \label{fig:postman-review-ajena}
-    \end{figure}
+    Dos de estas pruebas merecen comentario. La inserción manual de un par
+    usuario--ejercicio duplicado se ejecuta a propósito al margen de la
+    aplicación, mediante una sentencia \texttt{INSERT} directa sobre la base de
+    datos: su fin no es probar la lógica del servicio ---que nunca produciría esa
+    situación--- sino verificar que la regla RN-01 se sostiene aunque esa lógica
+    fallara o se ejecutase de forma concurrente; es la diferencia entre una
+    restricción implementada y una restricción garantizada. La segunda es la
+    prueba de autorización propiamente dicha: un usuario autenticado que intenta
+    eliminar la valoración de otro recibe \texttt{404}, y no \texttt{403},
+    porque la búsqueda se acota siempre al usuario del token, de modo que para el
+    sistema no existe una valoración prohibida, sencillamente no existe ninguna
+    valoración propia que eliminar.
 
     \subsection{Verificación del coste de las consultas de listado}
 
     El listado del catálogo compone cada tarjeta con datos procedentes de tres
     tablas distintas, lo que lo expone al problema \textit{N+1} descrito en el
     capítulo anterior. Dado que este no se manifiesta como un error sino como
-    una degradación progresiva del rendimiento, no puede detectarse
-    comprobando la respuesta: es preciso observar las consultas que el sistema
-    emite.
-
-    Para ello se habilitó temporalmente el registro de las sentencias SQL
-    generadas y se solicitó el listado completo del catálogo. La
-    Figura~\ref{fig:log-sql-catalogo} recoge el resultado: el número de
-    consultas permanece constante con independencia del número de ejercicios
-    devueltos, con una única consulta agregada para las valoraciones y otra
-    para los favoritos de toda la página, en lugar de una consulta por tarjeta.
+    una degradación progresiva del rendimiento, no puede detectarse comprobando
+    la respuesta: es preciso observar las consultas que el sistema emite. Para
+    ello se habilitó temporalmente el registro de las sentencias SQL generadas y
+    se solicitó el listado completo del catálogo. La
+    Figura~\ref{fig:log-sql-catalogo} recoge el resultado: el número de consultas
+    permanece constante con independencia del número de ejercicios devueltos,
+    con una única consulta agregada para las valoraciones y otra para los
+    favoritos de toda la página, en lugar de una consulta por tarjeta.
 
     \begin{figure}[htbp]
         \centering
@@ -4044,10 +3786,6 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
             Marcado de un favorito y recarga de la página & El estado se mantiene \\
             Marcado desde el catálogo y consulta del detalle & Ambas vistas reflejan el mismo estado \\
             Retirada de un favorito desde la vista de favoritos & La tarjeta desaparece y el recuento disminuye \\
-            Vista de favoritos con uno y con dos ejercicios & La barra de filtros aparece solo en el segundo caso \\
-            Filtro sin coincidencias en favoritos & Mensaje específico, con la barra de filtros aún visible \\
-            Acceso al detalle desde la vista de favoritos & El control de retroceso indica la vista de origen \\
-            Acceso al detalle escribiendo la dirección & El control de retroceso adopta su valor por omisión \\
             Marcado de favorito desde el detalle & El vídeo no se reinicia y el retroceso funciona a la primera \\
             Dos usuarios con favoritos distintos & Cada uno consulta únicamente los suyos \\
             \bottomrule
@@ -4057,19 +3795,15 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
         \label{tab:pruebas-social-ui}
     \end{table}
 
-    Todos los casos se completaron con el resultado esperado, si bien dos de
-    ellos lo hicieron únicamente tras corregir sendos defectos detectados
-    durante su ejecución, descritos en el capítulo anterior: la
+    Todos los casos se completaron con el resultado esperado; dos de ellos solo
+    tras corregir sendos defectos descritos en el capítulo anterior ---la
     inaccesibilidad de las acciones de edición y eliminación al valorar sin
-    comentar, y la recarga del marco flotante del vídeo al modificar la
-    condición de favorito.
-
-    Merece destacarse el caso del comentario con etiquetas HTML
-    (Figura~\ref{fig:app-comentario-escapado}), que verifica la protección
-    frente a la inyección de código en contenido redactado por usuarios, y el
-    de la edición que vacía el texto, que comprueba de extremo a extremo la
-    normalización descrita en la implementación: el comentario desaparece del
-    listado mientras la puntuación permanece en la distribución.
+    comentar, y la recarga del marco flotante del vídeo al modificar la condición
+    de favorito---, lo que ilustra el valor de recorrer la aplicación completa
+    frente a probar la API por separado. Merece destacarse el caso del comentario
+    con etiquetas HTML (Figura~\ref{fig:app-comentario-escapado}), que confirma
+    la protección frente a la inyección de código en contenido redactado por
+    usuarios: el texto se representa literalmente en lugar de interpretarse.
 
     \begin{figure}[htbp]
         \centering
@@ -4077,36 +3811,6 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
         \caption{Comentario que incluye etiquetas HTML: el contenido se
         representa como texto literal y no llega a interpretarse.}
         \label{fig:app-comentario-escapado}
-    \end{figure}
-
-    Las Figuras~\ref{fig:app-valoraciones}, \ref{fig:app-valoraciones-publicada}
-    y~\ref{fig:app-favoritos} recogen el aspecto final de las pantallas
-    implementadas.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/app-valoraciones.png}
-        \caption{Pestaña de valoraciones de un ejercicio, con la distribución
-        de puntuaciones, el formulario de valoración y el listado de
-        comentarios.}
-        \label{fig:app-valoraciones}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/app-valoraciones-publicada.png}
-        \caption{Pestaña de valoraciones con una valoración ya publicada:
-        formulario bloqueado con las acciones de edición y eliminación, y
-        comentario propio destacado.}
-        \label{fig:app-valoraciones-publicada}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/app-favoritos.png}
-        \caption{Vista de ejercicios favoritos, con la barra de filtros
-        heredada del catálogo.}
-        \label{fig:app-favoritos}
     \end{figure}
 
     \section{Pruebas del módulo de corrección postural}
@@ -4259,6 +3963,10 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     ofrece al usuario. El sistema cumple, en consecuencia, los objetivos
     funcionales previstos dentro de las condiciones para las que fue concebido.
 
+    Por último, una vez empaquetado el sistema en contenedores, el conjunto de
+    funcionalidades se repasó sobre el despliegue completo en ejecución,
+    manteniéndose en todos los casos el comportamiento esperado.
+
 
 % ─────────────────────── Capítulo 8 ──────────────────────────────────
 
@@ -4267,126 +3975,104 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     \label{cap:conclusiones}
 
 
-    \section{Conclusiones}
+\section{Conclusiones}
+
+    Este Trabajo Fin de Grado se planteó como objetivo general el desarrollo de
+    una aplicación web de fitness que permitiera consultar ejercicios guiados,
+    llevar un registro del entrenamiento y recibir apoyo en la corrección de la
+    postura mediante técnicas de estimación de pose, con la intención de mejorar
+    el entrenamiento autónomo sin sustituir la supervisión de un profesional.
+    El resultado es un sistema completo y funcional que cubre ese objetivo y
+    cada uno de los objetivos específicos derivados de él.
+
+    En el plano de la gestión y la consulta, la aplicación resuelve el registro,
+    la autenticación y la gestión del perfil de forma segura mediante tokens, y
+    ofrece un catálogo de ejercicios con filtrado por grupo muscular y
+    dificultad, una vista de detalle con descripción, consejos y vídeos
+    embebidos, un sistema de valoraciones y comentarios con la puntuación
+    mostrada de forma agregada, y la posibilidad de marcar ejercicios como
+    favoritos. Todo ello se sostiene sobre la arquitectura cliente-servidor
+    prevista, con un frontend en Angular y un backend con API REST,
+    autenticación y persistencia de datos, cumpliéndose así el objetivo de
+    desarrollo full-stack.
+
+    El núcleo diferenciador del trabajo, la corrección postural asistida, se ha
+    implementado evaluando la ejecución a partir de vídeos procesados
+    íntegramente en el navegador, sin que el material salga del dispositivo del
+    usuario. Sobre esa base, el sistema calcula para cada ejercicio las métricas
+    pertinentes ---ángulos articulares y alineaciones--- y devuelve una puntuación
+    global acompañada de mensajes de corrección concretos, satisfaciendo los
+    objetivos de cálculo de métricas y de generación de retroalimentación.
+
+    Más allá del cumplimiento de los objetivos, conviene destacar dos decisiones
+    que definen el carácter del sistema. La primera es el enfoque del análisis:
+    al basarse en reglas geométricas justificadas biomecánicamente, la
+    valoración resulta transparente y explicable, en lugar de proceder de un
+    modelo opaco. La segunda es su naturaleza orientativa; el sistema no emite
+    una puntuación cuando los datos no son fiables y asume unas condiciones de
+    grabación determinadas, de modo que sirve de apoyo al entrenamiento autónomo
+    pero no reemplaza el criterio de un profesional, tal como se propuso desde el
+    inicio. Finalmente, la contenerización del sistema completo garantiza que
+    pueda desplegarse de forma reproducible, lo que traslada el proyecto desde el
+    entorno de desarrollo hacia un despliegue real.
+
+    La metodología incremental adoptada ha sido determinante para alcanzar este
+    resultado: abordar el sistema en incrementos funcionales sucesivos permitió
+    validar cada bloque antes de construir sobre él y mantener el proyecto bajo
+    control en todo momento. El desarrollo ha exigido integrar tecnologías
+    diversas ---desde la estimación de pose en el navegador hasta la orquestación
+    de contenedores---, lo que ha supuesto el principal aprendizaje del trabajo.
+    Las dificultades encontradas durante el proceso y las líneas por las que el
+    sistema podría evolucionar se detallan en los apartados siguientes.
 
     \section{Dificultades encontradas}
 
-    El desarrollo se ha visto jalonado por un conjunto de incidencias cuya
-    resolución ha aportado tanto al resultado como la propia implementación.
-    Se recogen aquí las más representativas, agrupadas según su naturaleza.
+    El desarrollo estuvo jalonado por diversas incidencias cuya resolución, más
+    allá de desbloquear el trabajo, dejó enseñanzas de carácter general. Se
+    sintetizan aquí las más representativas; su tratamiento técnico detallado se
+    encuentra en el Capítulo~\ref{cap:implementacion}, donde se describen en el
+    contexto en que surgieron.
 
-    \subsection{Comportamientos por omisión de los marcos de trabajo}
+    Un primer grupo tuvo su origen en los \textbf{comportamientos por omisión de
+    los marcos de trabajo}. La incorporación de Spring Security dejó inicialmente
+    inaccesible el registro y provocó rechazos con código \texttt{403} debidos a
+    una protección concebida para formularios con sesión, ajena a una API sin
+    estado; de modo análogo, la estrategia de carga diferida de datos, adecuada
+    como norma general, derivó en el conocido problema de las consultas repetidas
+    (\textit{N+1}). En todos los casos el síntoma resultaba desconcertante hasta
+    comprender qué mecanismo estaba activo sin haberlo solicitado, lo que subraya
+    la importancia de conocer las decisiones que un marco adopta por defecto.
 
-    Varias incidencias tuvieron su origen en decisiones que los marcos de
-    trabajo adoptan por defecto y que resultan inadecuadas para una API REST.
-    La incorporación de Spring Security dejó inaccesible el registro de
-    usuarios, al proteger todos los puntos de entrada, y las peticiones de
-    escritura comenzaron a rechazarse con \texttt{403 Forbidden} por una
-    protección contra falsificación de peticiones concebida para formularios
-    con sesión, ajena por completo a un servidor sin estado. En ambos casos el
-    síntoma resultaba desconcertante hasta comprender qué estaba activo sin
-    haberlo solicitado.
+    Un segundo grupo, propio del cliente, derivó de la \textbf{propagación
+    implícita de los cambios} en el modelo reactivo basado en señales. El caso
+    más ilustrativo fue un fallo en la navegación que se manifestaba tres pasos
+    por delante de su causa real, al encadenarse el marcado de un favorito con la
+    recarga del vídeo embebido. Este defecto, junto con otros que solo se
+    revelaron al recorrer la aplicación completa como lo haría un usuario ---y no
+    al probar los puntos de entrada de la API por separado---, confirmó que la
+    verificación de extremo a extremo es imprescindible y complementa, sin
+    sustituirla, a la prueba aislada de cada componente.
 
-    Un caso análogo se dio con la carga de asociaciones en JPA. La estrategia
-    diferida, adecuada como norma general, provocaba un error al construir los
-    objetos de transferencia fuera de la transacción; corregirlo mediante carga
-    anticipada introdujo a su vez el problema \textit{N+1}, con una consulta
-    adicional por cada elemento del listado. La solución definitiva no consistió
-    en elegir una de las dos estrategias, sino en aplicar a cada colección la
-    que corresponde a su uso real y agrupar las consultas resultantes.
+    La incidencia más instructiva del proyecto afectó al núcleo del análisis
+    postural: una \textbf{marca temporal que no podía retroceder}. El modelo de
+    estimación de pose exige que el instante asociado a cada fotograma crezca de
+    forma estricta, y la primera aproximación ---derivarlo de la reproducción del
+    vídeo--- lo incumplía al rebobinar o recargar, deteniendo el análisis de
+    forma intermitente. La solución no consistió en refinar aquel cálculo, sino
+    en sustituirlo por completo por un reloj independiente de la reproducción. El
+    caso dejó una lección transferible: cuando un síntoma resulta especialmente
+    desconcertante, a veces la vía de salida no es perfeccionar el enfoque
+    vigente, sino reconocer que el propio enfoque es la causa y reemplazarlo.
 
-    \subsection{Efectos colaterales del modelo reactivo del cliente}
-
-    El modelo de reactividad basado en señales detecta los cambios comparando
-    referencias, lo que obliga a sustituir los objetos en lugar de modificarlos.
-    Esta exigencia, razonable en sí misma, produjo un efecto inesperado al
-    incorporar el marcado de favoritos a la vista de detalle: la sustitución del
-    objeto propagaba un recálculo hasta la dirección del vídeo embebido,
-    provocando la recarga del marco flotante y, con ella, una entrada adicional
-    en el historial del navegador que obligaba a pulsar dos veces el control de
-    retroceso. El síntoma se manifestaba en la navegación, tres pasos por
-    delante de su causa, y su diagnóstico ilustra la dificultad de depurar
-    sistemas en los que los cambios se propagan de forma implícita.
-
-    \subsection{Defectos detectables solo en el recorrido completo}
-
-    La verificación de los puntos de entrada de la API por separado no basta
-    para garantizar que la aplicación sea utilizable. El caso más ilustrativo
-    fue el de un usuario que puntuase un ejercicio sin escribir comentario: la
-    API respondía correctamente, pero la interfaz situaba las acciones de
-    edición y eliminación junto a un comentario que en ese caso no existía,
-    dejándolo sin ninguna forma de modificar o retirar su valoración. Ninguna
-    prueba de la API habría revelado el problema, que solo apareció al recorrer
-    la aplicación como lo haría un usuario.
-
-    \subsection{Coherencia del código a lo largo del tiempo}
-
-    El desarrollo incremental tiende a producir divergencias entre lo escrito en
-    momentos distintos: dos criterios simultáneos de organización en paquetes,
-    dos estilos de inyección de dependencias, dos formatos de respuesta de
-    error, o una misma regla de estilo repetida en varias hojas. Ninguna
-    constituye un error funcional, y precisamente por ello resulta sencillo
-    acumularlas. La estrategia adoptada fue registrarlas como tareas específicas
-    en el momento de detectarlas y resolverlas de forma agrupada al cierre de
-    cada incremento, evitando tanto interrumpir el trabajo en curso como
-    olvidarlas.
-
-    \subsection{Herramientas}
-
-    Por último, la carga inicial del \textit{backlog} en Jira mediante
-    importación de ficheros resultó infructuosa tras varios intentos, por lo que
-    las tareas se dieron de alta manualmente. La incidencia, de escasa entidad
-    técnica, ilustra un riesgo habitual en la gestión de proyectos: el tiempo
-    invertido en automatizar una tarea puntual puede superar con holgura al de
-    ejecutarla a mano.
-
-    \subsection{Una marca temporal que no podía retroceder}
-
-    La integración del modelo de estimación de pose en modo vídeo produjo la
-    incidencia más instructiva del proyecto. El modelo exige que la marca
-    temporal asociada a cada fotograma sea estrictamente creciente entre llamadas
-    sucesivas; de lo contrario, su grafo de cómputo interno entra en un estado de
-    error irrecuperable que detiene el análisis. La primera aproximación,
-    aparentemente natural, consistió en tomar esa marca del instante de
-    reproducción del propio vídeo. Resultó ser el origen del problema: dicho
-    instante puede repetirse entre dos fotogramas consecutivos, retroceder si el
-    usuario rebobina y reiniciarse a cero al cargar un vídeo nuevo, y cada una de
-    esas tres situaciones desencadenaba el fallo de forma intermitente y difícil
-    de reproducir.
-
-    El diagnóstico costó precisamente porque el síntoma, un error interno del
-    modelo en cierto fotograma, no señalaba en absoluto a su causa la
-    procedencia de la marca temporal. La solución no consistió en corregir el
-    cálculo de esa marca, sino en abandonar por completo su origen: se sustituyó
-    por un reloj monótono global, independiente de la reproducción, que por
-    construcción nunca retrocede ni se reinicia, reservando el instante del vídeo
-    únicamente para detectar si un fotograma es nuevo. El caso ilustra una
-    situación recurrente en la depuración: cuando un síntoma resulta
-    desconcertante, la vía de solución no siempre es refinar el enfoque vigente,
-    sino reconocer que el enfoque mismo es la causa y reemplazarlo.
-
-    \subsection{La calidad de los datos frente a la complejidad del algoritmo}
-
-    El análisis sobre vídeo real puso de manifiesto dos fenómenos propios de la
-    estimación de pose bidimensional. El primero es el temblor (\textit{jitter})
-    de los puntos detectados: el modelo estima cada fotograma de forma
-    independiente, de modo que en zonas de baja confianza un miembro
-    parcialmente ocluido, iluminación deficiente los puntos oscilan de un
-    fotograma a otro aunque el cuerpo permanezca inmóvil. El segundo es la
-    dependencia del ángulo de la cámara: una grabación en diagonal, en lugar de
-    perfil, degradaba la detección de repeticiones al proyectar sobre un plano
-    escorzado la profundidad que se pretende medir.
-
-    La tentación inicial ante estos fenómenos es aumentar la sofisticación del
-    algoritmo que procesa la señal. La solución adoptada siguió el camino
-    contrario: mejorar la calidad de los datos antes de que lleguen al algoritmo.
-    Seleccionar el costado más visible del cuerpo y descartar los fotogramas de
-    baja confianza redujo el ruido en origen y mejoró la detección de
-    repeticiones sin modificar una sola línea del detector. La experiencia
-    confirma un principio general del tratamiento de datos: depurar la entrada
-    suele resultar más eficaz, y desde luego más simple de mantener, que
-    complicar el procesamiento para absorber un ruido que podría haberse evitado.
-
+    Por último, la validación sobre vídeo real puso sobre la mesa la disyuntiva
+    entre \textbf{la calidad de los datos y la complejidad del algoritmo}. Ante
+    el temblor de los puntos detectados y la degradación en grabaciones poco
+    favorables, la tentación era sofisticar el procesamiento de la señal; la
+    solución adoptada siguió el camino contrario, depurando los datos de entrada
+    ---seleccionando el costado más visible y descartando los fotogramas poco
+    fiables--- antes de que llegaran al algoritmo. Mejorar la entrada resultó más
+    eficaz, y más simple de mantener, que complicar el procesamiento para
+    absorber un ruido evitable.
 
     \section{Líneas de trabajo futuro}
 
@@ -4394,7 +4080,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     El sistema de autenticación implementado cumple su cometido. El despliegue
     en contenedores aborda ya una de las cuestiones que un uso en producción
-    plantearía —el cifrado del canal—, mientras que las restantes quedan como
+    plantearía ---el cifrado del canal---, mientras que las restantes quedan como
     trabajo futuro.
 
     El cifrado del canal lo proporciona el propio despliegue: el proxy inverso
@@ -4426,6 +4112,27 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     correo electrónico. La regla que limita a una la valoración por usuario y
     ejercicio acota el efecto de una eventual creación masiva de cuentas sobre
     las valoraciones, pero no lo elimina.
+
+    \subsection{Reconocimiento automático del ejercicio}
+
+    El módulo de corrección postural parte de una premisa: que el vídeo aportado
+    se corresponde con el ejercicio seleccionado por el usuario en el catálogo.
+    El análisis extrae de la secuencia las magnitudes geométricas relevantes y
+    les aplica las reglas de ese ejercicio, pero en ningún momento comprueba que
+    el movimiento grabado sea realmente el esperado. Como se observó en las
+    pruebas, al proporcionar el vídeo de un ejercicio distinto el sistema no lo
+    rechaza, sino que lo evalúa con las métricas del ejercicio seleccionado y
+    emite una puntuación ---habitualmente baja--- carente de sentido. Este
+    comportamiento es coherente con la naturaleza del análisis, que mide la
+    geometría del movimiento pero no clasifica el ejercicio que aparece en la
+    imagen.
+
+    Una línea natural de mejora consistiría en incorporar un reconocimiento
+    automático del ejercicio, capaz de verificar que el vídeo se corresponde con
+    el seleccionado o, en su defecto, de identificarlo por sí mismo. Ello
+    requeriría un modelo de clasificación entrenado a tal efecto, ajeno al
+    enfoque basado en reglas adoptado en este trabajo, por lo que queda fuera de
+    su alcance y se plantea como trabajo futuro.
 
     \subsection{Evolución del módulo de valoraciones y favoritos}
 
@@ -4479,9 +4186,6 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
 % ─────────────────────── Apéndices ───────────────────────────────────
     \begin{umaappendices}
-
-        \umaappendix{Seguimiento del proyecto en Jira}
-    % Capturas del tablero, backlog y gráficos de sprint/burndown.
 
         \umaappendix{Manual de instalación y despliegue}
 
