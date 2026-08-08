@@ -140,7 +140,6 @@
     \nomenclature{DTO}{Data Transfer Object, objeto de transferencia de datos}
     \nomenclature{API REST}{Interfaz de programación basada en recursos sobre HTTP}
     \nomenclature{WASM}{WebAssembly, formato binario ejecutable en el navegador}
-    \nomenclature{RIUMA}{Repositorio Institucional de la Universidad de Málaga}
     \printnomenclature
     \clearpage
 
@@ -2499,7 +2498,11 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     los métodos \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE} y
     \texttt{OPTIONS}. Este último resulta imprescindible porque el navegador
     envía una petición previa de comprobación (\textit{preflight}) con dicho
-    método antes de ejecutar determinadas peticiones.
+    método antes de ejecutar determinadas peticiones. Conviene precisar que
+    esta configuración es propia del entorno de desarrollo, en el que cliente
+    y servidor se sirven en puertos distintos; en el despliegue con contenedores,
+    donde ambos quedan tras un mismo punto de entrada y comparten origen,
+    la comprobación de origen deja de intervenir.
 
     El segundo ajuste afecta al código de estado devuelto ante un token
     inválido o caducado. Por omisión, Spring Security respondía con
@@ -2615,6 +2618,29 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \texttt{UserService}, responsable de las operaciones sobre el perfil. Esta
     separación evita duplicar la lógica de acceso a la API en cada vista y
     mantiene los componentes centrados en la presentación.
+
+    La dirección base de la API no se repite en cada servicio, sino que se
+    declara en un único punto de configuración del cliente. Este valor cambia
+    según el entorno: durante el desarrollo apunta al servidor local
+    (\texttt{http://localhost:8080/api}), mientras que en la compilación de
+    producción se sustituye por una ruta relativa (\texttt{/api}), de modo que
+    las peticiones se dirijan al mismo origen desde el que se sirve la
+    aplicación y sea el proxy inverso quien las encamine hacia el servidor. La
+    sustitución la realiza el propio mecanismo de compilación de Angular, que
+    reemplaza el fichero de configuración de desarrollo por el de producción.
+
+    Esta centralización tuvo, no obstante, una excepción que pasó inadvertida
+    hasta las pruebas del sistema ya contenerizado: uno de los servicios
+    (\texttt{UserService}) conservaba la dirección del servidor escrita
+    directamente en el código en lugar de tomarla del punto de configuración
+    común. Mientras cliente y servidor se ejecutaron en la misma máquina durante
+    el desarrollo, el fallo no se manifestó; al desplegar el sistema en
+    contenedores, en cambio, esa dirección fija dejó de ser válida y la carga del
+    perfil de usuario comenzó a fallar. La corrección consistió en hacer que
+    dicho servicio tomara también la dirección del punto de configuración común,
+    unificando su comportamiento con el del resto. La incidencia ilustra el valor
+    de no duplicar un mismo dato de configuración: una única copia divergente
+    basta para introducir un fallo que solo aparece al cambiar de entorno.
 
     La estructura de los mensajes intercambiados se declara mediante interfaces
     de TypeScript que reproducen los objetos de transferencia de datos del
@@ -3528,6 +3554,127 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \section{Contenerización con Docker}
 
+Los incrementos anteriores se desarrollaron con la base de datos en un
+    contenedor Docker mientras el backend y el frontend se ejecutaban
+    directamente sobre la máquina de desarrollo. El incremento de cierre aborda
+    el empaquetado completo del sistema, de modo que los tres componentes
+    —base de datos, servidor y cliente— se construyan y ejecuten como
+    contenedores coordinados por una única definición. El objetivo es el que
+    fija el requisito RNF-05: que el sistema completo pueda desplegarse en
+    cualquier máquina con Docker sin instalaciones ni configuraciones manuales,
+    garantizando un entorno reproducible.
+
+    \subsection{Imágenes del backend y del frontend}
+
+    Cada componente se empaqueta mediante una imagen construida en dos etapas
+    (\textit{multi-stage build}), técnica que separa la fase de compilación de
+    la de ejecución para que la imagen final contenga únicamente lo
+    imprescindible para funcionar.
+
+    En el backend, la primera etapa parte de una imagen con Maven y el JDK,
+    compila el proyecto y produce el archivo \texttt{.jar} ejecutable; la
+    segunda parte de una imagen mínima con solo el entorno de ejecución de Java,
+    a la que se copia dicho archivo. Así, la imagen resultante no arrastra ni el
+    compilador ni el código fuente, lo que reduce su tamaño y su superficie de
+    exposición; por seguridad, el proceso se ejecuta además con un usuario sin
+    privilegios.
+
+    En el frontend se sigue el mismo principio: una primera etapa con Node
+    compila la aplicación de Angular y genera los ficheros estáticos
+    optimizados, que una segunda etapa sirve mediante un servidor web ligero.
+    Entre los ficheros servidos se incluyen los del motor de MediaPipe y el
+    modelo de estimación de pose, alojados en la propia aplicación, lo que
+    mantiene la ausencia de dependencias de red en tiempo de ejecución exigida
+    por el diseño.
+
+    \subsection{Orquestación con Docker Compose}
+
+    La puesta en marcha conjunta de los tres contenedores se describe en un
+    fichero de Docker Compose~\cite{dockercompose} que declara los servicios, la red interna que los
+    comunica y los volúmenes que preservan los datos. El backend se comunica con
+    la base de datos a través del nombre del servicio dentro de la red interna
+    de Docker, y no mediante una dirección fija; por ello, los parámetros de
+    conexión se proporcionan como variables de entorno en lugar de fijarse en el
+    código, lo que permite que la misma imagen funcione sin cambios tanto en
+    desarrollo como en el despliegue.
+
+    Los datos sensibles la contraseña de la base de datos y la clave de firma
+    de los tokens se externalizan a un fichero de entorno que queda fuera del
+    control de versiones, acompañado de una plantilla de ejemplo que documenta
+    las variables necesarias sin exponer ningún valor real.
+
+    El arranque se coordina mediante una comprobación de salud
+    (\textit{healthcheck}) sobre la base de datos: el servidor no inicia hasta
+    que MySQL está realmente listo para aceptar conexiones, lo que evita los
+    fallos propios de un arranque simultáneo. Al levantarse sobre una base de
+    datos vacía, el catálogo inicial se carga de forma automática mediante el
+    mecanismo idempotente descrito con anterioridad, de modo que un despliegue
+    nuevo queda operativo con los ejercicios disponibles y sin datos de usuario
+    previos.
+
+    \subsection{Punto de entrada único y proxy inverso}
+
+    El servidor web que sirve el frontend, Caddy~\cite{caddy}, actúa además como proxy inverso:
+    atiende todas las peticiones del cliente y reenvía al backend aquellas
+    dirigidas a la ruta \texttt{/api}, mientras entrega el resto como parte de
+    la aplicación de Angular. Esta disposición ofrece dos ventajas. La primera
+    es que cliente y API quedan expuestos bajo un mismo origen, lo que elimina
+    en el despliegue la necesidad de la configuración de CORS descrita en el
+    Capítulo~\ref{cap:implementacion}, propia únicamente del entorno de
+    desarrollo, en el que cliente y servidor se sirven en puertos distintos. La
+    segunda es la gestión automática del cifrado: al indicarle un nombre de
+    dominio, el proxy obtiene y renueva por sí mismo el certificado necesario
+    para servir la aplicación sobre HTTPS, sin intervención manual. En
+    desarrollo local, en ausencia de dominio, el mismo componente sirve la
+    aplicación sobre HTTP, de modo que una única configuración cubre ambos
+    escenarios.
+
+    \begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        font=\small,
+        bloque/.style={draw, rounded corners, align=center, inner sep=6pt,
+                       minimum height=16mm, minimum width=24mm},
+        cliente/.style={bloque, fill=blue!8, draw=blue!40},
+        proxy/.style={bloque, fill=orange!12, draw=orange!55},
+        servidor/.style={bloque, fill=green!8, draw=green!45},
+        datos/.style={bloque, fill=black!8, draw=black!35},
+        flecha/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, thick},
+        etiq/.style={font=\scriptsize, align=center}
+    ]
+
+    % Caja de contenedores (se dibuja primero para quedar por detrás)
+    \draw[dashed, rounded corners, draw=black!45] (2.9,-1.5) rectangle (13.8,1.5);
+    \node[font=\scriptsize\itshape, anchor=north east] at (13.8,2.05)
+        {Host con Docker · docker-compose};
+
+    % Nodos
+    \node[cliente]  (nav)   at (0,0)    {\textbf{Navegador}\\[2pt]Angular\\MediaPipe (WASM)};
+    \node[proxy]    (caddy) at (4.2,0)  {\textbf{Caddy}\\[2pt]Servidor web\\Proxy · HTTPS};
+    \node[servidor] (srv)   at (8.4,0)  {\textbf{Backend}\\[2pt]Spring Boot\\API REST};
+    \node[datos]    (bd)    at (12.4,0) {\textbf{MySQL}\\[2pt]Base de datos};
+
+    % Flechas
+    \draw[flecha] (nav) -- (caddy)
+        node[etiq, midway, above=1pt] {HTTPS}
+        node[etiq, midway, below=1pt] {SPA + /api};
+    \draw[flecha] (caddy) -- (srv)
+        node[etiq, midway, above=1pt] {/api}
+        node[etiq, midway, below=1pt] {(proxy)};
+    \draw[flecha] (srv) -- (bd)
+        node[etiq, midway, above=1pt] {SQL}
+        node[etiq, midway, below=1pt] {(JDBC)};
+
+    \end{tikzpicture}
+    \caption{Arquitectura de despliegue en contenedores. El navegador accede a
+    un único punto de entrada, Caddy, que sirve la aplicación de Angular y
+    reenvía las peticiones \texttt{/api} al backend; este persiste los datos en
+    MySQL. La estimación de pose se ejecuta en el propio navegador.}
+    \label{fig:arquitectura-contenedores}
+\end{figure}
+
+    
+
 
 % ─────────────────────── Capítulo 7 ──────────────────────────────────
 
@@ -3618,7 +3765,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.7\textwidth]{img/app-login-error.png}
+        \includegraphics[width=\textwidth]{img/app-login-error.png}
         \caption{Inicio de sesión con credenciales incorrectas: mensaje de error
         y resaltado de los campos afectados.}
         \label{fig:app-login-error}
@@ -4090,6 +4237,28 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \section{Resultados}
 
+    El conjunto de pruebas descrito confirma que el sistema se comporta conforme
+    a lo especificado en los distintos niveles de verificación. Las pruebas
+    funcionales y de integración recorrieron los flujos de autenticación,
+    catálogo, valoraciones y favoritos, completándose todos los casos con el
+    resultado esperado, tanto en los escenarios correctos como en los de error.
+    El módulo de corrección postural se validó en dos planos complementarios: las
+    pruebas unitarias garantizaron la corrección del cálculo geométrico y del
+    motor de puntuación, mientras que la validación sobre vídeo real confirmó que
+    la evaluación discrimina entre una ejecución técnicamente correcta y otra con
+    un error deliberado, y que las correcciones señaladas se corresponden con los
+    errores introducidos en cada uno de los cuatro ejercicios.
+
+    Esta misma validación delimitó de forma empírica las condiciones de uso de la
+    herramienta. Las grabaciones que se apartan de la vista de perfil o de un
+    rango de movimiento estándar, así como aquellas con iluminación deficiente,
+    degradan la estimación de pose; en esos casos el sistema no emite una
+    puntuación arbitraria, sino que rechaza la grabación o refleja la
+    degradación, un comportamiento coherente con las restricciones de alcance
+    declaradas en el diseño y con las recomendaciones que la propia interfaz
+    ofrece al usuario. El sistema cumple, en consecuencia, los objetivos
+    funcionales previstos dentro de las condiciones para las que fue concebido.
+
 
 % ─────────────────────── Capítulo 8 ──────────────────────────────────
 
@@ -4223,29 +4392,35 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \subsection{Seguridad y despliegue}
 
-    El sistema de autenticación implementado cumple su cometido en el entorno
-    de desarrollo, pero un despliegue real exigiría abordar tres cuestiones.
+    El sistema de autenticación implementado cumple su cometido. El despliegue
+    en contenedores aborda ya una de las cuestiones que un uso en producción
+    plantearía —el cifrado del canal—, mientras que las restantes quedan como
+    trabajo futuro.
 
-    La primera es el uso de un canal cifrado. Durante el desarrollo la
-    comunicación se realiza sobre HTTP, de modo que el token viaja en claro; y
-    dado que un token JWT va firmado pero no cifrado, cualquiera que lo
-    interceptase podría leer su contenido y reutilizarlo hasta su caducidad.
-    Esta circunstancia es precisamente la razón por la que el token no
-    incorpora ningún dato sensible más allá del nombre de usuario y su rol.
+    El cifrado del canal lo proporciona el propio despliegue: el proxy inverso
+    descrito en el Capítulo~\ref{cap:implementacion} sirve la aplicación sobre
+    HTTPS y renueva el certificado de forma automática. En el entorno de
+    desarrollo local, en cambio, la comunicación se realiza sobre HTTP y el
+    token viaja en claro; dado que un token JWT va firmado pero no cifrado,
+    cualquiera que lo interceptase en ese contexto podría leer su contenido y
+    reutilizarlo hasta su caducidad, circunstancia que es precisamente la razón
+    por la que el token no incorpora ningún dato sensible más allá del nombre de
+    usuario y su rol.
 
-    La segunda es la ausencia de un mecanismo de revocación. Al no mantenerse
+    Queda pendiente, en cambio, un mecanismo de revocación. Al no mantenerse
     ninguna sesión en el servidor, cerrar sesión se limita a eliminar el token
     del cliente, mientras que una copia sustraída seguiría siendo válida hasta
     expirar. La solución habitual combina una caducidad breve con un segundo
     token de renovación, planteamiento que excede el alcance de este trabajo.
 
-    La tercera afecta a la gestión de credenciales. La clave de firma se ha
-    extraído a una variable de entorno con un valor de desarrollo por defecto,
-    de manera que no figure en el repositorio. Conviene subrayar, no obstante,
-    que un secreto que haya llegado a registrarse en el historial de un sistema
-    de control de versiones permanece accesible en él aunque se elimine del
-    fichero, por lo que un despliegue real debe emplear una credencial nueva y
-    no la utilizada durante el desarrollo.
+    En cuanto a la gestión de credenciales, tanto la clave de firma de los
+    tokens como la contraseña de la base de datos se proporcionan mediante
+    variables de entorno, recogidas en un fichero que queda fuera del control de
+    versiones, de manera que ningún secreto figure en el repositorio. Conviene
+    subrayar, no obstante, que un secreto que haya llegado a registrarse en el
+    historial de un sistema de control de versiones permanece accesible en él
+    aunque se elimine del fichero, por lo que un despliegue real debe emplear
+    credenciales nuevas y no las utilizadas durante el desarrollo.
 
     A ello se añade que el registro de usuarios no verifica la titularidad del
     correo electrónico. La regla que limita a una la valoración por usuario y
@@ -4306,13 +4481,75 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \begin{umaappendices}
 
         \umaappendix{Seguimiento del proyecto en Jira}
-% Capturas del tablero, backlog y gráficos de sprint/burndown.
+    % Capturas del tablero, backlog y gráficos de sprint/burndown.
 
         \umaappendix{Manual de instalación y despliegue}
-% Requisitos previos, docker-compose, arranque de los servicios.
+
+        Este apéndice describe cómo poner en marcha el sistema completo, base de
+        datos, servidor y cliente, en cualquier máquina, así como las
+        consideraciones para un despliegue accesible desde Internet. Todo el proceso
+        se apoya en la contenerización descrita en el
+        Capítulo~\ref{cap:implementacion}, de modo que no requiere instalar
+        manualmente ninguna de las tecnologías empleadas.
+    
+        \section*{Requisitos previos}
+    
+        El único requisito para ejecutar el sistema es tener instalado
+        \textbf{Docker Desktop}, que incorpora Docker Compose. No es necesario
+        instalar Java, Node, Maven ni MySQL: cada componente se construye y ejecuta
+        dentro de su propio contenedor.
+    
+        \section*{Puesta en marcha}
+    
+        \begin{enumerate}
+            \item Obtener el código del proyecto y situarse en la carpeta raíz, la
+            que contiene el fichero \texttt{docker-compose.yml}.
+    
+            \item Crear el fichero de configuración \texttt{.env} a partir de la
+            plantilla \texttt{.env.example} incluida en el repositorio. En él deben
+            definirse la contraseña de la base de datos y, sobre todo, la clave de
+            firma de los tokens (\texttt{JWT\_SECRET}), que ha de ser una cadena
+            aleatoria de al menos 32 caracteres.
+    
+            \item Construir y arrancar los contenedores con la orden:
+            \begin{verbatim}
+            docker compose up -d --build
+            \end{verbatim}
+            La primera ejecución descarga las imágenes base y compila el proyecto,
+            por lo que puede tardar unos minutos.
+    
+            \item Acceder a la aplicación desde un navegador en la dirección
+            \texttt{http://localhost}.
+        \end{enumerate}
+    
+        Al arrancar sobre una base de datos vacía, el catálogo de ejercicios se
+        carga automáticamente y no existe ningún usuario, por lo que el primer paso
+        dentro de la aplicación es registrar una cuenta. El estado de los servicios
+        puede consultarse con \texttt{docker compose ps} y detenerse con
+        \texttt{docker compose down}; añadir la opción \texttt{-v} a esta última
+        orden elimina además los datos almacenados, dejando la base de datos limpia.
+    
+        \section*{Despliegue accesible desde Internet}
+    
+        Para exponer la aplicación en un servidor accesible desde Internet basta con
+        ejecutar el mismo \texttt{docker compose} en una máquina con Docker y con los
+        puertos 80 y 443 abiertos. Si en el fichero \texttt{.env} se asigna a la
+        variable \texttt{SITE\_ADDRESS} un nombre de dominio en lugar del valor local
+        por defecto, el proxy inverso obtiene y renueva automáticamente el
+        certificado necesario para servir la aplicación sobre HTTPS, sin
+        configuración adicional.
+    
+        \section*{Modo desarrollo}
+    
+        Para trabajar sobre el código con recarga en caliente se ejecuta únicamente
+        la base de datos en contenedor, mediante \texttt{docker compose up -d mysql},
+        y se arrancan por separado el backend, con Java~21 y Maven, y el frontend,
+        con Node y el servidor de desarrollo de Angular. En esta configuración el
+        cliente queda accesible en el puerto 4200 y el servidor en el 8080.
+        % Requisitos previos, docker-compose, arranque de los servicios.
 
         \umaappendix{Manual de usuario}
-% Registro, navegación por el catálogo, uso del análisis postural.
+    % Registro, navegación por el catálogo, uso del análisis postural.
 
     \end{umaappendices}
 
