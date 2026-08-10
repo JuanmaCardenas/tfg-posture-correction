@@ -238,9 +238,11 @@
         ejercicio.
         \item \textbf{Generación de feedback:} mostrar la puntuación global
         junto con mensajes de corrección y recomendaciones claras.
-        \item \textbf{Desarrollo full-stack:} diseñar e implementar una
-        arquitectura cliente-servidor con frontend en Angular y backend con
-        API REST, autenticación y persistencia de datos.
+        \item \textbf{Desarrollo full-stack:} diseñar e implementar la aplicación
+        completa, tanto la parte que se ejecuta en el navegador (el
+        \textit{frontend}, en Angular) como la del servidor (el \textit{backend},
+        con una API REST), incluyendo la autenticación y el almacenamiento de los
+        datos.
     \end{itemize}
 
 
@@ -248,61 +250,60 @@
     \label{subsec:metodologia}
     \subsection{Metodología incremental iterativa (ágil)}
 
-    El desarrollo de este proyecto sigue una metodología incremental iterativa,
-    basada en los principios ágiles y adaptada a un entorno de trabajo
-    individual. El trabajo se organiza en incrementos de corta duración, cada
-    uno de los cuales da lugar a una versión funcional parcial de la
-    aplicación, lo que permite evaluar el progreso de forma continua y validar
-    las decisiones de diseño adoptadas. Se parte de un \textit{product backlog}
-    inicial con las funcionalidades principales, descompuestas en tareas
-    priorizadas según su relevancia; cada incremento comienza por los
-    componentes básicos del sistema y evoluciona hacia funcionalidades más
-    complejas, como el análisis postural, revisándose al finalizar para
-    detectar errores de forma temprana.
+    El desarrollo de este proyecto siguió una metodología incremental e
+    iterativa, basada en los principios ágiles y adaptada a un entorno de trabajo
+    individual. El trabajo se organizó en incrementos de corta duración, y cada
+    uno dio lugar a una versión funcional parcial de la aplicación. Esto permitió
+    evaluar el progreso de forma continua y validar las decisiones de diseño
+    adoptadas. Se partió de una lista inicial con las funcionalidades principales
+    (el \textit{product backlog}), descompuestas en tareas priorizadas según su
+    relevancia. Cada incremento comenzó por los componentes básicos del sistema y
+    evolucionó hacia funcionalidades más complejas, como el análisis postural,
+    revisándose al finalizar para detectar errores de forma temprana.
 
     \subsection{Gestión con Jira: backlog, sprints y tableros}
     \label{subsec:jira}
     
-    La gestión del proyecto se apoya en Jira como herramienta de planificación
-    y seguimiento. El trabajo se estructura en \textit{épicas}, cada una
+    La gestión del proyecto se apoyó en Jira como herramienta de planificación
+    y seguimiento. El trabajo se estructuró en \textit{épicas}, cada una
     correspondiente a un bloque funcional del sistema: arranque del entorno
-    (E0), gestión de usuarios (E1), catálogo de ejercicios (E2),
-    funcionalidades sociales (E3), corrección postural (E4) y pruebas y cierre
-    (E5), además de una épica específica para la redacción de la memoria. Cada
-    épica se descompone en \textit{historias} o tareas, que a su vez se
-    detallan a nivel diario para mantener objetivos pequeños y alcanzables.
-    
-    La planificación temporal se organiza en \textit{sprints} de una semana de
-    duración. Cada sprint agrupa las tareas de una épica que pueden completarse
+    (E0), gestión de usuarios (E1), catálogo de ejercicios (E2), funcionalidades
+    sociales (E3), corrección postural (E4) y pruebas y cierre (E5), además de
+    una épica específica para la redacción de la memoria. Cada épica se
+    descompuso en \textit{historias} o tareas, que a su vez se detallaron a nivel
+    diario para mantener objetivos pequeños y alcanzables.
+
+    La planificación temporal se organizó en \textit{sprints} de una semana de
+    duración. Cada sprint agrupó las tareas de una épica que podían completarse
     en ese periodo; las épicas más extensas, como la de corrección postural, se
-    reparten en varios sprints consecutivos. El avance de cada tarea se controla
-    mediante un tablero (\textit{board}) que refleja su estado, lo que
-    proporciona una visión continua del progreso y permite mantener un ritmo de
+    repartieron en varios sprints consecutivos. El avance de cada tarea se
+    controló mediante un tablero (\textit{board}) que reflejaba su estado, lo que
+    proporcionó una visión continua del progreso y ayudó a mantener un ritmo de
     trabajo constante. La Figura~\ref{fig:jira-cronograma} muestra el cronograma
     del proyecto en Jira, con la distribución de las épicas a lo largo del tiempo.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/jira-cronograma.png}
+        \includegraphics[width=0.9\textwidth]{img/jira-cronograma.png}
         \caption{Cronograma del proyecto en Jira, con las épicas y su planificación temporal.}
         \label{fig:jira-cronograma}
     \end{figure}
-    
-    Para clasificar el trabajo de forma transversal a las épicas se emplea un
+
+    Para clasificar el trabajo de forma transversal a las épicas se empleó un
     sistema de \textit{etiquetas} según el área técnica de cada tarea:
     \texttt{setup}, \texttt{infra}, \texttt{backend}, \texttt{frontend},
     \texttt{data}, \texttt{postural}, \texttt{design}, \texttt{testing} y
-    \texttt{memoria}. Esto facilita filtrar y consultar el trabajo por tipo de
-    actividad con independencia del sprint en que se realice.
-    
-    Por último, se definen dos épicas de apoyo. La épica \textit{Hitos} recoge
-    las fechas de vencimiento clave del proyecto (aplicación funcionalmente
-    completa, entrega de la memoria al tutor, solicitud de defensa y defensa),
-    que actúan como puntos de control fijos. La épica \textit{Diario} materializa
-    la estrategia de documentación incremental: cada entrada registra una
-    decisión, un resultado o una incidencia y se anota con el capítulo de la
-    memoria al que alimenta, de modo que la memoria crece en paralelo al
-    desarrollo en lugar de redactarse íntegramente al final.
+    \texttt{memoria}. Esto facilitó filtrar y consultar el trabajo por tipo de
+    actividad con independencia del sprint en que se realizara.
+
+    Por último, se definieron dos épicas de apoyo. La épica \textit{Hitos}
+    recogió las fechas de vencimiento clave del proyecto (aplicación
+    funcionalmente completa, entrega de la memoria al tutor, solicitud de defensa
+    y defensa), que actuaron como puntos de control fijos. La épica
+    \textit{Diario} materializó la estrategia de documentación incremental: cada
+    entrada registraba una decisión, un resultado o una incidencia y se anotaba
+    con el capítulo de la memoria al que alimentaba, de modo que la memoria
+    creció en paralelo al desarrollo en lugar de redactarse íntegramente al final.
 
 
     \section{Estructura de la memoria}
@@ -431,25 +432,25 @@
     
     \section{Frontend: Angular y SCSS}
 
-    La interfaz de usuario se desarrolla con Angular~\cite{angular}, un
+    La interfaz de usuario se desarrolló con Angular~\cite{angular}, un
     \textit{framework} de código abierto para la construcción de aplicaciones
-    web de página única (\textit{SPA}) basado en TypeScript. Se emplea su modelo
+    web de página única (\textit{SPA}) basado en TypeScript. Se empleó su modelo
     de componentes \textit{standalone} y su sistema de reactividad basado en
     \textit{signals}, valores que notifican automáticamente los cambios a quienes
     los consultan, lo que permite gestionar el estado de la interfaz sin recurrir
-    a una biblioteca externa de gestión de estado. Para los estilos se utiliza
+    a una biblioteca externa de gestión de estado. Para los estilos se utilizó
     SCSS~\cite{scss}, una extensión de CSS que aporta variables y anidamiento y
     facilita la definición de un sistema de diseño coherente.
     
     \section{Backend: Spring Boot, API REST y JWT}
     
-    El servidor se implementa con Spring Boot~\cite{springboot}, un framework de Java que agiliza
+    El servidor se implementó con Spring Boot~\cite{springboot}, un framework de Java que agiliza
     la creación de aplicaciones y servicios web. Expone una API REST que
     comunica el frontend con la lógica de negocio mediante peticiones HTTP en
-    formato JSON. La seguridad se gestiona con Spring Security~\cite{springsecurity} y autenticación
+    formato JSON. La seguridad se gestionó con Spring Security~\cite{springsecurity} y autenticación
     basada en JSON Web Tokens (JWT)~\cite{jwt}, que permiten un control de acceso sin
     estado en el servidor. La gestión de dependencias y la construcción del
-    proyecto se realizan con Maven~\cite{maven}, y se emplea Lombok~\cite{lombok} para reducir código
+    proyecto se realizaron con Maven~\cite{maven}, y se empleó Lombok~\cite{lombok} para reducir código
     repetitivo en las clases del modelo. Para probar los endpoints de la API
     de forma aislada durante el desarrollo, sin depender del frontend,
     se ha utilizado Postman~\cite{postman}, una herramienta para construir y examinar peticiones HTTP.
@@ -466,10 +467,10 @@
 
     El módulo de corrección postural se apoya en MediaPipe~\cite{mediapipe}, una biblioteca de
     Google para la aplicación de modelos de aprendizaje automático sobre
-    imagen y vídeo. De su conjunto de soluciones se emplea la tarea
+    imagen y vídeo. De su conjunto de soluciones se empleó la tarea
     \texttt{PoseLandmarker}, que detecta treinta y tres puntos clave del cuerpo
     humano (\textit{landmarks}) a partir de cada fotograma, cada uno con sus
-    coordenadas y un valor de confianza. Se utiliza el paquete
+    coordenadas y un valor de confianza. Se utilizó el paquete
     \texttt{@mediapipe/tasks-vision}, integrado en el proyecto de Angular como
     una dependencia más.
 
@@ -496,12 +497,12 @@
     
     \section{Entorno de desarrollo, control de versiones y gestión de tareas}
     
-    El desarrollo se lleva a cabo en el IDE IntelliJ IDEA. El control de
-    versiones con Git~\cite{git}, utilizando GitHub como repositorio remoto,
-    organizado como un monorepo que agrupa el frontend, el backend y la
-    documentación en un único proyecto. La planificación y el seguimiento de las
-    tareas se realizan con Jira, tal como se describe en la
-    Sección~\ref{subsec:metodologia} (metodología y gestión del proyecto).
+    El desarrollo se llevó a cabo en el entorno de desarrollo IntelliJ IDEA. El
+    control de versiones se gestionó con Git~\cite{git}, utilizando GitHub como
+    repositorio remoto y organizando el código como un \textit{monorepo}: un
+    único repositorio que agrupa el frontend, el backend y la documentación en un
+    mismo proyecto. La planificación y el seguimiento de las tareas se realizaron
+    con Jira, tal como se describe en la Sección~\ref{subsec:metodologia}.
 
     El diseño de la interfaz se ha elaborado previamente con Figma, una
     herramienta de diseño y prototipado que permite definir un sistema de
@@ -548,9 +549,9 @@
     \end{table}
 
     Conviene precisar el alcance del requisito RF-11 en relación con el
-    RNF-02. El historial almacena únicamente el resultado del análisis la
-    puntuación obtenida, el ejercicio evaluado y la fecha, nunca el vídeo
-    empleado, que se procesa en el navegador y no se transmite en ningún
+    RNF-02. El historial almacena únicamente el resultado del análisis
+    (la puntuación obtenida, el ejercicio evaluado y la fecha),
+    nunca el vídeo empleado, que se procesa en el navegador y no se transmite en ningún
     momento al servidor. Ambos requisitos son, por tanto, compatibles.
     
     \section{Requisitos no funcionales}
@@ -661,36 +662,38 @@
     La Figura~\ref{fig:casos-uso} representa gráficamente estos casos y su
     relación con los actores.
 
-    \begin{figure}[htbp]
+\begin{figure}[htbp]
         \centering
         \begin{tikzpicture}[
             font=\footnotesize,
-            uc/.style={draw, ellipse, align=center, minimum width=64mm,
-                       minimum height=8mm, inner sep=2pt, text width=54mm},
+            uc/.style={draw, ellipse, align=center, font=\scriptsize,
+                       minimum width=62mm, minimum height=7mm,
+                       inner sep=2pt, text width=50mm},
             rel/.style={draw, thin}
         ]
-
         % ─── Límite del sistema ───
-        \draw[rounded corners=3pt] (0.3, 0.95) rectangle (8.7, -13.9);
-        \node[font=\small\bfseries] at (4.5, 0.45) {PoseCoach};
-
+        \draw[rounded corners=3pt] (0.3, 0.95) rectangle (8.7, -15.4);
+        \node[font=\small\bfseries] at (4.5, 0.5) {PoseCoach};
         % ─── Casos de uso ───
-        \node[uc] (cu01) at (4.5,  -0.50) {CU-01 · Registrarse en la aplicación};
-        \node[uc] (cu02) at (4.5,  -1.55) {CU-02 · Iniciar sesión};
-        \node[uc] (cu03) at (4.5,  -2.60) {CU-03 · Cerrar sesión};
-        \node[uc] (cu04) at (4.5,  -3.65) {CU-04 · Consultar y modificar el perfil propio};
-        \node[uc] (cu05) at (4.5,  -4.70) {CU-05 · Consultar el catálogo de ejercicios};
-        \node[uc] (cu06) at (4.5,  -5.75) {CU-06 · Buscar y filtrar ejercicios};
-        \node[uc] (cu07) at (4.5,  -6.80) {CU-07 · Consultar el detalle de un ejercicio};
-        \node[uc] (cu08) at (4.5,  -7.85) {CU-08 · Valorar un ejercicio};
-        \node[uc] (cu09) at (4.5,  -8.90) {CU-09 · Comentar un ejercicio};
-        \node[uc] (cu10) at (4.5,  -9.95) {CU-10 · Consultar las valoraciones de un ejercicio};
-        \node[uc] (cu11) at (4.5, -11.00) {CU-11 · Marcar y desmarcar un ejercicio como favorito};
-        \node[uc] (cu12) at (4.5, -12.05) {CU-12 · Consultar los ejercicios favoritos};
-        \node[uc] (cu13) at (4.5, -13.10) {CU-13 · Analizar la técnica de ejecución};
-
+        \foreach [count=\i from 0] \txt/\id in {%
+            {CU-01 · Registrarse en la aplicación}/cu01,
+            {CU-02 · Iniciar sesión}/cu02,
+            {CU-03 · Cerrar sesión}/cu03,
+            {CU-04 · Consultar y modificar el perfil propio}/cu04,
+            {CU-05 · Consultar el catálogo de ejercicios}/cu05,
+            {CU-06 · Buscar y filtrar ejercicios}/cu06,
+            {CU-07 · Consultar el detalle de un ejercicio}/cu07,
+            {CU-08 · Valorar un ejercicio}/cu08,
+            {CU-09 · Comentar un ejercicio}/cu09,
+            {CU-10 · Consultar las valoraciones de un ejercicio}/cu10,
+            {CU-11 · Marcar y desmarcar un ejercicio como favorito}/cu11,
+            {CU-12 · Consultar los ejercicios favoritos}/cu12,
+            {CU-13 · Analizar la técnica de ejecución}/cu13%
+        }{%
+            \node[uc] (\id) at (4.5, {-0.5 - \i*1.2}) {\txt};
+        }
         % ─── Actor: visitante ───
-        \begin{scope}[shift={(-2.6,-1.00)}]
+        \begin{scope}[shift={(-2.6,-1.10)}]
             \draw (0, 0.60) circle (0.17);
             \draw (0, 0.43) -- (0,-0.05);
             \draw (-0.27, 0.27) -- (0.27, 0.27);
@@ -698,10 +701,9 @@
             \draw (0,-0.05) -- ( 0.21,-0.44);
             \node[align=center, font=\footnotesize\bfseries] at (0,-0.80) {Visitante};
         \end{scope}
-        \coordinate (av) at (-2.05,-1.00);
-
+        \coordinate (av) at (-2.05,-1.10);
         % ─── Actor: usuario registrado ───
-        \begin{scope}[shift={(-2.6,-7.85)}]
+        \begin{scope}[shift={(-2.6,-8.90)}]
             \draw (0, 0.60) circle (0.17);
             \draw (0, 0.43) -- (0,-0.05);
             \draw (-0.27, 0.27) -- (0.27, 0.27);
@@ -710,16 +712,13 @@
             \node[align=center, font=\footnotesize\bfseries] at (0,-0.90)
                  {Usuario\\registrado};
         \end{scope}
-        \coordinate (au) at (-2.05,-7.85);
-
+        \coordinate (au) at (-2.05,-8.90);
         % ─── Asociaciones del visitante ───
         \draw[rel] (av) -- (cu01.west);
         \draw[rel] (av) -- (cu02.west);
-
         % ─── Asociaciones del usuario registrado ───
         \foreach \c in {cu03,cu04,cu05,cu06,cu07,cu08,cu09,cu10,cu11,cu12,cu13}
             \draw[rel] (au) -- (\c.west);
-
         \end{tikzpicture}
         \caption{Diagrama de casos de uso del sistema.}
         \label{fig:casos-uso}
@@ -1045,7 +1044,7 @@
         \label{tab:entidad-favorite}
     \end{table}
 
-    La sexta y última entidad, \texttt{AnalysisResult}, registra el resultado de
+    La quinta y última entidad, \texttt{AnalysisResult}, registra el resultado de
     cada análisis postural y da soporte al historial del requisito RF-11. Sus
     atributos se recogen en la Tabla~\ref{tab:entidad-analysis}.
 
@@ -1066,15 +1065,15 @@
         \label{tab:entidad-analysis}
     \end{table}
 
-    Esta entidad almacena deliberadamente el mínimo de información ---la
-    puntuación, el ejercicio y la fecha---, y nunca el vídeo ni las correcciones
+    Esta entidad almacena deliberadamente el mínimo de información (la puntuación,
+    el ejercicio y la fecha) y nunca el vídeo ni las correcciones
     detalladas. No es una simplificación por conveniencia, sino una consecuencia
     del requisito RNF-02: las correcciones solo tienen sentido mientras el vídeo
     permanece cargado en el navegador y, como este nunca se transmite ni se
     almacena, conservarlas produciría una lista de avisos que apuntarían a
-    instantes de un vídeo inexistente. El historial se concibe así como un resumen
-    ---qué ejercicio se analizó, con qué puntuación y cuándo---, lo único cuya
-    persistencia resulta coherente con el procesamiento local del vídeo.
+    instantes de un vídeo inexistente. El historial se concibe así como
+    un resumen de qué ejercicio se analizó, con qué puntuación y cuándo:
+    lo único cuya persistencia resulta coherente con el procesamiento local del vídeo.
 
     La decisión de diseño más relevante de este modelo es que los requisitos
     RF-05 y RF-06, que el enunciado presenta como funcionalidades separadas, se
@@ -1127,13 +1126,51 @@
     cómo se hace sin penalizar el rendimiento del listado.
 
     La Figura~\ref{fig:modelo-datos} resume el modelo de datos completo, con
-    las seis entidades del sistema y las relaciones entre ellas.
+    las cinco entidades del sistema y las relaciones entre ellas.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/modelo-datos.png}
-        \caption{Modelo de datos del sistema, con las entidades del catálogo,
-        de usuarios y del módulo social.}
+        \begin{tikzpicture}[
+            font=\scriptsize,
+            ent/.style={draw, rounded corners, align=left, inner sep=4pt,
+                        fill=black!4, text width=32mm},
+            rel/.style={thick},
+            mult/.style={font=\scriptsize, fill=white, inner sep=1.5pt}
+        ]
+
+        % --- Entidades padre ---
+        \node[ent] (user) at (0,0) {%
+            {\small\bfseries User}\\[2pt]
+            \underline{id}\\ username\\ email\\ password\\ role\\ createdAt};
+        \node[ent] (ex) at (10,0) {%
+            {\small\bfseries Exercise}\\[2pt]
+            \underline{id}\\ name\\ description\\ muscleGroups\\ difficulty\\
+            youtubeVideoId\\ tips\\ analysisType\\ createdAt};
+
+        % --- Entidades hijas ---
+        \node[ent] (rev) at (5, 3.4) {%
+            {\small\bfseries Review}\\[2pt]
+            \underline{id}\\ \textit{user}\\ \textit{exercise}\\ score\\
+            content\\ createdAt\\ updatedAt};
+        \node[ent] (fav) at (5, 0) {%
+            {\small\bfseries Favorite}\\[2pt]
+            \underline{id}\\ \textit{user}\\ \textit{exercise}\\ createdAt};
+        \node[ent] (ana) at (5, -3.4) {%
+            {\small\bfseries AnalysisResult}\\[2pt]
+            \underline{id}\\ \textit{user}\\ \textit{exercise}\\ score\\ createdAt};
+
+        % --- Relaciones muchos-a-uno (hijo N -- 1 padre) ---
+        \foreach \c in {rev,fav,ana}{%
+            \draw[rel] (\c.west) -- (user.east)
+                node[mult, near start]{N} node[mult, near end]{1};
+            \draw[rel] (\c.east) -- (ex.west)
+                node[mult, near start]{N} node[mult, near end]{1};
+        }
+
+        \end{tikzpicture}
+        \caption{Modelo de datos del sistema: las entidades y sus relaciones de
+        muchos a uno. La clave primaria aparece subrayada y las claves ajenas en
+        cursiva.}
         \label{fig:modelo-datos}
     \end{figure}
 
@@ -1522,10 +1559,9 @@
 
     La aplicación se organiza en un conjunto de vistas, cada una asociada a una
     ruta y a un nivel de acceso, público o privado. Las vistas privadas requieren
-    un token JWT válido, comprobado en el cliente mediante un \textit{guard} ---un
-    control que actúa como portero de la ruta--- y revalidado siempre en el
-    servidor. La Tabla~\ref{tab:vistas-e1} recoge las vistas del módulo de
-    autenticación.
+    un token JWT válido, comprobado en el cliente mediante un \textit{guard}
+    (un control que actúa como portero de la ruta) y revalidado siempre en el servidor.
+    La Tabla~\ref{tab:vistas-e1} recoge las vistas del módulo de autenticación.
 
     \begin{table}[htbp]
         \centering
@@ -1568,15 +1604,14 @@
     la vista de favoritos, por lo que se diseñó como un componente independiente.
     Tanto el control de favorito como la valoración media se contemplaron desde el
     primer diseño de la tarjeta, aun correspondiendo a una fase posterior, para no
-    tener que rediseñarla al incorporarlos. La vista contempla además tres
-    situaciones al margen del listado con resultados ---la espera de datos, el
-    fallo de comunicación (que ofrece reintentar) y la ausencia de resultados---,
-    distinguiendo en este último caso entre un catálogo vacío y unos filtros sin
-    coincidencias, ya que la acción esperada del usuario difiere.
+    tener que rediseñarla al incorporarlos. La vista contempla además tres situaciones
+    al margen del listado con resultados: la espera de datos, el fallo de comunicación
+    (que ofrece reintentar) y la ausencia de resultados; en este último caso distingue
+    entre un catálogo vacío y unos filtros sin coincidencias, ya que la acción esperada del usuario difiere.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-catalogo.png}
+        \includegraphics[width=0.9\textwidth]{img/mockup-catalogo.png}
         \caption{Maqueta de la vista de catálogo, con la barra de filtros y la
         rejilla de tarjetas.}
         \label{fig:mockup-catalogo}
@@ -1591,7 +1626,7 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-detalle.png}
+        \includegraphics[width=0.9\textwidth]{img/mockup-detalle.png}
         \caption{Maqueta de la vista de detalle de un ejercicio.}
         \label{fig:mockup-detalle}
     \end{figure}
@@ -1625,16 +1660,16 @@
     ampliable sin sustituir los ya mostrados. Cuando el usuario ya ha valorado, el
     formulario se muestra con sus valores y su comentario encabeza el listado,
     señalado como propio. Las acciones de editar y eliminar se sitúan en el
-    formulario, y no junto al comentario destacado, por dos motivos: la
-    eliminación afecta a la valoración completa ---estrellas incluidas--- y un
-    usuario que puntúe sin comentar no genera comentario alguno al que anclarlas.
+    formulario, y no junto al comentario destacado, por dos motivos: la eliminación afecta
+    a la valoración completa (estrellas incluidas) y un usuario que puntúe sin comentar
+    no genera comentario alguno al que anclarlas.
     Cada comentario se identifica por el nombre de su autor, un avatar con sus
     iniciales y la antigüedad relativa de la publicación, y se marca como editado
     cuando procede.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-valoraciones.png}
+        \includegraphics[width=0.9\textwidth]{img/mockup-valoraciones.png}
         \caption{Maqueta de la pestaña de valoraciones de un ejercicio.}
         \label{fig:mockup-valoraciones}
     \end{figure}
@@ -1642,9 +1677,9 @@
     La vista de ejercicios favoritos reutiliza íntegramente la rejilla y la barra
     de filtros del catálogo. La barra solo aparece a partir de dos ejercicios
     guardados, ya que filtrar un único elemento carece de utilidad. Como en el
-    catálogo, distingue dos listados vacíos que no deben confundirse: la ausencia
-    de favoritos ---que explica el marcado y ofrece un acceso directo al
-    catálogo--- y la ausencia de coincidencias con un filtro activo, que invita a
+    catálogo, distingue dos listados vacíos que no deben confundirse: la ausencia de favoritos
+    (que explica el marcado y ofrece un acceso directo al catálogo) y la ausencia de coincidencias
+    con un filtro activo, que invita a
     modificar los criterios y no a abandonar la vista. Al retirar un favorito
     desde esta vista, su tarjeta desaparece de inmediato del listado: se descartó
     mantenerla visible hasta la siguiente carga porque una pantalla titulada «mis
@@ -1726,32 +1761,17 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-home.png}
-        \caption{Maqueta de la página de presentación (usuario no autenticado).}
-        \label{fig:mockup-home}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-login.png}
-        \caption{Maqueta de la pantalla de inicio de sesión.}
-        \label{fig:mockup-login}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-registro.png}
-        \caption{Maqueta de la pantalla de registro, con los indicadores de
-        cumplimiento de la política de contraseña.}
-        \label{fig:mockup-registro}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-perfil.png}
-        \caption{Maqueta del perfil de usuario, con el menú de cuenta
-        desplegado.}
-        \label{fig:mockup-perfil}
+        \includegraphics[width=0.31\textwidth]{img/mockup-home.png}\hfill
+        \includegraphics[width=0.31\textwidth]{img/mockup-dashboard.png}\hfill
+        \includegraphics[width=0.31\textwidth]{img/mockup-login.png}\\[6pt]
+        \includegraphics[width=0.31\textwidth]{img/mockup-registro.png}\hfill
+        \includegraphics[width=0.31\textwidth]{img/mockup-perfil.png}\hfill
+        \makebox[0.31\textwidth]{}
+        \caption{Maquetas de las pantallas de acceso e inicio. De izquierda a
+        derecha y de arriba abajo: página de presentación, página de inicio con
+        sesión, inicio de sesión, registro (con los indicadores de la política de
+        contraseña) y perfil.}
+        \label{fig:mockup-acceso}
     \end{figure}
 
 
@@ -1809,6 +1829,9 @@
         \draw[flecha] (reglas)  -- (nota)    node[etiq, midway, right=2mm] {nota 0--100};
 
         \end{tikzpicture}
+        \caption{Etapas del análisis postural, desde el vídeo local hasta la
+        puntuación y las correcciones.}
+        \label{fig:pipeline-postural}
     \end{figure}
 
     Esta organización por etapas cumple una función que va más allá de lo
@@ -2086,9 +2109,9 @@
     del ángulo del codo, cuya relevancia biomecánica en este ejercicio ha sido
     estudiada mediante electromiografía por \textcite{sanjuan2015}. Su técnica se
     descompone en la profundidad de la bajada, la extensión completa al subir y
-    el mantenimiento de una alineación corporal recta ---este último criterio
-    apoyado, como en la plancha, en la neutralidad de la columna de
-    \textcite{mcgill2015}---. El umbral de profundidad de $90^\circ$ de codo
+    el mantenimiento de una alineación corporal recta. Este último criterio se apoya,
+    como en la plancha, en la neutralidad de la columna de \textcite{mcgill2015}.
+    El umbral de profundidad de $90^\circ$ de codo
     constituye una operativización propia del criterio habitual de bajar hasta
     que el pecho se aproxima al suelo. La Tabla~\ref{tab:reglas-flexion} recoge
     sus reglas.
@@ -2112,9 +2135,9 @@
     \end{table}
 
     La \textbf{zancada} comparte fundamento biomecánico con la sentadilla, al
-    tratarse igualmente de una flexión de la rodilla, por lo que sus reglas se
-    apoyan en las mismas referencias ---\textcite{escamilla2001} y
-    \textcite{han2017}---. La diferencia técnica principal reside en el tronco,
+    tratarse igualmente de una flexión de la rodilla, por lo que sus reglas
+    se apoyan en las mismas referencias: \textcite{escamilla2001} y \textcite{han2017}.
+    La diferencia técnica principal reside en el tronco,
     que en la zancada debe mantenerse más erguido que en la sentadilla, dado que
     la posición escalonada de los pies desplaza el centro de gravedad y reduce la
     inclinación necesaria; el umbral más estricto de $25^\circ$ es una
@@ -2176,14 +2199,14 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-analisis-dropzone.png}
+        \includegraphics[width=0.9\textwidth]{img/mockup-analisis-dropzone.png}
         \caption{Maqueta de la selección del vídeo para el análisis postural.}
         \label{fig:mockup-analisis-dropzone}
     \end{figure}
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/mockup-analisis-resultados.png}
+        \includegraphics[width=0.9\textwidth]{img/mockup-analisis-resultados.png}
         \caption{Maqueta de la vista de resultados del análisis, con la
         puntuación y las correcciones.}
         \label{fig:mockup-analisis-resultados}
@@ -2231,7 +2254,7 @@
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/spike-mediapipe.png}
+        \includegraphics[width=0.9\textwidth]{img/spike-mediapipe.png}
         \caption{Prueba de concepto de estimación de pose en el navegador:
         detección de los puntos clave del cuerpo y cálculo del ángulo de la
         rodilla sobre un vídeo local.}
@@ -2298,7 +2321,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.85\textwidth]{img/tabla-user-creacion.png}
+        \includegraphics[width=0.9\textwidth]{img/tabla-user-creacion.png}
         \caption{Estructura de la tabla \texttt{users} generada por Hibernate,
         verificada con \texttt{DESCRIBE users} en MySQL.}
         \label{fig:tabla-user-creacion}
@@ -2331,8 +2354,8 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     sistema. Almacenarla en texto plano supondría un riesgo grave: si la base de
     datos se viera comprometida, todas las credenciales quedarían expuestas. Por
     ello se emplea BCrypt, una función de \textit{hash} diseñada específicamente
-    para contraseñas. BCrypt es unidireccional, esto quiere decir que no permite recuperar la
-    contraseña original a partir del \textit{hash}, incorpora una \textit{sal}
+    para contraseñas.BCrypt es unidireccional (no permite recuperar la contraseña
+    original a partir del \textit{hash}), incorpora una \textit{sal}
     (\textit{salt}) aleatoria que evita que dos contraseñas iguales produzcan el
     mismo resultado, y su coste de cálculo es ajustable, lo que la hace
     resistente a ataques de fuerza bruta. En la aplicación, el cifrado se realiza
@@ -2362,9 +2385,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     necesario definir una configuración explícita (\texttt{SecurityConfig}) que
     declara públicas las rutas bajo \texttt{/api/auth/**} y mantiene protegidas
     el resto. Además, al tratarse de una API REST sin estado, se deshabilitó la
-    protección CSRF, cuyo propósito es evitar peticiones fraudulentas en
-    formularios con sesión, no aplica en este modelo y, de mantenerse activa,
-    bloquea las peticiones POST. La ausencia inicial de esta configuración se
+    protección CSRF. Su propósito, evitar peticiones fraudulentas en formularios
+    con sesión, no aplica en este modelo y, de mantenerse activa,
+    bloquearía las peticiones POST. La ausencia inicial de esta configuración se
     manifestó como respuestas \texttt{403 Forbidden}, lo que permitió identificar
     y corregir el problema durante la puesta en marcha.
 
@@ -2383,25 +2406,18 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     si es válido, establece la identidad del usuario en el contexto de seguridad de
     Spring. La configuración es \textit{stateless} y deja públicas únicamente las
     rutas de autenticación. Se comprobó accediendo a una ruta protegida
-    (\texttt{GET /api/users/me}) sin token, que el servidor rechaza
-    (Figura~\ref{fig:ruta-sin-token}), y con el token del inicio de sesión, que el
-    servidor autoriza devolviendo los datos del usuario
-    (Figura~\ref{fig:ruta-con-token}).
+    (\texttt{GET /api/users/me}) sin token, que el servidor rechaza, y con el
+    token del inicio de sesión, que el servidor autoriza devolviendo los datos
+    del usuario (Figura~\ref{fig:acceso-token}).
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.9\textwidth]{img/ruta-sin-token.png}
-        \caption{Acceso a una ruta protegida sin token: el servidor deniega la
-        petición.}
-        \label{fig:ruta-sin-token}
-    \end{figure}
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{img/ruta-con-token.png}
-        \caption{Acceso a la misma ruta presentando un token JWT válido: el
-        servidor autoriza y devuelve los datos del usuario.}
-        \label{fig:ruta-con-token}
+        \includegraphics[width=0.48\textwidth]{img/ruta-sin-token.png}\hfill
+        \includegraphics[width=0.48\textwidth]{img/ruta-con-token.png}
+        \caption{Acceso a una ruta protegida: a la izquierda se deniega la
+        petición sin token; a la derecha se autoriza presentando un token JWT
+        válido, devolviendo los datos del usuario.}
+        \label{fig:acceso-token}
     \end{figure}
 
     La integración con el cliente web exigió dos ajustes adicionales en la
@@ -2415,8 +2431,8 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     desarrollo: en el despliegue con contenedores, donde cliente y servidor
     comparten un mismo origen tras el proxy inverso, la comprobación de origen deja
     de intervenir. El segundo ajuste corrige el código de estado ante un token
-    inválido o caducado: Spring Security respondía por omisión \texttt{403
-    Forbidden} ---que indica falta de permisos--- cuando el problema real es que el
+    inválido o caducado: Spring Security respondía por omisión \texttt{403 Forbidden},
+    que indica falta de permisos, cuando el problema real es que el
     usuario no ha podido identificarse; se implementó un punto de entrada de
     autenticación que responde \texttt{401 Unauthorized} con un mensaje coherente
     con el resto de la API, de modo que el cliente distingue una sesión expirada de
@@ -2468,7 +2484,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     el código de cada pantalla se descarga únicamente cuando el usuario navega
     hasta ella, en lugar de incluirse en el paquete inicial. Esto reduce el
     tiempo de carga de la aplicación, una consideración especialmente relevante
-    en un proyecto que incorporará el modelo de estimación de pose de MediaPipe.
+    en un proyecto que incorpora el modelo de estimación de pose de MediaPipe.
 
     El acceso a las vistas privadas se controla mediante un \textit{guard} de
     ruta, una función que Angular ejecuta antes de activar una ruta y que
@@ -2483,13 +2499,6 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     abordadas más adelante: recibió parte de sus datos con el módulo de
     valoraciones y favoritos, y su composición definitiva se completó con el de
     corrección postural, del que procede el resumen de análisis recientes.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/mockup-dashboard.png}
-        \caption{Maqueta de la página de inicio con sesión iniciada.}
-        \label{fig:mockup-dashboard}
-    \end{figure}
 
     \subsection{Formularios y validación en el cliente}
 
@@ -2602,9 +2611,8 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     componente una sola vez garantiza que todos los avisos de la aplicación
     compartan apariencia y comportamiento, y que cualquier modificación futura
     se propague automáticamente a todas las pantallas que lo emplean. Su diseño
-    se ha planteado teniendo en cuenta que el módulo de corrección postural
-    necesitará mostrar las correcciones detectadas empleando precisamente esos
-    tres niveles de gravedad.
+    se ha planteado teniendo en cuenta que el módulo de corrección postural necesita
+    mostrar las correcciones detectadas empleando precisamente esos tres niveles de gravedad.
 
     De forma análoga, los estilos comunes a los formularios (campos, etiquetas,
     ayudas, mensajes de error y botones) se han definido a nivel global a partir
@@ -2649,7 +2657,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.85\textwidth]{img/tabla-exercise-creacion.png}
+        \includegraphics[width=0.9\textwidth]{img/tabla-exercise-creacion.png}
         \caption{Estructura de las tablas del catálogo generadas por Hibernate,
         verificada en MySQL.}
         \label{fig:tabla-exercise-creacion}
@@ -2666,15 +2674,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     previamente si el catálogo contiene ya algún ejercicio; solo si está vacío
     procede a la inserción. El resultado es una carga idempotente: la
     aplicación puede arrancarse cuantas veces sea necesario sin alterar los
-    datos existentes, como refleja la Figura~\ref{fig:carga-catalogo}.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.85\textwidth]{img/carga-catalogo.png}
-        \caption{Trazas de la carga inicial del catálogo en el primer arranque
-        y de su omisión en arranques posteriores.}
-        \label{fig:carga-catalogo}
-    \end{figure}
+    datos existentes.
 
     \subsection{Consulta de filtrado y paginación}
 
@@ -2742,12 +2742,16 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     tarjeta de ejercicio y la barra de filtros, ambos concebidos para emplearse
     también en la vista de ejercicios favoritos. La página se limita a
     coordinarlos y a gestionar la comunicación con la API. La
-    Figura~\ref{fig:catalogo-implementado} muestra el resultado.
+    parte derecha de la Figura~\ref{fig:catalogo-implementado} recoge esos
+    filtros activos y su reflejo en la dirección.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/catalogo-implementado.png}
-        \caption{Vista de catálogo con el conjunto completo de ejercicios.}
+        \includegraphics[width=0.48\textwidth]{img/catalogo-implementado.png}\hfill
+        \includegraphics[width=0.48\textwidth]{img/catalogo-filtrado.png}
+        \caption{Vista de catálogo: a la izquierda, el conjunto completo de
+        ejercicios; a la derecha, filtrado por grupo muscular y dificultad, con
+        los criterios reflejados en la dirección del navegador.}
         \label{fig:catalogo-implementado}
     \end{figure}
 
@@ -2771,17 +2775,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     sobre todo, sobrevive a la navegación hacia el detalle de un ejercicio y de
     vuelta al listado. Los valores recibidos por esta vía se contrastan con los
     admitidos antes de emplearse, de modo que una dirección manipulada
-    manualmente no llega a generar una petición no válida al servidor. La
-    Figura~\ref{fig:catalogo-filtrado} muestra el catálogo con varios filtros
-    activos y su reflejo en la dirección.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/catalogo-filtrado.png}
-        \caption{Catálogo filtrado por grupo muscular y dificultad, con los
-        criterios reflejados en la dirección del navegador.}
-        \label{fig:catalogo-filtrado}
-    \end{figure}
+    manualmente no llega a generar una petición no válida al servidor.
 
     \subsection{Vista de detalle y vídeo embebido}
 
@@ -2791,16 +2785,18 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     aquellos ejercicios cuyo atributo \texttt{analysisType} tiene valor, lo que
     permite verificar desde ya el comportamiento condicional de la interfaz.
 
-    La Figura~\ref{fig:detalle-sin-analisis} muestra el detalle de un ejercicio
-    sin analizador asociado, en el que la pestaña correspondiente no aparece,
-    en contraste con la Figura~\ref{fig:detalle-implementado}.
+    La Figura~\ref{fig:detalle} contrasta el detalle de un ejercicio sin
+    analizador asociado, en el que la pestaña de análisis no aparece, con el de
+    un ejercicio analizable.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/detalle-sin-analisis.png}
-        \caption{Detalle de un ejercicio sin analizador postural asociado,
-        donde la pestaña de análisis no se muestra.}
-        \label{fig:detalle-sin-analisis}
+        \includegraphics[width=0.48\textwidth]{img/detalle-sin-analisis.png}\hfill
+        \includegraphics[width=0.48\textwidth]{img/detalle-implementado.png}
+        \caption{Vista de detalle: a la izquierda, un ejercicio sin analizador
+        (sin pestaña de análisis); a la derecha, uno analizable, con el vídeo
+        demostrativo, la descripción y los consejos.}
+        \label{fig:detalle}
     \end{figure}
 
     La reproducción del vídeo se realiza mediante un marco embebido. Angular
@@ -2817,16 +2813,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     seguimiento hasta que el usuario inicia la reproducción. Esta elección es
     coherente con el requisito no funcional RNF-02, que establece la
     preservación de la privacidad del usuario como criterio de diseño del
-    sistema. La Figura~\ref{fig:detalle-implementado} muestra la vista
-    resultante.
-
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=\textwidth]{img/detalle-implementado.png}
-        \caption{Vista de detalle de un ejercicio, con el vídeo demostrativo,
-        la descripción y los consejos de ejecución.}
-        \label{fig:detalle-implementado}
-    \end{figure}
+    sistema.
 
    \section{Valoraciones y favoritos}
 
@@ -2840,18 +2827,17 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     \subsection{Reestructuración previa de los paquetes}
 
     Antes de abordar la funcionalidad se unificó la organización del código del
-    servidor. Los dos incrementos anteriores habían dejado dos criterios
-    simultáneos ---la mayoría de las clases agrupadas por capa (modelo,
-    repositorio, servicio, controlador) y las del catálogo agrupadas por
-    funcionalidad---, lo que obligaba a conocer el historial del proyecto para
+    servidor. Los dos incrementos anteriores habían dejado dos criterios simultáneos:
+    la mayoría de las clases agrupadas por capa (modelo, repositorio, servicio, controlador)
+    y las del catálogo agrupadas por funcionalidad. Esto obligaba a conocer el historial del proyecto para
     saber dónde buscar una clase. Se optó por la organización por capas, que era
     la predominante, repartiendo las clases del catálogo entre los paquetes
     correspondientes y añadiendo dos paquetes para los conversores y las
     excepciones de dominio. La Tabla~\ref{tab:paquetes} recoge la estructura
     resultante. Al tratarse de una reorganización que solo cambia declaraciones
-    de paquete e importaciones, sin alterar la lógica ni el nombre de las tablas
-    ---fijado por la anotación \texttt{@Table} y no por la ubicación del
-    código---, se registró como un cambio independiente del resto del incremento.
+    de paquete e importaciones, sin alterar la lógica ni el nombre de las tablas,
+    fijado por la anotación \texttt{@Table} y no por la ubicación del código,
+    se registró como un cambio independiente del resto del incremento.
 
     \begin{table}[htbp]
         \centering
@@ -2900,7 +2886,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.85\textwidth]{img/tablas-social-creacion.png}
+        \includegraphics[width=0.9\textwidth]{img/tablas-social-creacion.png}
         \caption{Estructura de las tablas \texttt{reviews} y \texttt{favorites}
         generadas por Hibernate, verificada en MySQL.}
         \label{fig:tablas-social-creacion}
@@ -2916,9 +2902,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     literalmente la misma operación, lo que permitió incorporar la edición sin
     escribir código adicional en el servidor. Esto se apoya en el diseño de la API
     (Sección~\ref{sec:api-social}): al identificarse el recurso como la valoración
-    propia sobre un ejercicio, y no mediante un identificador de valoración, la
-    operación resulta idempotente ---repetirla no cambia el resultado--- y la
-    identidad del autor procede siempre del token. El comentario se normaliza
+    propia sobre un ejercicio, y no mediante un identificador de valoración,
+    la operación resulta idempotente (repetirla no cambia el resultado) y
+    la identidad del autor procede siempre del token. El comentario se normaliza
     antes de guardarse: una cadena vacía o de solo espacios se almacena como nula,
     de modo que puntuar sin comentar no genera una entrada en blanco en el listado
     (RN-03).
@@ -2934,9 +2920,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     consulta agregada que recibe los identificadores de la página y devuelve,
     agrupados por ejercicio, su media y su número de valoraciones. Esto obliga a
     contemplar dos situaciones implícitas: un ejercicio sin valoraciones no
-    aparece en el resultado ---su ausencia se interpreta como media y recuento
-    nulos, que la interfaz muestra como «Sin valoraciones»--- y una consulta con
-    una lista de identificadores vacía no es SQL válido, por lo que el servicio
+    aparece en el resultado (su ausencia se interpreta como media y recuento nulos,
+    que la interfaz muestra como «Sin valoraciones»), y una consulta con una lista
+    de identificadores vacía no es SQL válido, por lo que el servicio
     evita lanzarla. La distribución de la vista de detalle se obtiene con una
     consulta análoga agrupada por puntuación, completando con cero los niveles que
     nadie ha seleccionado; de ella se deriva la media como media ponderada, lo que
@@ -2944,7 +2930,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     El listado de comentarios se obtiene con una consulta paginada que descarta
     las valoraciones sin texto (computan en la media pero no son comentarios),
-    excluye la del propio usuario ---la interfaz la muestra destacada al inicio---
+    excluye la del propio usuario (la interfaz la muestra destacada al inicio)
     y ordena por fecha de publicación y no de modificación, de modo que corregir
     un comentario antiguo no lo desplace al primer puesto. Recupera además de
     forma anticipada el autor de cada comentario para no incurrir en una consulta
@@ -2956,9 +2942,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     Las dos operaciones sobre el favorito son idempotentes: marcar uno ya marcado,
     o retirar uno que no lo estaba, se completa sin efecto ni error. El listado de
-    favoritos reúne los ejercicios con sus marcas y los ordena por la fecha en que
-    se guardaron ---atributo cuya existencia justifica que la relación se modelase
-    como entidad y no como una simple relación de muchos a muchos---. Para saber
+    favoritos reúne los ejercicios con sus marcas y los ordena por la fecha 
+    en que se guardaron. La existencia de ese atributo justifica que la relación
+    se modelase como entidad y no como una simple relación de muchos a muchos. Para saber
     qué ejercicios de una página son favoritos se usa, como con las valoraciones,
     una única consulta que devuelve solo los identificadores marcados. Como
     consecuencia, el listado del catálogo, que combina datos de tres tablas, se
@@ -2971,15 +2957,15 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     protección procede de la configuración de Spring Security del primer
     incremento, que exige un token válido en toda ruta que no sea de
     autenticación, de modo que las rutas nuevas quedaron protegidas sin tocarla.
-    La identidad del usuario se toma siempre del contexto de seguridad ---nunca
-    del cuerpo de la petición ni de la ruta---, lo que produce una propiedad
-    relevante: como ninguna ruta acepta el identificador de una valoración sino el
+    La identidad del usuario se toma siempre del contexto de seguridad,
+    nunca del cuerpo de la petición ni de la ruta, lo que produce una propiedad relevante:
+    como ninguna ruta acepta el identificador de una valoración sino el
     del ejercicio, la búsqueda se realiza siempre por la pareja ejercicio--usuario
     y solo puede encontrar valoraciones propias. La regla RN-04 no se sostiene por
     tanto sobre una comprobación que pudiera omitirse, sino sobre la imposibilidad
-    de expresar la petición. En el cliente, el contenido de los comentarios ---que
-    redacta un usuario y se muestra a los demás--- se representa mediante
-    interpolación, que en Angular escapa el texto por defecto y evita así un
+    de expresar la petición. En el cliente, el contenido de los comentarios,
+    que redacta un usuario y se muestra a los demás, se representa mediante interpolación,
+    que en Angular escapa el texto por defecto y evita así un
     ataque de \textit{cross-site scripting} (la inyección de código a través del
     contenido que introduce un usuario); se evita deliberadamente el enlace a
     \texttt{innerHTML}, que sí lo interpretaría.
@@ -2990,15 +2976,15 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     cabecera del detalle y cada comentario, además del formulario, donde debe
     admitir interacción; se implementó por ello como un componente propio con tres
     modos (lectura, selección y selección bloqueada) y tres tamaños. Para
-    representar medias decimales, en lugar de recurrir a media estrella se
-    superponen dos filas de cinco estrellas ---una neutra y otra de acento cuya
-    anchura se recorta en proporción al valor---, de modo que una media de 4,2
+    representar medias decimales, en lugar de recurrir a media estrella se superponen
+    dos filas de cinco estrellas (una neutra y otra de acento cuya anchura se recorta
+    en proporción al valor), de modo que una media de 4,2
     equivale a un 84\,\% de anchura. Las fechas se muestran en términos relativos
     mediante la internacionalización que ofrece el propio navegador, evitando una
     biblioteca adicional.
 
-    La pestaña completa requiere dos peticiones ---el resumen y la primera página
-    de comentarios---, que se lanzan solo al abrirla y de forma simultánea. Tras
+    La pestaña completa requiere dos peticiones (el resumen y la primera página de comentarios),
+    que se lanzan solo al abrirla y de forma simultánea. Tras
     publicar, modificar o eliminar una valoración se recargan ambas en lugar de
     actualizar el estado local con la respuesta: aunque supone dos accesos, la
     operación afecta a la vez a la media, la distribución, el recuento y la
@@ -3107,16 +3093,16 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/analisis-esqueleto.png}
+        \includegraphics[width=0.9\textwidth]{img/analisis-esqueleto.png}
         \caption{Esqueleto detectado superpuesto sobre el vídeo durante el
         análisis.}
         \label{fig:analisis-esqueleto}
     \end{figure}
 
     Junto al esqueleto, la interfaz muestra bajo el vídeo un panel de métricas en
-    tiempo real que expone los ángulos relevantes del ejercicio en curso ---la
-    rodilla y la inclinación del tronco en la sentadilla, la cadera y el cuello
-    en la plancha, y las magnitudes correspondientes en los demás---. Cada valor
+    tiempo real que expone los ángulos relevantes del ejercicio en curso:
+    la rodilla y la inclinación del tronco en la sentadilla, la cadera y
+    el cuello en la plancha, y las magnitudes correspondientes en los demás. Cada valor
     se colorea en verde o rojo según cumpla o no el mismo umbral que emplea la
     evaluación, de modo que la retroalimentación instantánea es coherente con la
     puntuación final. Este panel sustituyó a una etiqueta que se superponía sobre
@@ -3160,10 +3146,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
     La etapa que distingue a un ejercicio dinámico de uno estático es la
     extracción de muestras: la forma en que la señal continua de ángulos se
     convierte en las observaciones concretas sobre las que se aplican las reglas.
-    En la plancha, estática, cada fotograma es ya una muestra válida. En la
-    sentadilla ---y, análogamente, en la zancada y la flexión--- hace falta antes
-    identificar las repeticiones, pues la técnica se juzga en instantes concretos
-    de cada una, como la profundidad en el punto más bajo.
+    En la plancha, estática, cada fotograma es ya una muestra válida. En la sentadilla,
+    y análogamente en la zancada y la flexión, hace falta antes identificar las repeticiones,
+    pues la técnica se juzga en instantes concretos de cada una, como la profundidad en el punto más bajo.
 
     Contar repeticiones equivale a localizar los mínimos de la señal del ángulo de
     rodilla: cada repetición es un descenso seguido de un ascenso. El problema es
@@ -3186,11 +3171,10 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     Conviene subrayar que estos umbrales de detección son independientes de los
     que evalúan la técnica: los primeros determinan \emph{qué constituye una
-    repetición} y los segundos, \emph{si esa repetición es correcta}. Una vez
-    delimitada cada repetición, el analizador toma de ella una única muestra en el
-    instante relevante ---el de mayor flexión, para la profundidad---, y es sobre
-    ese conjunto de muestras, y no sobre todos los fotogramas, sobre el que opera
-    después el motor de puntuación.
+    repetición} y los segundos, \emph{si esa rtoma de ella una única muestra
+    en el instante relevante, el de mayor flexión para la profundidad, y
+    es sobre ese conjunto de muestras, y no sobre todos los fotogramas,
+    sobre el que opera después el motor de puntuación.
 
     \begin{figure}[htbp]
         \centering
@@ -3257,7 +3241,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/analisis-resultados.png}
+        \includegraphics[width=0.\textwidth]{img/analisis-resultados.png}
         \caption{Vista de resultados del análisis en la aplicación, con la
         puntuación coloreada y las correcciones detectadas.}
         \label{fig:analisis-resultados}
@@ -3274,9 +3258,9 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \subsection{Ajuste empírico de los umbrales}
 
-    Los umbrales concretos de cada regla ---la profundidad que se considera
-    suficiente, la inclinación de tronco admisible o el margen de alineación de la
-    plancha--- parten de los valores tomados de la literatura biomecánica, pero su
+    Los umbrales concretos de cada regla (la profundidad que se considera suficiente,
+    la inclinación de tronco admisible o el margen de alineación de la plancha)
+    parten de los valores tomados de la literatura biomecánica, pero su
     valor final se afinó de forma empírica sobre grabaciones de prueba. El panel de
     métricas en tiempo real descrito más arriba resultó decisivo para ello: al
     mostrar, fotograma a fotograma, el valor medido junto al color que indica si
@@ -3310,7 +3294,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.8\textwidth]{img/tabla-analysis-creacion.png}
+        \includegraphics[width=0.9\textwidth]{img/tabla-analysis-creacion.png}
         \caption{Estructura de la tabla \texttt{analysis\_results} generada en
         la base de datos.}
         \label{fig:tabla-analysis-creacion}
@@ -3332,7 +3316,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/dashboard-implementado.png}
+        \includegraphics[width=0.9\textwidth]{img/dashboard-implementado.png}
         \caption{Página de inicio con el resumen de análisis recientes y los
         ejercicios favoritos.}
         \label{fig:dashboard-implementado}
@@ -3350,7 +3334,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/catalogo-analizable.png}
+        \includegraphics[width=0.9\textwidth]{img/catalogo-analizable.png}
         \caption{Catálogo de ejercicios con el distintivo que señala los que
         admiten análisis postural.}
         \label{fig:catalogo-analizable}
@@ -3361,7 +3345,7 @@ El primer módulo implementado en el backend es el de gestión de usuarios,
 
 Los incrementos anteriores se desarrollaron con la base de datos en un
     contenedor Docker mientras el backend y el frontend se ejecutaban
-    directamente sobre la máquina de desarrollo. El incremento de cierre aborda
+    directamente sobre la máquina de desarrollo. El incremento de cierre abordó
     el empaquetado completo del sistema, de modo que los tres componentes
     —base de datos, servidor y cliente— se construyan y ejecuten como
     contenedores coordinados por una única definición. El objetivo es el que
@@ -3403,8 +3387,8 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     código, lo que permite que la misma imagen funcione sin cambios tanto en
     desarrollo como en el despliegue.
 
-    Los datos sensibles la contraseña de la base de datos y la clave de firma
-    de los tokens se externalizan a un fichero de entorno que queda fuera del
+    Los datos sensibles (la contraseña de la base de datos y la clave de firma de los tokens)
+    se externalizan a un fichero de entorno que queda fuera del
     control de versiones, acompañado de una plantilla de ejemplo que documenta
     las variables necesarias sin exponer ningún valor real.
 
@@ -3424,9 +3408,8 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     dirigidas a la ruta \texttt{/api}, mientras entrega el resto como parte de
     la aplicación de Angular. Esta disposición ofrece dos ventajas. La primera
     es que cliente y API quedan expuestos bajo un mismo origen, lo que elimina
-    en el despliegue la necesidad de la configuración de CORS descrita en el
-    Capítulo~\ref{cap:implementacion}, propia únicamente del entorno de
-    desarrollo, en el que cliente y servidor se sirven en puertos distintos. La
+    en el despliegue la necesidad de la configuración de CORS descrita anteriormente en este capítulo,
+    propia únicamente del entorno de desarrollo, en el que cliente y servidor se sirven en puertos distintos. La
     segunda es la gestión automática del cifrado: al indicarle un nombre de
     dominio, el proxy obtiene y renueva por sí mismo el certificado necesario
     para servir la aplicación sobre HTTPS, sin intervención manual. En
@@ -3561,7 +3544,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/app-registro-validacion.png}
+        \includegraphics[width=0.9\textwidth]{img/app-registro-validacion.png}
         \caption{Validación de la contraseña en tiempo real durante el registro:
         el botón permanece deshabilitado mientras no se cumplen todos los
         requisitos.}
@@ -3570,7 +3553,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/app-login-error.png}
+        \includegraphics[width=0.9\textwidth]{img/app-login-error.png}
         \caption{Inicio de sesión con credenciales incorrectas: mensaje de error
         y resaltado de los campos afectados.}
         \label{fig:app-login-error}
@@ -3578,7 +3561,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/app-perfil-token.png}
+        \includegraphics[width=0.9\textwidth]{img/app-perfil-token.png}
         \caption{Petición al perfil del usuario: el interceptor adjunta
         automáticamente el token JWT en la cabecera \texttt{Authorization}.}
         \label{fig:app-perfil-token}
@@ -3728,8 +3711,8 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     Dos de estas pruebas merecen comentario. La inserción manual de un par
     usuario--ejercicio duplicado se ejecuta a propósito al margen de la
     aplicación, mediante una sentencia \texttt{INSERT} directa sobre la base de
-    datos: su fin no es probar la lógica del servicio ---que nunca produciría esa
-    situación--- sino verificar que la regla RN-01 se sostiene aunque esa lógica
+    datos: su fin no es probar la lógica del servicio, que nunca produciría esa
+    situación, sino verificar que la regla RN-01 se sostiene aunque esa lógica
     fallara o se ejecutase de forma concurrente; es la diferencia entre una
     restricción implementada y una restricción garantizada. La segunda es la
     prueba de autorización propiamente dicha: un usuario autenticado que intenta
@@ -3796,10 +3779,10 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     \end{table}
 
     Todos los casos se completaron con el resultado esperado; dos de ellos solo
-    tras corregir sendos defectos descritos en el capítulo anterior ---la
-    inaccesibilidad de las acciones de edición y eliminación al valorar sin
-    comentar, y la recarga del marco flotante del vídeo al modificar la condición
-    de favorito---, lo que ilustra el valor de recorrer la aplicación completa
+    tras corregir sendos defectos descritos en el capítulo anterior: la inaccesibilidad
+    de las acciones de edición y eliminación al valorar sin comentar, y la recarga
+    del marco flotante del vídeo al modificar la condición de favorito.
+    Esto ilustra el valor de recorrer la aplicación completa
     frente a probar la API por separado. Merece destacarse el caso del comentario
     con etiquetas HTML (Figura~\ref{fig:app-comentario-escapado}), que confirma
     la protección frente a la inyección de código en contenido redactado por
@@ -3886,38 +3869,36 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     contrastando una ejecución técnicamente correcta con otra que incorpora un
     error deliberado, y verificando que la puntuación discrimina entre ambas y
     que las correcciones señaladas se corresponden con los errores introducidos.
-    Las Figuras~\ref{fig:analisis-correcto} y~\ref{fig:analisis-error} recogen
-    ambos casos para la sentadilla.
+    La Figura~\ref{fig:analisis-sentadilla} recoge el análisis de una sentadilla,
+    y las Figuras~\ref{fig:analisis-plancha}, \ref{fig:analisis-flexion}
+    y~\ref{fig:analisis-zancada}, el de los tres ejercicios restantes.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/analisis-video-correcto.png}
-        \caption{Análisis de una sentadilla correctamente ejecutada: puntuación
-        alta y ausencia de correcciones relevantes.}
-        \label{fig:analisis-correcto}
+        \includegraphics[width=0.9\textwidth]{img/analisis-video-sentadilla.png}
+        \caption{Análisis de una sentadilla sobre vídeo real.}
+        \label{fig:analisis-sentadilla}
     \end{figure}
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=\textwidth]{img/analisis-video-error.png}
-        \caption{Análisis de una sentadilla con profundidad insuficiente: la
-        puntuación desciende y la corrección identifica el error.}
-        \label{fig:analisis-error}
+        \includegraphics[width=0.9\textwidth]{img/analisis-video-plancha.png}
+        \caption{Análisis de una plancha sobre vídeo real.}
+        \label{fig:analisis-plancha}
     \end{figure}
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.8\textwidth]{img/postman-analisis-guardado.png}
-        \caption{Guardado de un análisis mediante \texttt{POST /api/analyses}.}
-        \label{fig:postman-analisis-guardado}
+        \includegraphics[width=0.9\textwidth]{img/analisis-video-flexion.png}
+        \caption{Análisis de una flexión sobre vídeo real.}
+        \label{fig:analisis-flexion}
     \end{figure}
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.8\textwidth]{img/postman-dashboard-summary.png}
-        \caption{Resumen de la página de inicio mediante
-        \texttt{GET /api/dashboard/summary}.}
-        \label{fig:postman-dashboard-summary}
+        \includegraphics[width=0.9\textwidth]{img/analisis-video-zancada.png}
+        \caption{Análisis de una zancada sobre vídeo real.}
+        \label{fig:analisis-zancada}
     \end{figure}
 
     Esta validación puso de manifiesto, además, el comportamiento del sistema
@@ -4000,7 +3981,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     implementado evaluando la ejecución a partir de vídeos procesados
     íntegramente en el navegador, sin que el material salga del dispositivo del
     usuario. Sobre esa base, el sistema calcula para cada ejercicio las métricas
-    pertinentes ---ángulos articulares y alineaciones--- y devuelve una puntuación
+    pertinentes (ángulos articulares y alineaciones) y devuelve una puntuación
     global acompañada de mensajes de corrección concretos, satisfaciendo los
     objetivos de cálculo de métricas y de generación de retroalimentación.
 
@@ -4019,9 +4000,9 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     La metodología incremental adoptada ha sido determinante para alcanzar este
     resultado: abordar el sistema en incrementos funcionales sucesivos permitió
     validar cada bloque antes de construir sobre él y mantener el proyecto bajo
-    control en todo momento. El desarrollo ha exigido integrar tecnologías
-    diversas ---desde la estimación de pose en el navegador hasta la orquestación
-    de contenedores---, lo que ha supuesto el principal aprendizaje del trabajo.
+    control en todo momento. El desarrollo ha exigido integrar tecnologías diversas,
+    desde la estimación de pose en el navegador hasta la orquestación de contenedores,
+    lo que ha supuesto el principal aprendizaje del trabajo.
     Las dificultades encontradas durante el proceso y las líneas por las que el
     sistema podría evolucionar se detallan en los apartados siguientes.
 
@@ -4047,17 +4028,17 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     implícita de los cambios} en el modelo reactivo basado en señales. El caso
     más ilustrativo fue un fallo en la navegación que se manifestaba tres pasos
     por delante de su causa real, al encadenarse el marcado de un favorito con la
-    recarga del vídeo embebido. Este defecto, junto con otros que solo se
-    revelaron al recorrer la aplicación completa como lo haría un usuario ---y no
-    al probar los puntos de entrada de la API por separado---, confirmó que la
+    recarga del vídeo embebido. Este defecto, junto con otros que solo se revelaron
+    al recorrer la aplicación completa como lo haría un usuario, y no al probar
+    los puntos de entrada de la API por separado, confirmó que la
     verificación de extremo a extremo es imprescindible y complementa, sin
     sustituirla, a la prueba aislada de cada componente.
 
     La incidencia más instructiva del proyecto afectó al núcleo del análisis
     postural: una \textbf{marca temporal que no podía retroceder}. El modelo de
     estimación de pose exige que el instante asociado a cada fotograma crezca de
-    forma estricta, y la primera aproximación ---derivarlo de la reproducción del
-    vídeo--- lo incumplía al rebobinar o recargar, deteniendo el análisis de
+    forma estricta, y la primera aproximación, derivarlo de la reproducción del vídeo,
+    lo incumplía al rebobinar o recargar, deteniendo el análisis de
     forma intermitente. La solución no consistió en refinar aquel cálculo, sino
     en sustituirlo por completo por un reloj independiente de la reproducción. El
     caso dejó una lección transferible: cuando un síntoma resulta especialmente
@@ -4068,9 +4049,9 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     entre \textbf{la calidad de los datos y la complejidad del algoritmo}. Ante
     el temblor de los puntos detectados y la degradación en grabaciones poco
     favorables, la tentación era sofisticar el procesamiento de la señal; la
-    solución adoptada siguió el camino contrario, depurando los datos de entrada
-    ---seleccionando el costado más visible y descartando los fotogramas poco
-    fiables--- antes de que llegaran al algoritmo. Mejorar la entrada resultó más
+    solución adoptada siguió el camino contrario, depurando los datos de entrada,
+    seleccionando el costado más visible y descartando los fotogramas poco fiables,
+    antes de que llegaran al algoritmo. Mejorar la entrada resultó más
     eficaz, y más simple de mantener, que complicar el procesamiento para
     absorber un ruido evitable.
 
@@ -4080,7 +4061,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
 
     El sistema de autenticación implementado cumple su cometido. El despliegue
     en contenedores aborda ya una de las cuestiones que un uso en producción
-    plantearía ---el cifrado del canal---, mientras que las restantes quedan como
+    plantearía, el cifrado del canal, mientras que las restantes quedan como
     trabajo futuro.
 
     El cifrado del canal lo proporciona el propio despliegue: el proxy inverso
@@ -4122,7 +4103,7 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
     el movimiento grabado sea realmente el esperado. Como se observó en las
     pruebas, al proporcionar el vídeo de un ejercicio distinto el sistema no lo
     rechaza, sino que lo evalúa con las métricas del ejercicio seleccionado y
-    emite una puntuación ---habitualmente baja--- carente de sentido. Este
+    emite una puntuación, habitualmente baja, carente de sentido. Este
     comportamiento es coherente con la naturaleza del análisis, que mide la
     geometría del movimiento pero no clasifica el ejercicio que aparece en la
     imagen.
@@ -4253,7 +4234,154 @@ Los incrementos anteriores se desarrollaron con la base de datos en un
         % Requisitos previos, docker-compose, arranque de los servicios.
 
         \umaappendix{Manual de usuario}
-    % Registro, navegación por el catálogo, uso del análisis postural.
+        \section*{Introducción}
+
+        Este manual describe, paso a paso, cómo utilizar la aplicación desde el
+        punto de vista de una persona usuaria. Se asume que el sistema ya está en
+        marcha y accesible en un navegador, según se explica en el manual de
+        instalación.
+
+        \section*{Registro y acceso}
+
+        La aplicación solo es accesible con una cuenta. Desde la pantalla de
+        presentación se accede al formulario de registro, donde se indican un nombre
+        de usuario, un correo y una contraseña; el formulario avisa en el momento si
+        algún dato no es válido (Figura~\ref{fig:manual-registro}). Una vez creada la
+        cuenta, se inicia sesión con el nombre de usuario y la contraseña.
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/app-registro-validacion.png}
+            \caption{Formulario de registro con la validación de los datos.}
+            \label{fig:manual-registro}
+        \end{figure}
+
+        \section*{La pantalla de inicio}
+
+        Tras iniciar sesión se muestra la pantalla de inicio, que reúne los accesos
+        principales (catálogo, favoritos y perfil) y un resumen con el número de
+        ejercicios marcados como favoritos, el número de análisis realizados y el
+        listado de los más recientes (Figura~\ref{fig:manual-home}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/dashboard-implementado.png}
+            \caption{Pantalla de inicio con el resumen de actividad.}
+            \label{fig:manual-home}
+        \end{figure}
+
+        \section*{Consultar el catálogo de ejercicios}
+
+        El catálogo muestra los ejercicios disponibles en forma de tarjetas. Cada
+        tarjeta indica el nombre, los grupos musculares, la dificultad, la valoración
+        media y un control para marcarlo como favorito. La barra superior permite
+        buscar por nombre y filtrar por grupo muscular o por dificultad
+        (Figura~\ref{fig:manual-catalogo}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/catalogo-filtrado.png}
+            \caption{Catálogo de ejercicios con un filtro aplicado.}
+            \label{fig:manual-catalogo}
+        \end{figure}
+
+        \section*{Ver el detalle de un ejercicio}
+
+        Al seleccionar una tarjeta se abre el detalle del ejercicio, organizado en
+        pestañas: \textit{Información}, con la descripción, los consejos de ejecución
+        y un vídeo demostrativo; \textit{Valoraciones}; y, en los ejercicios que lo
+        permiten, \textit{Analizar mi técnica} (Figura~\ref{fig:manual-detalle}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/detalle-implementado.png}
+            \caption{Detalle de un ejercicio, pestaña de información.}
+            \label{fig:manual-detalle}
+        \end{figure}
+
+        \section*{Valorar y comentar}
+
+        En la pestaña \textit{Valoraciones} se puntúa el ejercicio con estrellas y,
+        de manera opcional, se acompaña de un comentario; ambas cosas se envían en una
+        sola acción. La valoración propia queda destacada al principio del listado y
+        puede editarse o eliminarse en cualquier momento
+        (Figura~\ref{fig:manual-valoraciones}). Debajo aparecen los comentarios del
+        resto de personas usuarias.
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/manual-valoraciones.png}
+            \caption{Pestaña de valoraciones con una valoración propia.}
+            \label{fig:manual-valoraciones}
+        \end{figure}
+
+        \section*{Gestionar los ejercicios favoritos}
+
+        El control en forma de corazón, presente en cada tarjeta y en el detalle,
+        permite marcar o retirar un ejercicio de la lista de favoritos. La vista de
+        favoritos, accesible desde el menú, reúne los ejercicios guardados y ofrece la
+        misma búsqueda y filtros que el catálogo (Figura~\ref{fig:manual-favoritos}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/manual-favoritos.png}
+            \caption{Vista de ejercicios favoritos.}
+            \label{fig:manual-favoritos}
+        \end{figure}
+
+        \section*{Analizar la técnica de un ejercicio}
+
+        Es la función principal de la aplicación. En la pestaña \textit{Analizar mi
+        técnica} de un ejercicio compatible se aporta un vídeo propio, que se procesa
+        por completo en el navegador: el vídeo no se envía a ningún servidor ni se
+        almacena, de modo que la privacidad queda garantizada.
+
+        Para empezar, se arrastra o se selecciona el vídeo en la zona indicada
+        (Figura~\ref{fig:manual-analisis-inicio}). Durante el análisis, la aplicación
+        superpone sobre el vídeo la silueta detectada y muestra, en un panel lateral,
+        las métricas de la ejecución en tiempo real, coloreadas según se ajusten o no
+        a los valores recomendados (Figura~\ref{fig:manual-analisis-proceso}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/mockup-analisis-dropzone.png}
+            \caption{Zona de aporte del vídeo para el análisis.}
+            \label{fig:manual-analisis-inicio}
+        \end{figure}
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/analisis-esqueleto.png}
+            \caption{Análisis en curso: silueta detectada y métricas en tiempo real.}
+            \label{fig:manual-analisis-proceso}
+        \end{figure}
+
+        Al finalizar, la aplicación presenta una puntuación global de la ejecución y
+        una lista de correcciones concretas ordenadas por su importancia
+        (Figura~\ref{fig:manual-analisis-resultado}). Conviene recordar que esta
+        valoración es orientativa y sirve de apoyo al entrenamiento autónomo, pero no
+        sustituye la supervisión de un profesional. Cada resultado queda registrado en
+        el historial de la pantalla de inicio.
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/analisis-resultados.png}
+            \caption{Resultado del análisis: puntuación y correcciones.}
+            \label{fig:manual-analisis-resultado}
+        \end{figure}
+
+        \section*{Perfil y cierre de sesión}
+
+        Desde el perfil se pueden modificar el correo y la contraseña; el nombre de
+        usuario, en cambio, se fija en el registro y no se cambia. El menú principal
+        incluye además la opción de cerrar la sesión (Figura~\ref{fig:manual-perfil}).
+
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{img/app-perfil-token.png}
+            \caption{Pantalla de perfil de la persona usuaria.}
+            \label{fig:manual-perfil}
+        \end{figure}
 
     \end{umaappendices}
 
