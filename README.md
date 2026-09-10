@@ -42,7 +42,6 @@ tfg-posture-correction/
 ├── frontend/           # Aplicación Angular
 │   ├── Dockerfile
 │   └── Caddyfile       # Sirve la SPA y hace de proxy inverso de /api
-├── docs/               # Memoria del TFG (LaTeX)
 ├── docker-compose.yml  # Orquesta base de datos + backend + frontend
 └── .env.example        # Plantilla de variables de entorno (copiar a .env)
 ```
@@ -59,12 +58,16 @@ Levanta el sistema completo (base de datos, backend y frontend) con un solo coma
 
 ### Pasos
 
-1. Clona el repositorio y sitúate en su raíz:
+1. Obtén el código fuente y sitúate en la carpeta raíz del proyecto (la que contiene
+   `docker-compose.yml`). Hay dos opciones:
 
-   ```bash
-   git clone https://github.com/<usuario>/tfg-posture-correction.git
-   cd tfg-posture-correction
-   ```
+    - **Desde el archivo `.zip`**: descomprímelo y entra en la carpeta resultante.
+    - **Desde GitHub**: clona el repositorio.
+
+      ```bash
+      git clone https://github.com/JuanmaCardenas/tfg-posture-correction.git
+      cd tfg-posture-correction
+      ```
 
 2. Crea el fichero de variables de entorno a partir de la plantilla:
 
@@ -120,7 +123,7 @@ por separado y solo la base de datos en contenedor.
 
    Queda accesible en `http://localhost:8080`.
 
-3. **Frontend** — desde `frontend/`, con Node 22:
+3. **Frontend** — desde `frontend/`, con Node 22.22.3 o superior:
 
    ```bash
    npm install
@@ -175,8 +178,8 @@ una puntuación arbitraria, sino que rechaza la grabación.
 
 ## Documentación
 
-La memoria del TFG se encuentra en `docs/`, escrita en LaTeX con la plantilla de la ETSI
-Informática de la UMA.
+La memoria del TFG se entrega como documento independiente en formato PDF y no forma
+parte de este código fuente.
 
 ---
 
